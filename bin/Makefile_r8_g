@@ -1,0 +1,71 @@
+DSRC2=../src
+#F_COMP=ifort
+#F_OPTS= -O0 -r8 -check bounds -traceback -check uninit# -prof-gen #-fpe0
+
+F_COMP=gfortran
+F_OPTS= -O0 -fcheck=bounds -fbacktrace -ffree-line-length-200 # -fdefault-real-8
+
+
+#F_OPTS=  -O0 -fpe2 -ftrapuv -check bounds -traceback -init=snan,arrays  -check uninit  # -ftz  -check uninit -check all -g #-r8 
+#F_OPTS= -init=snan,arrays  -check uninit -fpe0 -ftrapuv  -traceback # -ftz  -check uninit -check all -g #-r8 
+#F_OPTS=  -O3  -convert big_endian  -fpe2 -ftrapuv -check bounds -traceback -init=snan,arrays  -check uninit  # -ftz  -check uninit -check all -g #-r8 
+#F_OPTS= -r4 -check all -g -O0 -check bounds -traceback -ftz -fpe0  -check uninit#-r8 
+#F_OPTS= -r4  -g -O0 -ftz -align all -fno-alias -traceback -debug -nolib-inline \
+#-fno-inline-functions -assume protect_parens,minus0 -prec-div -prec-sqrt \
+#-check bounds -check uninit -fp-stack-check -ftrapuv -warn unused -traceback    \
+#-fPIC -fpe0 -fp-model source -heap-arrays 32  -align dcommons
+#F_OPTS= -O0 -check all -traceback -ftz -fpe0 #-r8 
+#F_OPTS= -O0 -check bounds -traceback #-r8 
+#F_OPTS=-O0  -fcheck=bounds -g -fcheck=all -finit-real=nan \
+# -fbacktrace -ffpe-trap=invalid,zero,overflow,underflow,denormal #-Wall
+#F_OPTS=-O0 -fdefault-real-8 -fcheck=bounds -g -fcheck=all -finit-real=nan \
+# -fbacktrace -ffpe-trap=invalid,zero,overflow,underflow,denormal     
+#  -finit-real=zero -Wall
+
+LOADER=$(F_COMP)
+LOADER_OPTS=-v #-Bstatic -check_bounds -traceback #-Mlarge_arrays
+ARCHIVE=ar rs
+
+# Compiler commands.
+
+F_COMMAND = $(F_COMP) -c $(F_OPTS) $(INCLUDES)
+
+# Define archive and executable names.
+
+BASE=gf
+EXE=$(BASE).x
+ARC=$(BASE).a
+
+# Define source.
+F_SRC=  $(DSRC2)/module_gate.f90 \
+	$(DSRC2)/MAPL_Constants.F90 \
+	$(DSRC2)/Henrys_Law_cts.F90 \
+        $(DSRC2)/Phys_const.f90 \
+	$(DSRC2)/ConvPar_GF_GEOS5.F90 \
+	$(DSRC2)/1d-gf-test.f90 	
+	
+
+
+
+# Define targets.
+
+all: $(EXE)
+
+$(EXE): $(ARC) 
+	$(LOADER) -o $(EXE) $(LOADER_OPTS) $(ARC) $(LIB_IFS)
+###	ln -fs $(EXE) $(BASE)
+	rm -f r*.o
+
+$(ARC): $(F_SRC)
+	$(F_COMMAND) $(?)
+	$(ARCHIVE) $(ARC) *.o
+#	$(F_COMMAND) $(DSRC)/main.f90
+#	rm -f *.o
+
+
+install:
+	ln -fs $(pwd)/$(EXE) ../$(BASE)
+#	ln -fs `pwd`/$(EXE) ../test/$(BASE)
+
+clean:
+	rm -f $(ARC) $(EXE) $(BASE) *.o  ___* core* *.mod *.a
