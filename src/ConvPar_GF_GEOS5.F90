@@ -4055,7 +4055,7 @@ contains
          call cupUpCape(cape, z, zu, dby, gamma_cup, t_cup, k22, kbcon, ktop, ierr &
                           , tempco, qco, qrco, qo_cup, itf, ktf, its, ite, kts, kte)
 
-         call cup_up_lightning(itf, ktf, its, ite, kts, kte, ierr, kbcon, ktop, xland, cape &
+         call cupUpLightning(itf, ktf, its, ite, kts, kte, ierr, kbcon, ktop, xland, cape &
                                , zo, zo_cup, t_cup, t, tempco, qrco, po_cup, rho, prec_flx &
                                , lightn_dens)
       end if
@@ -4145,7 +4145,7 @@ contains
       end if
 
       if (LIQ_ICE_NUMBER_CONC == 1) then
-         call get_liq_ice_number_conc(itf, ktf, its, ite, kts, kte, ierr, ktop &
+         call getLiqIceNumberConc(itf, ktf, its, ite, kts, kte, ierr, ktop &
                                       , dtime, rho, outqc, tempco, outnliq, outnice)
       end if
       !
@@ -4174,15 +4174,14 @@ contains
          !--only for debug
 
          !-1) get mass mixing ratios at the cloud levels
-
-         call cup_Env_CLev_chem(mtp, se_chem, se_cup_chem, ierr, itf, ktf, its, ite, kts, kte)
+         call cupEnvClevChem(mtp, se_chem, se_cup_chem, ierr, itf, ktf, its, ite, kts, kte)
 
          !-2) determine in-cloud tracer mixing ratios
          !
          ! a) chem - updraft
          !- note: here "sc_up_chem" stores the total in-cloud tracer mixing ratio (i.e., including the portion
          !        embedded in the condensates).
-         call get_incloud_sc_chem_up(cumulus, fscav, mtp, se_chem, se_cup_chem, sc_up_chem, pw_up_chem, tot_pw_up_chem &
+         call getInCloudScChemUp(cumulus, fscav, mtp, se_chem, se_cup_chem, sc_up_chem, pw_up_chem, tot_pw_up_chem &
                                      , zo_cup, rho, po, po_cup, qrco, tempco, pwo, zuo, up_massentro, up_massdetro &
                                    , vvel2d, vvel1d, start_level, k22, kbcon, ktop, klcl, ierr, xland, itf, ktf, its, ite, kts, kte)
 
@@ -10921,6 +10920,488 @@ contains
 
    end subroutine cloudDissipation
 
+   !------------------------------------------------------------------------------------
+   subroutine cupUpLightning(itf, ktf, its, ite, kts, kte, ierr, kbcon, ktop, xland, cape, zo, zo_cup, t_cup, t, tempco &
+                           , qrco, po_cup, rho, prec_flx, lightn_dens)
+      !! Lightning parameterization
+      !!
+      !! @note
+      !!
+      !! **Project**: MONAN
+      !! **Author(s)**: Saulo Freitas [SRF]
+      !! **e-mail**: <mailto:saulo.r.de.freitas@gmail.com>
+      !! **Date**:  10-Aug-2019
+      !!
+      !! **Full description**:
+      !!
+      !! Lightning parameterization based on:
+      !! "A Lightning Parameterization for the ECMWF Integrated Forecasting System"
+      !!  P. Lopez, 2016 MWR
+      !!
+      !! Coded/adapted to the GF scheme by Saulo Freitas (10-Aug-2019)
+      !!
+      !! @endnote
+      !!
+      !! @warning
+      !!
+      !!  [](https://www.gnu.org/graphics/gplv3-127x51.png'')
+      !!
+      !!     Under the terms of the GNU General Public version 3
+      !!
+      !! @endwarning
+   
+      implicit none
+      !Parameters:
+      character(len=*), parameter :: procedureName = 'cupUpLightning' ! Nome da subrotina
+
+      real, parameter :: p_v_graup = 3.0  
+      !! m/s
+      real, parameter :: p_v_snow = 0.5  
+      !! m/s
+      real, parameter :: p_beta_land = 0.70 
+      !! 1
+      real, parameter :: p_beta_ocean = 0.45 
+      !! 1
+      real, parameter :: p_alpha = 37.5 
+      !! 1
+      real, parameter :: p_t_initial = 0.0 + 273.15 
+      !! K
+      real, parameter :: p_t_final = -25.+273.15 
+      !! K
+   
+      !Variables (input, output, inout)
+      integer, intent(in) :: itf, ktf, its, ite, kts, kte
+
+      integer, intent(in) :: ierr(its:ite)
+      integer, intent(in) :: kbcon(its:ite)
+      integer, intent(in) :: ktop(its:ite)
+
+      real, intent(in) :: cape(its:ite)
+      real, intent(in) :: xland(its:ite)
+      real, intent(in) :: po_cup(its:ite, kts:kte)
+      real, intent(in) :: zo_cup(its:ite, kts:kte)
+      real, intent(in) :: t_cup(its:ite, kts:kte)
+      real, intent(in) :: t(its:ite, kts:kte)
+      real, intent(in) :: tempco(its:ite, kts:kte)
+      real, intent(in) :: zo(its:ite, kts:kte)
+      real, intent(in) :: qrco(its:ite, kts:kte)
+      real, intent(in) :: rho(its:ite, kts:kte)
+      real, intent(in) :: prec_flx(its:ite, kts:kte)
+
+      real, intent(out) :: lightn_dens(its:ite) 
+      !! lightning flash density - rate (units: 1/km2/day)
+
+      !Local variables:
+      integer :: i, k, k_initial, k_final
+      real :: q_r, z_base, beta, prec_flx_fr, dz
+      real, dimension(kts:kte) :: p_liq_ice, q_graup, q_snow
+
+      do i = its, itf
+         lightn_dens(i) = 0.0
+         if (ierr(i) /= 0) cycle
+
+         beta = xland(i)*p_beta_ocean + (1.-xland(i))*p_beta_land
+
+         q_graup(:) = 0.
+         q_snow(:) = 0.
+
+         do k = kts, ktop(i)
+
+            p_liq_ice(k) = fract_liq_f(tempco(i, k))
+
+            prec_flx_fr = p_liq_ice(k)*prec_flx(i, k)/rho(i, k)
+
+            q_graup(k) = beta*prec_flx_fr/p_v_graup ! - graupel mixing ratio (kg/kg)
+            q_snow(k) = (1.-beta)*prec_flx_fr/p_v_snow  ! - snow    mixing ratio (kg/kg)
+
+         end do
+
+         k_initial = minloc(abs(tempco(i, kbcon(i):ktop(i)) - p_t_initial), 1) + kbcon(i) - 1
+         k_final = minloc(abs(tempco(i, kbcon(i):ktop(i)) - p_t_final), 1) + kbcon(i) - 1
+
+         q_r = 0.0
+         do k = k_initial, k_final
+            dz = zo(i, k) - zo(i, k - 1)
+            q_r = q_r + dz*rho(i, k)*(q_graup(k)*(qrco(i, k) + q_snow(k)))
+            !print*,"qr=",q_r,tempco(i,k)-273.15,k,tempco(i,k)-t_initial
+         end do
+
+         z_base = zo_cup(i, kbcon(i))/1000. ! km
+
+         !---
+         !--- lightning flash density (units: number of flashes/km2/day) - equation 5
+         !--- (to compare with Lopez 2016's results, convert to per year: lightn_dens*365)
+         !
+         lightn_dens(i) = p_alpha*q_r*sqrt(max(0., cape(i)))*min(z_base, 1.8)**2
+         !
+      end do
+   end subroutine cupUpLightning
+
+   !------------------------------------------------------------------------------------
+   subroutine getLiqIceNumberConc(itf, ktf, its, ite, kts, kte, ierr, ktop, dtime, rho, outqc, tempco, outnliq, outnice)
+      !! brief
+      !!
+      !! @note
+      !!
+      !! **Project**: MONAN
+      !! **Author(s)**: Saulo Freitas [SRF] e Georg Grell [GAG]
+      !! **e-mail**: <mailto:saulo.r.de.freitas@gmail.com>, <mailto:georg.a.grell@noaa.gov>
+      !! **Date**:  2014
+      !!
+      !! **Full description**:
+      !! brief
+      !!
+      !! @endnote
+      !!
+      !! @warning
+      !!
+      !!  [](https://www.gnu.org/graphics/gplv3-127x51.png'')
+      !!
+      !!     Under the terms of the GNU General Public version 3
+      !!
+      !! @endwarning
+   
+      implicit none
+      !Parameters:
+      character(len=*), parameter :: procedureName = 'getLiqIceNumberConc' ! Nome da subrotina
+   
+      !Variables (input, output, inout)
+      integer, intent(in) :: itf, ktf, its, ite, kts, kte
+
+      integer, intent(in) :: ierr(its:ite) 
+      integer, intent(in) :: ktop(its:ite)
+
+      real, intent(in) :: outqc(its:ite, kts:kte)
+      real, intent(in) :: tempco(its:ite, kts:kte)
+      real, intent(in) :: rho(its:ite, kts:kte)
+      real, intent(in) :: dtime
+
+      real, intent(out) :: outnliq(its:ite, kts:kte)
+      real, intent(out) :: outnice(its:ite, kts:kte)
+
+      !Local variables:
+      integer :: i, k
+      real :: fr, tqliq, tqice, dtinv
+      real, dimension(its:ite, kts:kte) :: nwfa   
+      !! in the future set this as NCPL
+      real, dimension(its:ite, kts:kte) :: nifa   
+      !! in the future set this as NCPI
+
+      nwfa(:, :) = 99.e7  ! in the future set this as NCPL
+      nifa(:, :) = 0.     ! in the future set this as NCPI
+      dtinv = 1./dtime
+      do i = its, itf
+         if (ierr(i) /= 0) cycle
+
+         do k = kts, ktop(i) + 1
+
+            fr = fract_liq_f(tempco(i, k))
+            tqliq = dtime*outqc(i, k)*rho(i, k)*fr
+            tqice = dtime*outqc(i, k)*rho(i, k)*(1.-fr)
+
+            outnice(i, k) = max(0.0, make_IceNumber(tqice, tempco(i, k))/rho(i, k))
+            outnliq(i, k) = max(0.0, make_DropletNumber(tqliq, nwfa(i, k))/rho(i, k))
+
+         end do
+         !-- convert in tendencies
+         outnice = outnice*dtinv ! unit [1/s]
+         outnliq = outnliq*dtinv ! unit [1/s]
+         !--- for update
+         ! nwfa =nwfa + outnliq*dtime
+         ! nifa =nifa + outnice*dtime
+
+      end do
+
+   end subroutine getLiqIceNumberConc
+
+   !---------------------------------------------------------------------------------------------------
+   subroutine cupEnvClevChem(mtp, se_chem, se_cup_chem, ierr, itf, ktf, its, ite, kts, kte)
+      !! brief
+      !!
+      !! @note
+      !!
+      !! **Project**: MONAN
+      !! **Author(s)**: Saulo Freitas [SRF] e Georg Grell [GAG]
+      !! **e-mail**: <mailto:saulo.r.de.freitas@gmail.com>, <mailto:georg.a.grell@noaa.gov>
+      !! **Date**:  2014
+      !!
+      !! **Full description**:
+      !! brief
+      !!
+      !! @endnote
+      !!
+      !! @warning
+      !!
+      !!  [](https://www.gnu.org/graphics/gplv3-127x51.png'')
+      !!
+      !!     Under the terms of the GNU General Public version 3
+      !!
+      !! @endwarning
+   
+      implicit none
+      !Parameters:
+      character(len=*), parameter :: procedureName = 'cupEnvClevChem' ! Nome da subrotina
+
+      integer, parameter ::  p_clev_option = 2 
+      !! use option 2
+   
+      !Variables (input, output, inout)
+      integer, intent(in) :: itf, ktf, its, ite, kts, kte, mtp
+      
+      integer, intent(in) :: ierr(its:ite)
+
+      real, intent(in) :: se_chem(mtp, its:ite, kts:kte)
+
+      real, intent(out) :: se_cup_chem(mtp, its:ite, kts:kte)
+
+      !Local variables:
+      integer :: i, k
+      
+      if (p_clev_option == 1) then
+         !-- original version
+         do i = its, itf
+            if (ierr(i) /= 0) cycle
+            do k = kts + 1, ktf
+               se_cup_chem(1:mtp, i, k) = 0.5*(se_chem(1:mtp, i, k - 1) + se_chem(1:mtp, i, k))
+            end do
+            se_cup_chem(1:mtp, i, kts) = se_chem(1:mtp, i, kts)
+            se_cup_chem(1:mtp, i, kte) = se_chem(1:mtp, i, ktf)
+         end do
+      else
+         !-- version 2: se_cup (k+1/2) = se(k) => smoother profiles
+         do i = its, itf
+            if (ierr(i) /= 0) cycle
+            do k = kts, ktf
+               se_cup_chem(1:mtp, i, k) = se_chem(1:mtp, i, k)
+            end do
+         end do
+      end if
+
+   end subroutine cupEnvClevChem
+
+   !------------------------------------------------------------------------------------
+   subroutine getInCloudScChemUp(cumulus, fscav, mtp, se, se_cup, sc_up, pw_up, tot_pw_up_chem &
+                               , z_cup, rho, po, po_cup, qrco, tempco, pwo, zuo, up_massentro, up_massdetro &
+                               , vvel2d, vvel1d, start_level, k22, kbcon, ktop, klcl, ierr, xland, itf, ktf &
+                               , its, ite, kts, kte)
+      !! brief
+      !!
+      !! @note
+      !!
+      !! **Project**: MONAN
+      !! **Author(s)**: Saulo Freitas [SRF] e Georg Grell [GAG]
+      !! **e-mail**: <mailto:saulo.r.de.freitas@gmail.com>, <mailto:georg.a.grell@noaa.gov>
+      !! **Date**:  2014
+      !!
+      !! **Full description**:
+      !! brief
+      !!
+      !! @endnote
+      !!
+      !! @warning
+      !!
+      !!  [](https://www.gnu.org/graphics/gplv3-127x51.png'')
+      !!
+      !!     Under the terms of the GNU General Public version 3
+      !!
+      !! @endwarning
+   
+      implicit none
+      !Parameters:
+      character(len=*), parameter :: procedureName = 'getInCloudScChemUp' ! Nome da subrotina
+   
+      real, parameter :: p_scav_eff = 0.6  
+      !! for smoke : Chuang et al. (1992) J. Atmos. Sci.
+      real, parameter :: p_cte_w_upd = 10. 
+      !! m/s
+      !    real, parameter :: kc = 5.e-3  
+      !! s-1
+      real, parameter :: p_kc = 2.e-3
+      !! autoconversion parameter in GF is lower than what is used in GOCART s-1
+
+      !Variables (input, output, inout)
+       integer, intent(in)  :: itf, ktf, its, ite, kts, kte, mtp
+
+      integer, intent(in) :: ierr(its:ite)
+      integer, intent(in) :: kbcon(its:ite)
+      integer, intent(in) :: ktop(its:ite)
+      integer, intent(in) :: k22(its:ite)
+      integer, intent(in) :: klcl(its:ite)
+      integer, intent(in) :: start_level(its:ite)
+
+      real, intent(in) :: fscav(mtp)
+      real, intent(in) :: se(mtp, its:ite, kts:kte)
+      real, intent(in) :: se_cup(mtp, its:ite, kts:kte)
+      real, intent(in) :: z_cup(its:ite, kts:kte)
+      real, intent(in) :: rho(its:ite, kts:kte)
+      real, intent(in) :: po_cup(its:ite, kts:kte)
+      real, intent(in) :: qrco(its:ite, kts:kte)
+      real, intent(in) :: tempco(its:ite, kts:kte)
+      real, intent(in) :: pwo(its:ite, kts:kte)
+      real, intent(in) :: zuo(its:ite, kts:kte)
+      real, intent(in) :: up_massentro(its:ite, kts:kte)
+      real, intent(in) :: up_massdetro(its:ite, kts:kte)
+      real, intent(in) :: po(its:ite, kts:kte)
+      real, intent(in) :: vvel2d(its:ite, kts:kte)
+      real, intent(in) :: vvel1d(its:ite)
+      real, intent(in) :: xland(its:ite)
+
+      character(len=*), intent(in) :: cumulus
+
+      real, intent(out) :: sc_up(mtp, its:ite, kts:kte)
+      real, intent(out) :: pw_up(mtp, its:ite, kts:kte)
+      real, intent(out) :: tot_pw_up_chem(mtp, its:ite)
+
+      !Local variables:
+      real, dimension(mtp, its:ite) ::  sc_b
+      real, dimension(mtp) :: conc_mxr
+      real :: x_add, dz, xzz, xzd, xze, denom, henry_coef, w_upd, fliq, dp
+      integer :: i, k, ispc
+      real, dimension(mtp, its:ite, kts:kte) ::  factor_temp
+
+      !--initialization
+      sc_up = se_cup
+      pw_up = 0.0
+      tot_pw_up_chem = 0.0
+
+      if (USE_TRACER_SCAVEN == 2 .and. cumulus /= 'shallow') then
+         factor_temp = 1.
+         do i = its, itf
+            if (ierr(i) /= 0) cycle
+            do ispc = 1, mtp
+               ! - if tracer is type "carbon" then set coefficient to 0 for hydrophobic
+               if (trim(chem_name(ispc) (1:len_trim('OCphobic'))) == 'OCphobic') factor_temp(ispc, :, :) = 0.0
+
+               ! - suppress scavenging most aerosols at cold T except BCn1 (hydrophobic), dust, and HNO3
+               if (trim(chem_name(ispc) (1:len_trim('BCphobic'))) == 'BCphobic') then
+                  where (tempco < 258.) factor_temp(ispc, :, :) = 0.0
+               end if
+
+               if (trim(chem_name(ispc)) == 'sulfur' .or. &
+                   trim(chem_name(ispc) (1:len_trim('ss'))) == 'ss' .or. & ! 'seasalt'
+                   trim(chem_name(ispc)) == 'SO2' .or. &
+                   trim(chem_name(ispc)) == 'SO4' .or. &
+                   trim(chem_name(ispc)) == 'nitrate' .or. &
+                   trim(chem_name(ispc)) == 'bromine' .or. &
+                   trim(chem_name(ispc)) == 'NH3' .or. &
+                   trim(chem_name(ispc)) == 'NH4a') then
+
+                  where (tempco < 258.) factor_temp(ispc, :, :) = 0.0
+               end if
+
+            end do
+         end do
+      end if
+
+      do i = its, itf
+         if (ierr(i) /= 0) cycle
+         !start_level(i) = klcl(i)
+         !start_level(i) = k22(i)
+
+         do ispc = 1, mtp
+            call getCloudBc(cumulus, kts, kte, ktf, xland(i), po(i, kts:kte), se_cup(ispc, i, kts:kte), sc_b(ispc, i), k22(i))
+         end do
+         do k = kts, start_level(i)
+            sc_up(:, i, k) = sc_b(:, i)
+            !sc_up   (:,i,k) = se_cup(:,i,k)
+         end do
+      end do
+
+      do i = its, itf
+         if (ierr(i) /= 0) cycle
+         loopk: do k = start_level(i) + 1, ktop(i) + 1
+
+            !-- entr,detr, mass flux ...
+            xzz = zuo(i, k - 1)
+            xzd = 0.5*up_massdetro(i, k - 1)
+            xze = up_massentro(i, k - 1)
+            denom = (xzz - xzd + xze)
+
+            !-- transport + mixing
+            if (denom > 0.) then
+               sc_up(:, i, k) = (sc_up(:, i, k - 1)*xzz - sc_up(:, i, k - 1)*xzd + se(:, i, k - 1)*xze)/denom
+            else
+               sc_up(:, i, k) = sc_up(:, i, k - 1)
+            end if
+
+            !-- scavenging section
+            if (USE_TRACER_SCAVEN == 0 .or. cumulus == 'shallow') cycle loopk
+            dz = z_cup(i, k) - z_cup(i, k - 1)
+
+            !-- in-cloud vert velocity for scavenging formulation 2
+            !           w_upd = cte_w_upd
+            !           w_upd = vvel1d(i)
+            w_upd = vvel2d(i, k)
+
+            do ispc = 1, mtp
+               if (fscav(ispc) > 1.e-6) then ! aerosol scavenging
+
+                  !--formulation 1 as in GOCART with RAS conv_par
+                  if (USE_TRACER_SCAVEN == 1) pw_up(ispc, i, k) = max(0., sc_up(ispc, i, k)*(1.-exp(-fscav(ispc)*(dz/1000.))))
+
+                  !--formulation 2 as in GOCART
+                  if (USE_TRACER_SCAVEN == 2) pw_up(ispc, i, k) = max(0., sc_up(ispc, i, k) &
+                                             *(1.-exp(-chem_adj_autoc(ispc)*p_kc*(dz/w_upd)))*factor_temp(ispc, i, k))
+
+                  !--formulation 3 - orignal GF conv_par
+                  if (USE_TRACER_SCAVEN == 3) then
+                     !--- cloud liquid water tracer concentration
+                     conc_mxr(ispc) = p_scav_eff*sc_up(ispc, i, k) !unit [kg(aq)/kg(air)]  for aerosol/smoke
+                     !---   aqueous-phase concentration in rain water
+                     pw_up(ispc, i, k) = conc_mxr(ispc)*pwo(i, k)/(1.e-8 + qrco(i, k))
+                  end if
+
+                  !---(in cloud) total mixing ratio in gas and aqueous phases
+                  sc_up(ispc, i, k) = sc_up(ispc, i, k) - pw_up(ispc, i, k)
+
+                  !
+               elseif (hcts(ispc)%hstar > 1.e-6) then ! tracer gas phase scavenging
+
+                  !--- equilibrium tracer concentration - Henry's law
+                  henry_coef = henry(ispc, tempco(i, k), rho(i, k))
+
+                  if (USE_TRACER_SCAVEN == 3) then
+                     !--- cloud liquid water tracer concentration
+                     conc_mxr(ispc) = (henry_coef*qrco(i, k)/(1.+henry_coef*qrco(i, k)))*sc_up(ispc, i, k)
+                     !
+                     !---   aqueous-phase concentration in rain water
+                     pw_up(ispc, i, k) = conc_mxr(ispc)*pwo(i, k)/(1.e-8 + qrco(i, k))
+
+                  else
+
+                     !-- this the 'alpha' parameter in Eq 8 of Mari et al (2000 JGR) = X_aq/X_total
+                     fliq = henry_coef*qrco(i, k)/(1.+henry_coef*qrco(i, k))
+
+                     !---   aqueous-phase concentration in rain water
+                     pw_up(ispc, i, k) = max(0., sc_up(ispc, i, k) &
+                                       *(1.-exp(-fliq*chem_adj_autoc(ispc)*p_kc*dz/w_upd)))!*factor_temp(ispc,i,k))
+
+                  end if
+
+                  !---(in cloud) total mixing ratio in gas and aqueous phases
+                  sc_up(ispc, i, k) = sc_up(ispc, i, k) - pw_up(ispc, i, k)
+
+                  !
+                  !---(in cloud)  mixing ratio in aqueous phase
+                  !sc_up_aq(ispc,i,k) = conc_mxr(ispc) !if using set to zero at the begin.
+               end if
+            end do
+            !
+            !-- total aerosol/gas in the rain water
+            dp = 100.*(po_cup(i, k) - po_cup(i, k + 1))
+
+            tot_pw_up_chem(:, i) = tot_pw_up_chem(:, i) + pw_up(:, i, k)*dp/c_grav
+         end do loopk
+         !
+         !----- get back the in-cloud updraft gas-phase mixing ratio : sc_up(ispc,k)
+         !          do k=start_level(i)+1,ktop(i)+1
+         !            do ispc = 1,mtp
+         !             sc_up(ispc,i,k) = sc_up(ispc,i,k) - sc_up_aq(ispc,i,k)
+         !            enddo
+         !          enddo
+      end do
+   end subroutine getInCloudScChemUp
+   
    !---------------------------------------------------------------------------------------------------
    subroutine GF_GEOS5_INTERFACE(mxp, myp, mzp, mtp, ITRCR, LONS, LATS, DT_MOIST &
                                  , T, PLE, PLO, ZLE, ZLO, PK, U, V, OMEGA, KH &
@@ -12671,182 +13152,7 @@ contains
 
    end function auto_rk
 
-   !------------------------------------------------------------------------------------
-   subroutine get_incloud_sc_chem_up(cumulus, fscav, mtp, se, se_cup, sc_up, pw_up, tot_pw_up_chem &
-                                     , z_cup, rho, po, po_cup &
-                                     , qrco, tempco, pwo, zuo, up_massentro, up_massdetro, vvel2d, vvel1d &
-                                     , start_level, k22, kbcon, ktop, klcl, ierr, xland, itf, ktf, its, ite, kts, kte)
-      implicit none
-      !-inputs
-      integer, intent(in)  :: itf, ktf, its, ite, kts, kte
-      integer, intent(in)  :: mtp
-      integer, dimension(its:ite), intent(in)  :: ierr, kbcon, ktop, k22, klcl, start_level
-      character*(*), intent(in)  :: cumulus
-      real, dimension(mtp), intent(in)  :: FSCAV
-      real, dimension(mtp, its:ite, kts:kte), intent(in)  :: se, se_cup
-      real, dimension(its:ite, kts:kte), intent(in)  :: z_cup, rho, po_cup, qrco, tempco, pwo, zuo &
-                                                        , up_massentro, up_massdetro, po
 
-      real, dimension(its:ite, kts:kte), intent(in)  :: vvel2d
-      real, dimension(its:ite), intent(in)  :: vvel1d, xland
-
-      !-outputs
-      real, dimension(mtp, its:ite, kts:kte), intent(out) :: sc_up, pw_up
-      real, dimension(mtp, its:ite), intent(out) :: tot_pw_up_chem
-
-      !-locals
-      real, parameter :: scav_eff = 0.6  ! for smoke : Chuang et al. (1992) J. Atmos. Sci.
-      real, dimension(mtp, its:ite) ::  sc_b
-      real, dimension(mtp) :: conc_mxr
-      real :: x_add, dz, XZZ, XZD, XZE, denom, henry_coef, w_upd, fliq, dp
-      integer :: i, k, ispc
-      real, parameter :: cte_w_upd = 10. ! m/s
-      !    real, parameter :: kc = 5.e-3  ! s-1
-      real, parameter :: kc = 2.e-3  ! s-1        !!! autoconversion parameter in GF is lower than what is used in GOCART
-      real, dimension(mtp, its:ite, kts:kte) ::  factor_temp
-
-      !--initialization
-      sc_up = se_cup
-      pw_up = 0.0
-      tot_pw_up_chem = 0.0
-
-      if (USE_TRACER_SCAVEN == 2 .and. cumulus /= 'shallow') then
-         factor_temp = 1.
-         do i = its, itf
-            if (ierr(i) /= 0) cycle
-            do ispc = 1, mtp
-               ! - if tracer is type "carbon" then set coefficient to 0 for hydrophobic
-               if (trim(chem_name(ispc) (1:len_trim('OCphobic'))) == 'OCphobic') factor_temp(ispc, :, :) = 0.0
-
-               ! - suppress scavenging most aerosols at cold T except BCn1 (hydrophobic), dust, and HNO3
-               if (trim(chem_name(ispc) (1:len_trim('BCphobic'))) == 'BCphobic') then
-                  where (tempco < 258.) factor_temp(ispc, :, :) = 0.0
-               end if
-
-               if (trim(chem_name(ispc)) == 'sulfur' .or. &
-                   trim(chem_name(ispc) (1:len_trim('ss'))) == 'ss' .or. & ! 'seasalt'
-                   trim(chem_name(ispc)) == 'SO2' .or. &
-                   trim(chem_name(ispc)) == 'SO4' .or. &
-                   trim(chem_name(ispc)) == 'nitrate' .or. &
-                   trim(chem_name(ispc)) == 'bromine' .or. &
-                   trim(chem_name(ispc)) == 'NH3' .or. &
-                   trim(chem_name(ispc)) == 'NH4a') then
-
-                  where (tempco < 258.) factor_temp(ispc, :, :) = 0.0
-               end if
-
-            end do
-         end do
-      end if
-
-      do i = its, itf
-         if (ierr(i) /= 0) cycle
-         !start_level(i) = klcl(i)
-         !start_level(i) = k22(i)
-
-         do ispc = 1, mtp
-            call getCloudBc(cumulus, kts, kte, ktf, xland(i), po(i, kts:kte), se_cup(ispc, i, kts:kte), sc_b(ispc, i), k22(i))
-         end do
-         do k = kts, start_level(i)
-            sc_up(:, i, k) = sc_b(:, i)
-            !sc_up   (:,i,k) = se_cup(:,i,k)
-         end do
-      end do
-
-      do i = its, itf
-         if (ierr(i) /= 0) cycle
-         loopk: do k = start_level(i) + 1, ktop(i) + 1
-
-            !-- entr,detr, mass flux ...
-            XZZ = zuo(i, k - 1)
-            XZD = 0.5*up_massdetro(i, k - 1)
-            XZE = up_massentro(i, k - 1)
-            denom = (XZZ - XZD + XZE)
-
-            !-- transport + mixing
-            if (denom > 0.) then
-               sc_up(:, i, k) = (sc_up(:, i, k - 1)*XZZ - sc_up(:, i, k - 1)*XZD + se(:, i, k - 1)*XZE)/denom
-            else
-               sc_up(:, i, k) = sc_up(:, i, k - 1)
-            end if
-
-            !-- scavenging section
-            if (USE_TRACER_SCAVEN == 0 .or. cumulus == 'shallow') cycle loopk
-            dz = z_cup(i, k) - z_cup(i, k - 1)
-
-            !-- in-cloud vert velocity for scavenging formulation 2
-            !           w_upd = cte_w_upd
-            !           w_upd = vvel1d(i)
-            w_upd = vvel2d(i, k)
-
-            do ispc = 1, mtp
-               if (fscav(ispc) > 1.e-6) then ! aerosol scavenging
-
-                  !--formulation 1 as in GOCART with RAS conv_par
-                  if (USE_TRACER_SCAVEN == 1) &
-                     pw_up(ispc, i, k) = max(0., sc_up(ispc, i, k)*(1.-exp(-FSCAV(ispc)*(dz/1000.))))
-
-                  !--formulation 2 as in GOCART
-                  if (USE_TRACER_SCAVEN == 2) &
-                pw_up(ispc, i, k) = max(0., sc_up(ispc, i, k)*(1.-exp(-chem_adj_autoc(ispc)*kc*(dz/w_upd)))*factor_temp(ispc, i, k))
-
-                  !--formulation 3 - orignal GF conv_par
-                  if (USE_TRACER_SCAVEN == 3) then
-                     !--- cloud liquid water tracer concentration
-                     conc_mxr(ispc) = scav_eff*sc_up(ispc, i, k) !unit [kg(aq)/kg(air)]  for aerosol/smoke
-                     !---   aqueous-phase concentration in rain water
-                     pw_up(ispc, i, k) = conc_mxr(ispc)*pwo(i, k)/(1.e-8 + qrco(i, k))
-                  end if
-
-                  !---(in cloud) total mixing ratio in gas and aqueous phases
-                  sc_up(ispc, i, k) = sc_up(ispc, i, k) - pw_up(ispc, i, k)
-
-                  !
-               elseif (hcts(ispc)%hstar > 1.e-6) then ! tracer gas phase scavenging
-
-                  !--- equilibrium tracer concentration - Henry's law
-                  henry_coef = henry(ispc, tempco(i, k), rho(i, k))
-
-                  if (USE_TRACER_SCAVEN == 3) then
-                     !--- cloud liquid water tracer concentration
-                     conc_mxr(ispc) = (henry_coef*qrco(i, k)/(1.+henry_coef*qrco(i, k)))*sc_up(ispc, i, k)
-                     !
-                     !---   aqueous-phase concentration in rain water
-                     pw_up(ispc, i, k) = conc_mxr(ispc)*pwo(i, k)/(1.e-8 + qrco(i, k))
-
-                  else
-
-                     !-- this the 'alpha' parameter in Eq 8 of Mari et al (2000 JGR) = X_aq/X_total
-                     fliq = henry_coef*qrco(i, k)/(1.+henry_coef*qrco(i, k))
-
-                     !---   aqueous-phase concentration in rain water
-                     pw_up(ispc, i, k) = max(0., sc_up(ispc, i, k)*(1.-exp(-fliq*chem_adj_autoc(ispc)*kc*dz/w_upd)))!*factor_temp(ispc,i,k))
-
-                  end if
-
-                  !---(in cloud) total mixing ratio in gas and aqueous phases
-                  sc_up(ispc, i, k) = sc_up(ispc, i, k) - pw_up(ispc, i, k)
-
-                  !
-                  !---(in cloud)  mixing ratio in aqueous phase
-                  !sc_up_aq(ispc,i,k) = conc_mxr(ispc) !if using set to zero at the begin.
-               end if
-            end do
-            !
-            !-- total aerosol/gas in the rain water
-            dp = 100.*(po_cup(i, k) - po_cup(i, k + 1))
-
-            tot_pw_up_chem(:, i) = tot_pw_up_chem(:, i) + pw_up(:, i, k)*dp/c_grav
-         end do loopk
-         !
-         !----- get back the in-cloud updraft gas-phase mixing ratio : sc_up(ispc,k)
-         !          do k=start_level(i)+1,ktop(i)+1
-         !            do ispc = 1,mtp
-         !             sc_up(ispc,i,k) = sc_up(ispc,i,k) - sc_up_aq(ispc,i,k)
-         !            enddo
-         !          enddo
-      end do
-   end subroutine get_incloud_sc_chem_up
    !---------------------------------------------------------------------------------------------------
    function henry(ispc, temp, rhoair) result(henry_coef)
       !--- calculate Henry's constant for solubility of gases into cloud water
@@ -13105,43 +13411,7 @@ contains
       end do
 
    end subroutine bidiag
-   !---------------------------------------------------------------------------------------------------
-   subroutine cup_env_clev_chem(mtp, se_chem, se_cup_chem, ierr, itf, ktf, its, ite, kts, kte)
 
-      implicit none
-      !-inputs
-      integer, intent(in)                   :: itf, ktf, its, ite, kts, kte
-      integer, intent(in)                   :: mtp
-      integer, dimension(its:ite), intent(in)  :: ierr
-      real, dimension(mtp, its:ite, kts:kte), intent(in)  ::   se_chem
-      !-outputs
-      real, dimension(mtp, its:ite, kts:kte), intent(out) ::   se_cup_chem
-      !-locals
-      integer ::  i, k
-      integer, parameter ::  clev_option = 2 !- use option 2
-
-      !
-      if (clev_option == 1) then
-         !-- original version
-         do i = its, itf
-            if (ierr(i) /= 0) cycle
-            do k = kts + 1, ktf
-               se_cup_chem(1:mtp, i, k) = 0.5*(se_chem(1:mtp, i, k - 1) + se_chem(1:mtp, i, k))
-            end do
-            se_cup_chem(1:mtp, i, kts) = se_chem(1:mtp, i, kts)
-            se_cup_chem(1:mtp, i, kte) = se_chem(1:mtp, i, ktf)
-         end do
-      else
-         !-- version 2: se_cup (k+1/2) = se(k) => smoother profiles
-         do i = its, itf
-            if (ierr(i) /= 0) cycle
-            do k = kts, ktf
-               se_cup_chem(1:mtp, i, k) = se_chem(1:mtp, i, k)
-            end do
-         end do
-      end if
-
-   end subroutine cup_env_clev_chem
    
 
 
@@ -13185,81 +13455,6 @@ contains
    end function satur_spec_hum
 
 
-   !------------------------------------------------------------------------------------
-   subroutine cup_up_lightning(itf, ktf, its, ite, kts, kte, ierr, kbcon, ktop, xland, cape &
-                               , zo, zo_cup, t_cup, t, tempco, qrco, po_cup, rho, prec_flx &
-                               , lightn_dens)
-
-      !=====================================================================================
-      !- Lightning parameterization based on:
-      !- "A Lightning Parameterization for the ECMWF Integrated Forecasting System"
-      !-  P. Lopez, 2016 MWR
-      !
-      !- Coded/adapted to the GF scheme by Saulo Freitas (10-Aug-2019)
-      !=====================================================================================
-      implicit none
-      integer, intent(in)  :: itf, ktf, its, ite, kts, kte
-      integer, dimension(its:ite), intent(in)  :: ierr, kbcon, ktop
-      real, dimension(its:ite), intent(in)  :: cape, xland
-      real, dimension(its:ite, kts:kte), intent(in)  :: po_cup, zo_cup, t_cup, t, tempco, zo &
-                                                        , qrco, rho, prec_flx
-
-      real, dimension(its:ite), intent(out) :: lightn_dens ! lightning flash density
-      ! rate (units: 1/km2/day)
-
-      !-- locals
-      real, parameter :: V_graup = 3.0  ! m/s
-      real, parameter :: V_snow = 0.5  ! m/s
-      real, parameter :: beta_land = 0.70 ! 1
-      real, parameter :: beta_ocean = 0.45 ! 1
-      real, parameter :: alpha = 37.5 ! 1
-      real, parameter :: t_initial = 0.0 + 273.15 ! K
-      real, parameter :: t_final = -25.+273.15 ! K
-
-      integer :: i, k, k_initial, k_final
-      real :: Q_R, z_base, beta, prec_flx_fr, dz
-      real, dimension(kts:kte) :: p_liq_ice, q_graup, q_snow
-
-      do i = its, itf
-         lightn_dens(i) = 0.0
-         if (ierr(i) /= 0) cycle
-
-         beta = xland(i)*beta_ocean + (1.-xland(i))*beta_land
-
-         q_graup(:) = 0.
-         q_snow(:) = 0.
-
-         do k = kts, ktop(i)
-
-            p_liq_ice(k) = fract_liq_f(tempco(i, k))
-
-            prec_flx_fr = p_liq_ice(k)*prec_flx(i, k)/rho(i, k)
-
-            q_graup(k) = beta*prec_flx_fr/V_graup ! - graupel mixing ratio (kg/kg)
-            q_snow(k) = (1.-beta)*prec_flx_fr/V_snow  ! - snow    mixing ratio (kg/kg)
-
-         end do
-
-         k_initial = minloc(abs(tempco(i, kbcon(i):ktop(i)) - t_initial), 1) + kbcon(i) - 1
-         k_final = minloc(abs(tempco(i, kbcon(i):ktop(i)) - t_final), 1) + kbcon(i) - 1
-
-         Q_R = 0.0
-         do k = k_initial, k_final
-            dz = zo(i, k) - zo(i, k - 1)
-            Q_R = Q_R + dz*rho(i, k)*(q_graup(k)*(qrco(i, k) + q_snow(k)))
-            !print*,"qr=",q_r,tempco(i,k)-273.15,k,tempco(i,k)-t_initial
-         end do
-
-         z_base = zo_cup(i, kbcon(i))/1000. ! km
-
-         !---
-         !--- lightning flash density (units: number of flashes/km2/day) - equation 5
-         !--- (to compare with Lopez 2016's results, convert to per year: lightn_dens*365)
-         !
-         lightn_dens(i) = alpha*Q_R*sqrt(max(0., cape(i)))*min(z_base, 1.8)**2
-         !
-      end do
-   end subroutine cup_up_lightning
 
    !------------------------------------------------------------------------------------
    subroutine cup_up_rain(cumulus, klcl, kbcon, ktop, k22, ierr, xland &
@@ -13770,50 +13965,7 @@ contains
    
    end subroutine gfConparInit
 
-   !------------------------------------------------------------------------------------
-   subroutine get_liq_ice_number_conc(itf, ktf, its, ite, kts, kte, ierr, ktop &
-                                      , dtime, rho, outqc, tempco, outnliq, outnice)
 
-      implicit none
-      integer, intent(in)  :: itf, ktf, its, ite, kts, kte
-      real, intent(in)  :: dtime
-
-      integer, dimension(its:ite), intent(in)  :: ierr, ktop
-      real, dimension(its:ite, kts:kte), intent(in)  :: outqc, tempco, rho
-      real, dimension(its:ite, kts:kte), intent(out)  :: outnliq, outnice
-
-      integer :: i, k
-      real :: fr, tqliq, tqice, dtinv
-
-      real, dimension(its:ite, kts:kte) :: nwfa   ! in the future set this as NCPL
-      real, dimension(its:ite, kts:kte) :: nifa   ! in the future set this as NCPI
-
-      nwfa(:, :) = 99.e7  ! in the future set this as NCPL
-      nifa(:, :) = 0.     ! in the future set this as NCPI
-      dtinv = 1./dtime
-      do i = its, itf
-         if (ierr(i) /= 0) cycle
-
-         do k = kts, ktop(i) + 1
-
-            fr = fract_liq_f(tempco(i, k))
-            tqliq = dtime*outqc(i, k)*rho(i, k)*fr
-            tqice = dtime*outqc(i, k)*rho(i, k)*(1.-fr)
-
-            outnice(i, k) = max(0.0, make_IceNumber(tqice, tempco(i, k))/rho(i, k))
-            outnliq(i, k) = max(0.0, make_DropletNumber(tqliq, nwfa(i, k))/rho(i, k))
-
-         end do
-         !-- convert in tendencies
-         outnice = outnice*dtinv ! unit [1/s]
-         outnliq = outnliq*dtinv ! unit [1/s]
-         !--- for update
-         ! nwfa =nwfa + outnliq*dtime
-         ! nifa =nifa + outnice*dtime
-
-      end do
-
-   end subroutine get_liq_ice_number_conc
    !+---+-----------------------------------------------------------------+
    !+---+-----------------------------------------------------------------+
    !----- module_mp_thompson_make_number_concentrations
