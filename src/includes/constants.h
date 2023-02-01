@@ -54,6 +54,18 @@
    real(kind=kind_rb), parameter :: c_pi       = 3.1415926535897932384626433
    real(kind=kind_rb), parameter :: c_rgas     = 287.
    !! J K-1 kg-1
+   real(kind=kind_rb), parameter :: c_rgas_ = 8.205e-2 
+   !! atm M^-1 K^-1 ! 8.314 gas constant [J/(mol*K)]
+   real(kind=kind_rb), parameter :: c_avogad = 6.022e23
+   !! Avogadro constant [1/mol]
+   real(kind=kind_rb), parameter:: c_rhoH2O = 999.9668
+   !! density of water [kg/m3]
+   real(kind=kind_rb), parameter:: c_hplus = 1.175e-4     
+   !!  for cloud water. pH is asuumed to be 3.93: pH=3.93 =>hplus=10**(-pH)
+   real, parameter:: c_temp0 =    298.15
+   !! standard temperature [K]
+   real, parameter:: c_temp0i= 1./c_temp0
+   !! inverse of standard temperature [K]
    real(kind=kind_rb), parameter :: c_cp       = 1004.
    !! J K-1 kg-1
    real(kind=kind_rb), parameter :: c_rv = 461.
@@ -120,9 +132,9 @@
    real(kind=kind_rb), parameter :: c_gg       = .5 * c_grav
    real(kind=kind_rb), parameter :: c_ep       = c_rgas / c_rm
    real(kind=kind_rb), parameter :: c_airmw    = 28.965
-   !! kg/Kmole
+   !! effective molecular mass of air [kg/kmol]
    real(kind=kind_rb), parameter :: c_h2omw = 18.015 
-   !! kg/Kmole
+   !! molecular mass of water [kg/kmol]
    real(kind=kind_rb), parameter :: c_runiv = 8314.47
    !! J/(Kmole K)
    real(kind=kind_rb), parameter :: c_rdry = c_runiv/c_airmw  
@@ -181,6 +193,16 @@
    !! Minimum abs value of Theta*         [K m/s]
    real(kind=kind_rb), parameter :: c_lturbmin    = 1.e-3
    !! Minimum abs value of turb. lenght   [m]
+
+   !Conversion factors
+   real, parameter:: p_m_2_cm = 100.   
+   !!  [m]   to [cm]
+   real, parameter :: p_m3_2_l = 1000.     
+   !!  [m^3]      to [l]
+   real, parameter:: p_l_2_m3 = 1/p_m3_2_l   
+   !!  [l]    to [m^3]
+   real, parameter:: p_pa_2_atm = 1./101325.  
+   !!  [Pa]      to [atm]
 
    real,parameter :: c_scday=86400.0
    !! Seconds by day
