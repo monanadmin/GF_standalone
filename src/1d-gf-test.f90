@@ -1,7 +1,7 @@
-program GF_1d_driver
+program testmodConvParGF
 
   USE module_gate
-  use modConvParGFGeos5  , only: gfGeos5Drv,ICUMULUS_GF, CLOSURE_CHOICE, p_deep, p_shal, p_mid &
+  use modConvParGF  , only: gfGeos5Drv,ICUMULUS_GF, CLOSURE_CHOICE, p_deep, p_shal, p_mid &
       ,use_scale_dep,dicycle,TAU_DEEP,TAU_MID,hcts                       &
       ,use_tracer_transp, use_tracer_scaven,use_memory,convection_tracer &
       ,use_flux_form,use_tracer_evap,downdraft,use_fct                   &
@@ -631,5 +631,5 @@ init_stat = initModConvParGFGeos5()
   2055 format(60f7.0)
    133 format (1x,F7.0)
 
-END PROGRAM GF_1d_driver
+END PROGRAM testmodConvParGF
 

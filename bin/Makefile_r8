@@ -38,11 +38,10 @@ ARC=$(BASE).a
 
 # Define source.
 F_SRC=  $(DSRC2)/module_gate.f90 \
-	$(DSRC2)/MAPL_Constants.F90 \
 	$(DSRC2)/Henrys_Law_cts.F90 \
         $(DSRC2)/Phys_const.f90 \
-	$(DSRC2)/ConvPar_GF_GEOS5.F90 \
-	$(DSRC2)/1d-gf-test.f90 	
+	$(DSRC2)/modConvParGF.F90 \
+	$(DSRC2)/testModConvParGF.f90 	
 	
 
 

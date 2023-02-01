@@ -148,6 +148,28 @@
    real(kind=kind_rb), parameter :: c_half  = 1./2.
    !! 1/2
 
+   real(kind=kind_rb), parameter :: c_retv = c_rm/c_rgas - 1.0 
+   real(kind=kind_rb), parameter :: c_rlmlt = c_alvi - c_alvl
+   real(kind=kind_rb), parameter :: c_rcpv = 4.*c_rm 
+   real(kind=kind_rb), parameter :: c_r2es = 611.21*c_ep
+   real(kind=kind_rb), parameter :: c_r3les = 17.502
+   real(kind=kind_rb), parameter :: c_r3ies = 22.587
+   real(kind=kind_rb), parameter :: c_r4les = 32.19
+   real(kind=kind_rb), parameter :: c_r4ies = -0.7
+   real(kind=kind_rb), parameter :: c_r5les = c_r3les*(c_t00 - c_r4les)
+   real(kind=kind_rb), parameter :: c_r5ies = c_r3ies*(c_t00 - c_r4ies)
+   real(kind=kind_rb), parameter :: c_r5alvcp = c_r5les*c_alvl/c_cp
+   real(kind=kind_rb), parameter :: c_r5alscp = c_r5ies*c_alvi/c_cp
+   real(kind=kind_rb), parameter :: c_ralvdcp = c_alvl/c_cp
+   real(kind=kind_rb), parameter :: c_ralsdcp = c_alvi/c_cp
+   real(kind=kind_rb), parameter :: c_ralfdcp = c_rlmlt/c_cp
+   real(kind=kind_rb), parameter :: c_rtber = c_t00 - 5.
+   real(kind=kind_rb), parameter :: c_rtIce = c_t00 - 23.
+   real(kind=kind_rb), parameter :: c_rtwat_rtIce_r = 1./(c_t00 - c_rtIce)
+   real(kind=kind_rb), parameter :: c_rvtmp2 = c_rcpv/c_cp - 1.
+   real(kind=kind_rb), parameter :: p_zqmax = 0.5
+
+
    ! Lower bounds for turbulence-related variables                                         !
    real(kind=kind_rb), parameter :: c_sigwmin     = 1.e-4
    !! Minimum sigma-w                     [m/s]
