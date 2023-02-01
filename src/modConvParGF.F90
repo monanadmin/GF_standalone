@@ -104,7 +104,7 @@ module modConvParGF
       , ADD_COLDPOOL_CLOS, MX_BUOY1, MX_BUOY2, CUM_T_STAR, CUM_ZUFORM &
       , ADD_COLDPOOL_DIFF
 
-   public gfGeos5Drv, make_DropletNumber, make_IceNumber, FractLiqF &
+   public gfGeos5Drv, make_DropletNumber, MakeIceNumber, FractLiqF &
       , USE_GUSTINESS, USE_RANDOM_NUM, DCAPE_THRESHOLD, coldpool_start
    
    public modConvParGFGeos5_initialized, initModConvParGFGeos5
@@ -11071,7 +11071,7 @@ contains
             tqliq = dtime*outqc(i, k)*rho(i, k)*fr
             tqice = dtime*outqc(i, k)*rho(i, k)*(1.-fr)
 
-            outnice(i, k) = max(0.0, make_IceNumber(tqice, tempco(i, k))/rho(i, k))
+            outnice(i, k) = max(0.0, MakeIceNumber(tqice, tempco(i, k))/rho(i, k))
             outnliq(i, k) = max(0.0, make_DropletNumber(tqliq, nwfa(i, k))/rho(i, k))
 
          end do
@@ -12211,29 +12211,52 @@ contains
    
    end subroutine gfConparInit
 
-
-   !+---+-----------------------------------------------------------------+
-   !+---+-----------------------------------------------------------------+
-   !----- module_mp_thompson_make_number_concentrations
-   !- Developed by H. Barnes @ NOAA/OAR/ESRL/GSL Earth Prediction Advancement Division
    !-----------------------------------------------------------------------
-   !      Q_ice              is cloud ice mixing ratio, units of kg/m3
-   !      Q_cloud            is cloud water mixing ratio, units of kg/m3
-   !      Q_rain             is rain mixing ratio, units of kg/m3
-   !      temp               is air temperature in Kelvin
-   !      make_IceNumber     is cloud droplet number mixing ratio, units of number per m3
-   !      make_DropletNumber is rain number mixing ratio, units of number per kg of m3
-   !      make_RainNumber    is rain number mixing ratio, units of number per kg of m3
-   !      qnwfa              is number of water-friendly aerosols in number per kg
-
-   !+---+-----------------------------------------------------------------+
-   !+---+-----------------------------------------------------------------+
-   elemental real function make_IceNumber(Q_ice, temp)
-
+   function MakeIceNumber(q_ice, temp) result(ice_number)
+      !! number_concentrations
+      !!
+      !! @note
+      !!
+      !! **Author(s)**: Saulo Freitas [SRF] e Georg Grell [GAG]
+      !! **e-mail**: <mailto:saulo.r.de.freitas@gmail.com>, <mailto:georg.a.grell@noaa.gov>
+      !! **Date**:  2014
+      !!
+      !! **Full description**:
+      !!-! ---- module_mp_thompson_make_number_concentrations
+      !!-!  Developed by H. Barnes @ NOAA/OAR/ESRL/GSL Earth Prediction Advancement Division
+      !!
+      !!      Q_ice              is cloud ice mixing ratio, units of kg/m3
+      !!      Q_cloud            is cloud water mixing ratio, units of kg/m3
+      !!      Q_rain             is rain mixing ratio, units of kg/m3
+      !!      temp               is air temperature in Kelvin
+      !!      make_IceNumber     is cloud droplet number mixing ratio, units of number per m3
+      !!      make_DropletNumber is rain number mixing ratio, units of number per kg of m3
+      !!      make_RainNumber    is rain number mixing ratio, units of number per kg of m3
+      !!      qnwfa              is number of water-friendly aerosols in number per kg
+      !!
+      !! @endnote
+      !!
+      !! @warning
+      !!
+      !!  [](https://www.gnu.org/graphics/gplv3-127x51.png'')
+      !!
+      !!     Under the terms of the GNU General Public version 3
+      !!
+      !! @endwarning
+   
       implicit none
-      real, parameter:: ice_density = 890.0
-      real, parameter:: pi = 3.1415926536
-      real, intent(in):: q_ice, temp
+      !Parameters:
+      character(len=*), parameter :: procedureName = 'MakeIceNumber' ! Nome da função
+
+      real, parameter:: c_ice_density = 890.0
+   
+      !Variables (input):
+      real, intent(in) :: q_ice
+      real, intent(in) :: temp
+   
+      !Local variables:
+      real :: ice_number ! output
+
       integer :: idx_rei
       real :: corr, reice, deice
       double precision :: lambda
@@ -12263,8 +12286,8 @@ contains
                                        161.503, 168.262, 175.248, 182.473, 189.952, 197.699, &
                                        205.728, 214.055, 222.694, 231.661, 240.971, 250.639/)
 
-      if (Q_ice == 0) then
-         make_IceNumber = 0
+      if (q_ice == 0) then
+         ice_number = 0
          return
       end if
 
@@ -12291,7 +12314,7 @@ contains
       !+---+-----------------------------------------------------------------+
 
       lambda = 3.0/deice
-      make_IceNumber = Q_ice*lambda*lambda*lambda/(PI*Ice_density)
+      ice_number = q_ice*lambda*lambda*lambda/(c_pi*c_ice_density)
 
       !+---+-----------------------------------------------------------------+
       !..Example1: Common ice size coming from Thompson scheme is about 30 microns.
@@ -12301,9 +12324,7 @@ contains
       !.. and assuming we have 0.1 g/kg mixing ratio, then N_ice=28122 per kg,
       !.. which is 28 crystals per liter of air if the air density is 1.0.
       !+---+-----------------------------------------------------------------+
-
-      return
-   end function make_IceNumber
+   end function MakeIceNumber
 
    !+---+-----------------------------------------------------------------+
    !+---+-----------------------------------------------------------------+

@@ -38,14 +38,11 @@ ARC=$(BASE).a
 
 # Define source.
 F_SRC=  $(DSRC2)/module_gate.f90 \
-	$(DSRC2)/Henrys_Law_cts.F90 \
-        $(DSRC2)/Phys_const.f90 \
+	$(DSRC2)/modHenrysLawCts.F90 \
+   $(DSRC2)/Phys_const.f90 \
 	$(DSRC2)/modConvParGF.F90 \
 	$(DSRC2)/testModConvParGF.f90 	
 	
-
-
-
 # Define targets.
 
 all: $(EXE)
