@@ -50,8 +50,6 @@ module modConvParGF
    !!
    !! @endwarning
 
-   !use dump
-      !
    use module_gate, only: cupout &
                         , rundata &
                         , nvar_grads &
@@ -70,13 +68,7 @@ module modConvParGF
                         , zadvq &
                         , zadvt
 
-   !USE MAPL
-   !use MAPL_ConstantsMod ! - only for GATE soundings
-   !
    use modHenrysLawConstants, only: getHenryLawCts
-   !.. USE GTMP_2_GFCONVPAR, only : GTMP_2_GFCONVPAR_interface
-
-   !use node_mod, only: mynum
 
    implicit none
    include 'constants.h'
@@ -104,8 +96,8 @@ module modConvParGF
       , ADD_COLDPOOL_CLOS, MX_BUOY1, MX_BUOY2, CUM_T_STAR, CUM_ZUFORM &
       , ADD_COLDPOOL_DIFF
 
-   public gfGeos5Drv, make_DropletNumber, MakeIceNumber, FractLiqF &
-      , USE_GUSTINESS, USE_RANDOM_NUM, DCAPE_THRESHOLD, coldpool_start
+   public gfGeos5Drv, MakeDropletNumber, MakeIceNumber, FractLiqF &
+      , USE_GUSTINESS, USE_RANDOM_NUM, DCAPE_THRESHOLD, ColdPoolStart
    
    public modConvParGFGeos5_initialized, initModConvParGFGeos5
 
@@ -2365,19 +2357,19 @@ contains
 
             do i = its, itf !-- reduce entr rate, where cold pools exist
                if (ierr(i) /= 0) cycle
-               !entr_rate(i) = max(0.1, 1.-coldpool_start(x_add_buoy(i))) * entr_rate(i)
-               !entr_rate(i) = max(0.5, 1.-coldpool_start(x_add_buoy(i))) * entr_rate(i)
-               entr_rate(i) = max(0.7, 1.-coldpool_start(x_add_buoy(i)))*entr_rate(i)
-               !entr_rate(i) = max(0.8, 1.-coldpool_start(x_add_buoy(i))) * entr_rate(i)
+               !entr_rate(i) = max(0.1, 1.-ColdPoolStart(x_add_buoy(i))) * entr_rate(i)
+               !entr_rate(i) = max(0.5, 1.-ColdPoolStart(x_add_buoy(i))) * entr_rate(i)
+               entr_rate(i) = max(0.7, 1.-ColdPoolStart(x_add_buoy(i)))*entr_rate(i)
+               !entr_rate(i) = max(0.8, 1.-ColdPoolStart(x_add_buoy(i))) * entr_rate(i)
             end do
             !print*,"ENT",1000.*maxval(entr_rate),1000.*minval(entr_rate)&
-            !            ,coldpool_start(maxval((x_add_buoy(:)))),coldpool_start(minval((x_add_buoy(:))))
+            !            ,ColdPoolStart(maxval((x_add_buoy(:)))),ColdPoolStart(minval((x_add_buoy(:))))
          end if
 
          if (USE_MEMORY == 3 .or. ADD_COLDPOOL_CLOS >= 1) then ! increase capmax
             do i = its, itf
                if (ierr(i) /= 0) cycle
-               cap_max(i) = cap_max(i) + coldpool_start(x_add_buoy(i))*35.
+               cap_max(i) = cap_max(i) + ColdPoolStart(x_add_buoy(i))*35.
             end do
          end if
          if (ADD_COLDPOOL_CLOS == 3) then ! increase x_add_buoy
@@ -4699,11 +4691,11 @@ contains
       ranseed = mod(ranseed, 2147483646) + 1 !seed between 1 and 2^31-2
       iran = -ranseed
 
-      !-- ran1 produces numbers between [ 0,1]
+      !-- Ran1 produces numbers between [ 0,1]
       !-- random        will be between [-1,1]
       !-- with use_random_num the interval will be [-use_random_num,+use_random_num]
       do i = its, ite
-         random(i) = use_random_num*2.0*(0.5 - real(RAN1(IRAN), 4))
+         random(i) = use_random_num*2.0*(0.5 - real(Ran1(IRAN), 4))
          !print*,"ran=",i,random(i)
       end do
 
@@ -6623,7 +6615,7 @@ contains
             g_alpha2 = g_alpha(k1)
          end if
 
-         fzu = gammaBrams(alpha2 + p_beta_deep)/(g_alpha2*p_g_beta_deep)
+         fzu = GammaBrams(alpha2 + p_beta_deep)/(g_alpha2*p_g_beta_deep)
          fzu = 0.01*fzu
          do k = kb_adj, min(kte, kt)
             kratio = (po_cup(k) - po_cup(kb_adj))/(po_cup(kt) - po_cup(kb_adj))
@@ -11072,7 +11064,7 @@ contains
             tqice = dtime*outqc(i, k)*rho(i, k)*(1.-fr)
 
             outnice(i, k) = max(0.0, MakeIceNumber(tqice, tempco(i, k))/rho(i, k))
-            outnliq(i, k) = max(0.0, make_DropletNumber(tqliq, nwfa(i, k))/rho(i, k))
+            outnliq(i, k) = max(0.0, MakeDropletNumber(tqliq, nwfa(i, k))/rho(i, k))
 
          end do
          !-- convert in tendencies
@@ -12230,7 +12222,7 @@ contains
       !!      Q_rain             is rain mixing ratio, units of kg/m3
       !!      temp               is air temperature in Kelvin
       !!      make_IceNumber     is cloud droplet number mixing ratio, units of number per m3
-      !!      make_DropletNumber is rain number mixing ratio, units of number per kg of m3
+      !!      MakeDropletNumber is rain number mixing ratio, units of number per kg of m3
       !!      make_RainNumber    is rain number mixing ratio, units of number per kg of m3
       !!      qnwfa              is number of water-friendly aerosols in number per kg
       !!
@@ -12326,27 +12318,52 @@ contains
       !+---+-----------------------------------------------------------------+
    end function MakeIceNumber
 
-   !+---+-----------------------------------------------------------------+
-   !+---+-----------------------------------------------------------------+
-
-   elemental real function make_DropletNumber(Q_cloud, qnwfa)
-
+   !------------------------------------------------------------------------------
+   function MakeDropletNumber(q_cloud, qnwfa) result(droplet_number)
+      !! brief
+      !!
+      !! @note
+      !!
+      !! **Project** : MONAN
+      !! **Author(s)**: Saulo Freitas [SRF] e Georg Grell [GAG]
+      !! **e-mail**: <mailto:saulo.r.de.freitas@gmail.com>, <mailto:georg.a.grell@noaa.gov>
+      !! **Date**:  2014
+      !!
+      !! **Full description**:
+      !! brief
+      !!
+      !! @endnote
+      !!
+      !! @warning
+      !!
+      !!  [](https://www.gnu.org/graphics/gplv3-127x51.png'')
+      !!
+      !!     Under the terms of the GNU General Public version 3
+      !!
+      !! @endwarning
+   
       implicit none
-      real, intent(in):: q_cloud, qnwfa
-      real, parameter:: am_r = c_pi*1000./6.
-      real, dimension(15), parameter:: g_ratio = (/24, 60, 120, 210, 336, &
-                                                   504, 720, 990, 1320, 1716, 2184, 2730, 3360, 4080, 4896/)
+      !Parameters:
+      character(len=*), parameter :: procedureName = 'MakeDropletNumber' ! Nome da função
+   
+      real, parameter:: c_am_r = c_pi*1000./6.
+      real, dimension(15), parameter:: c_g_ratio = (/24, 60, 120, 210, 336, 504, 720, 990, 1320, 1716 &
+                                                   , 2184, 2730, 3360, 4080, 4896/)
+      !Variables (input):
+      real, intent(in):: q_cloud
+      real, intent(in):: qnwfa
+   
+      !Local variables:
+      real :: droplet_number ! out
       double precision:: lambda, qnc
       real:: q_nwfa, x1, xDc
       integer:: nu_c
 
       if (Q_cloud == 0) then
-         make_DropletNumber = 0
+         droplet_number = 0
          return
       end if
-
-      !+---+
-
+      
       q_nwfa = max(99.e6, min(qnwfa, 5.e10))
       nu_c = max(2, min(nint(2.5e10/q_nwfa), 15))
 
@@ -12354,68 +12371,90 @@ contains
       xDc = (30.-x1*20./9.)*1.e-6
 
       lambda = (4.0d0 + nu_c)/xDc
-      qnc = Q_cloud/g_ratio(nu_c)*lambda*lambda*lambda/am_r
-      make_DropletNumber = SNGL(qnc)
+      qnc = Q_cloud/c_g_ratio(nu_c)*lambda*lambda*lambda/c_am_r
+      droplet_number = SNGL(qnc)
 
       return
-   end function make_DropletNumber
+   end function MakeDropletNumber
 
-   !+---+-----------------------------------------------------------------+
-   !+---+-----------------------------------------------------------------+
-
-   elemental real function make_RainNumber(Q_rain, temp)
-
+   !----------------------------------------------------------------------------------------
+   pure function IntFuncGamma(x, y) result(z)
+      !! brief
+      !!
+      !! @note
+      !!
+      !! **Project** : MONAN
+      !! **Author(s)**: Demerval Moreira [DSM]
+      !! **e-mail**: <mailto:demerval.moreira@unesp.br>
+      !! **Date**:  2014
+      !!
+      !! **Full description**:
+      !! brief
+      !!
+      !! @endnote
+      !!
+      !! @warning
+      !!
+      !!  [](https://www.gnu.org/graphics/gplv3-127x51.png'')
+      !!
+      !!     Under the terms of the GNU General Public version 3
+      !!
+      !! @endwarning
+   
       implicit none
-
-      real, intent(in):: q_rain, temp
-      double precision:: lambda, n0, qnr
-      real, parameter:: am_r = c_pi*1000./6.
-
-      if (Q_rain == 0) then
-         make_RainNumber = 0
-         return
-      end if
-
-      !+---+-----------------------------------------------------------------+
-      !.. Not thrilled with it, but set Y-intercept parameter to Marshal-Palmer value
-      !.. that basically assumes melting snow becomes typical rain. However, for
-      !.. -2C < T < 0C, make linear increase in exponent to attempt to keep
-      !.. supercooled collision-coalescence (warm-rain) similar to drizzle rather
-      !.. than bigger rain drops.  While this could also exist at T>0C, it is
-      !.. more difficult to assume it directly from having mass and not number.
-      !+---+-----------------------------------------------------------------+
-
-      N0 = 8.e6
-
-      if (temp .le. 271.15) then
-         N0 = 8.e8
-      elseif (temp .gt. 271.15 .and. temp .lt. 273.15) then
-         N0 = 8.*10**(279.15 - temp)
-      end if
-
-      lambda = sqrt(sqrt(N0*am_r*6.0/Q_rain))
-      qnr = Q_rain/6.0*lambda*lambda*lambda/am_r
-      make_RainNumber = SNGL(qnr)
-
-      return
-   end function make_RainNumber
-   !+---+-----------------------------------------------------------------+
-   !DSM {
-   pure function intfuncgamma(x, y) result(z)
-      real :: z
-      real, intent(in) :: x, y
-
+      !Parameters:
+      character(len=*), parameter :: procedureName = 'IntFuncGamma' ! Nome da função
+   
+      !Variables (input):
+      real, intent(in) :: x
+      real, intent(in) :: y
+   
+      !Local variables:
+      real :: z ! output
+   
+      !Code:
       z = x**(y - 1.0)*exp(-x)
-   end function intfuncgamma
 
-   function gammaBrams(a) result(g)
-      real :: g
+   end function IntFuncGamma
+
+   !---------------------------------------------------------------------------------------------
+   function GammaBrams(a) result(g)
+      !! brief
+      !!
+      !! @note
+      !!
+      !! **Project** : MONAN
+      !! **Author(s)**: Demerval Moreira [DSM]
+      !! **e-mail**: <mailto:demerval.moreira@unesp.br>
+      !! **Date**:  2014
+      !!
+      !! **Full description**:
+      !! brief
+      !!
+      !! @endnote
+      !!
+      !! @warning
+      !!
+      !!  [](https://www.gnu.org/graphics/gplv3-127x51.png'')
+      !!
+      !!     Under the terms of the GNU General Public version 3
+      !!
+      !! @endwarning
+   
+      implicit none
+      !Parameters:
+      character(len=*), parameter :: procedureName = 'GammaBrams' ! Nome da função
+
+      real, parameter :: p_small = 1.0e-4
+      integer, parameter :: p_points = 100000
+   
+      !Variables (input):
       real, intent(in) :: a
+   
+      !Local variables:
+      real :: g  !Output
 
-      real, parameter :: small = 1.0e-4
-      integer, parameter :: points = 100000
-
-      real :: infty, dx, p, sp(2, points), x
+      real :: infty, dx, p, sp(2, p_points), x
       integer :: i
       logical :: correction
 
@@ -12435,95 +12474,153 @@ contains
       ! \int_0^M dt t^{x-1} e^{-t}
       ! where M is such that M^{x-1} e^{-M} ≤ \epsilon
       infty = 1.0e4
-      do while (intfuncgamma(infty, x) > small)
+      do while (IntFuncGamma(infty, x) > p_small)
          infty = infty*10.0
       end do
 
       ! using simpson
-      dx = infty/real(points)
+      dx = infty/real(p_points)
       sp = 0.0
-      forall (i=1:points/2 - 1) sp(1, 2*i) = intfuncgamma(2.0*(i)*dx, x)
-      forall (i=1:points/2) sp(2, 2*i - 1) = intfuncgamma((2.0*(i) - 1.0)*dx, x)
-      g = (intfuncgamma(0.0, x) + 2.0*sum(sp(1, :)) + 4.0*sum(sp(2, :)) + &
-           intfuncgamma(infty, x))*dx/3.0
+      forall (i=1:p_points/2 - 1) sp(1, 2*i) = IntFuncGamma(2.0*(i)*dx, x)
+      forall (i=1:p_points/2) sp(2, 2*i - 1) = IntFuncGamma((2.0*(i) - 1.0)*dx, x)
+      g = (IntFuncGamma(0.0, x) + 2.0*sum(sp(1, :)) + 4.0*sum(sp(2, :)) + &
+           IntFuncGamma(infty, x))*dx/3.0
 
       if (correction) g = g/a
 
-   end function gammaBrams
-   !DSM}
+   end function GammaBrams
 
-
-   real(8) function ran1(idum)
-
-      ! This is contributed code standardized by Yong Wang
-      ! Random number generator taken from Press et al.
-      !
-      ! Returns numbers in the range 0-->1
-      !
-      ! Their description...
-      ! "Minimal" random number generator of Park and Miller with Bays-Durham
-      ! shuffle and added safeguards. Returns a uniform deviate between 0.0 and 1.0
-      ! (exclusive of the endpoint values). Call with idum a negative integer to
-      ! initialize; thereafter, do not alter idum between successive calls in a
-      ! sequence. RNMX should approximate the largest floating value that is less
-      ! than 1.
-
-      !use shr_kind_mod,    only: r8 => shr_kind_r8, i8 => shr_kind_i8
+   !------------------------------------------------------------------------------------------
+   function Ran1(idum) result(random_number)
+      !! Random number generator
+      !!
+      !! @note
+      !!
+      !! **Project** : MONAN
+      !! **Author(s)**: Saulo Freitas [SRF] e Georg Grell [GAG]
+      !! **e-mail**: <mailto:saulo.r.de.freitas@gmail.com>, <mailto:georg.a.grell@noaa.gov>
+      !! **Date**:  2014
+      !!
+      !! **Full description**:
+      !! This is contributed code standardized by Yong Wang
+      !! Random number generator taken from Press et al.
+      !!
+      !! Returns numbers in the range 0-->1
+      !!
+      !! Their description...
+      !! "Minimal" random number generator of Park and Miller with Bays-Durham
+      !! shuffle and added safeguards. Returns a uniform deviate between 0.0 and 1.0
+      !! (exclusive of the endpoint values). Call with idum a negative integer to
+      !! initialize; thereafter, do not alter idum between successive calls in a
+      !! sequence. RNMX should approximate the largest floating value that is less
+      !! than 1.
+      !!
+      !! @endnote
+      !!
+      !! @warning
+      !!
+      !!  [](https://www.gnu.org/graphics/gplv3-127x51.png'')
+      !!
+      !!     Under the terms of the GNU General Public version 3
+      !!
+      !! @endwarning
+   
       implicit none
-      integer(8), parameter:: ntab = 32, iq = 127773, ia = 16807, ir = 2836, &
-                              im = 2147483647, ndiv = 1 + (im - 1)/ntab
+      !Parameters:
+      character(len=*), parameter :: procedureName = 'Ran1' ! Nome da função
 
-      real(8), parameter:: am = 1.0/im, eps = 1.2e-7, rnmx = 1.0 - eps
-
+      integer(8), parameter:: p_ntab = 32
+      integer(8), parameter:: p_iq = 127773
+      integer(8), parameter:: p_ia = 16807
+      integer(8), parameter:: p_ir = 2836
+      integer(8), parameter:: p_im = 2147483647
+      integer(8), parameter:: p_ndiv = 1 + (p_im - 1)/p_ntab
+      real(8), parameter:: p_am = 1.0/p_im
+      real(8), parameter:: p_eps = 1.2e-7
+      real(8), parameter:: p_rnmx = 1.0 - p_eps
+   
+      !Variables (input):
       integer(8), intent(inout):: idum
+   
+      !Local variables:
+      real(8) :: random_number !output
 
       integer(8):: iy
-      integer(8), dimension(ntab):: iv
+      integer(8), dimension(p_ntab):: iv
       !save iv,iy
-      data iv/ntab*0/, iy/0/
+      data iv/p_ntab*0/, iy/0/
       integer(8):: j, k
 
-      !
       if (idum .le. 0 .or. iy .eq. 0) then
          ! initialize
          idum = max(-idum, 1)
-         do j = ntab + 8, 1, -1
-            k = idum/iq
-            idum = ia*(idum - k*iq) - ir*k
-            if (idum .lt. 0) idum = idum + im
-            if (j .le. ntab) iv(j) = idum
+         do j = p_ntab + 8, 1, -1
+            k = idum/p_iq
+            idum = p_ia*(idum - k*p_iq) - p_ir*k
+            if (idum .lt. 0) idum = idum + p_im
+            if (j .le. p_ntab) iv(j) = idum
          end do
          iy = iv(1)
       end if
       !
-      k = idum/iq
+      k = idum/p_iq
       ! compute idum = mod(ia*idum,im) without overflows by schrage's method
-      idum = ia*(idum - k*iq) - ir*k
-      if (idum .lt. 0) idum = idum + im
+      idum = p_ia*(idum - k*p_iq) - p_ir*k
+      if (idum .lt. 0) idum = idum + p_im
       ! j will be in the range 1-->ntab
-      j = 1 + iy/ndiv
+      j = 1 + iy/p_ndiv
       ! output previously stored value and refill the shuffle table
       iy = iv(j)
       iv(j) = idum
-      ran1 = min(am*iy, rnmx)
+      random_number = min(p_am*iy, p_rnmx)
 
-   end function ran1
+   end function Ran1
 
    !------------------------------------------------------------------------------------
-   real function coldpool_start(CNV_TR)
+   function ColdPoolStart(cnv_tr) result(cp_start_out)
+      !! brief
+      !!
+      !! @note
+      !!
+      !! **Project** : MONAN
+      !! **Author(s)**: Saulo Freitas [SRF] e Georg Grell [GAG]
+      !! **e-mail**: <mailto:saulo.r.de.freitas@gmail.com>, <mailto:georg.a.grell@noaa.gov>
+      !! **Date**:  2014
+      !!
+      !! **Full description**:
+      !! brief
+      !!
+      !! @endnote
+      !!
+      !! @warning
+      !!
+      !!  [](https://www.gnu.org/graphics/gplv3-127x51.png'')
+      !!
+      !!     Under the terms of the GNU General Public version 3
+      !!
+      !! @endwarning
+   
       implicit none
-      real, intent(in)  :: CNV_TR
-      real          :: f1
-      real, parameter   :: width = 100. !orig 100.
+      !Parameters:
+      character(len=*), parameter :: procedureName = 'ColdPoolStart' ! Nome da função
 
-      f1 = min(mx_buoy2, CNV_TR)
-      !--- f1 > mx_buoy1 => coldpool_start ---> 1
-      coldpool_start = (1.35 + atan((f1 - mx_buoy1)/width))/2.8
-      coldpool_start = max(0.00, min(coldpool_start, 1.00))
-      !coldpool_start =  max(0.05,min(coldpool_start,0.95))
+      real, parameter   :: p_width = 100. 
+      !! orig 100
+   
+      !Variables (input):
+      real, intent(in) :: cnv_tr
+   
+      !Local variables:
+      real :: cp_start_out !output
+
+      real :: f1
+
+      f1 = min(MX_BUOY2, cnv_tr)
+      !--- f1 > mx_buoy1 => cp_start_out ---> 1
+      cp_start_out = (1.35 + atan((f1 - mx_buoy1)/p_width))/2.8
+      cp_start_out = max(0.00, min(cp_start_out, 1.00))
+      !cp_start_out =  max(0.05,min(cp_start_out,0.95))
    end function
-   !------------------------------------------------------------------------------------
-
 
 
 end module modConvParGF
