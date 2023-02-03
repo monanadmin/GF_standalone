@@ -1,6 +1,6 @@
 program GF_1d_driver
 
-  USE module_gate
+  USE modGate
   use ConvPar_GF_GEOS5  , only: GF_GEOS5_DRV,icumulus_gf, closure_choice, deep, shal, mid &
       ,use_scale_dep,dicycle,tau_deep,tau_mid,hcts                       &
       ,use_tracer_transp, use_tracer_scaven,use_memory,convection_tracer &
@@ -250,8 +250,8 @@ program GF_1d_driver
 
    
    IF(trim(rundata) == "GATE.dat") THEN
-     KLON_LOCAL=KLON
-     KLEV_LOCAL=KLEV	
+     KLON_LOCAL=p_klon
+     KLEV_LOCAL=p_klev	
      OUTPUT_SOUND = 0
    ELSE
      OUTPUT_SOUND = 1
@@ -260,15 +260,15 @@ program GF_1d_driver
      KLEV_LOCAL=KLEV_SOUND
    ENDIF
 !--- allocation      
-   allocate(cupout(0:nvar_grads))
-   do nvar=0,nvar_grads
+   allocate(cupout(0:p_nvar_grads))
+   do nvar=0,p_nvar_grads
         allocate(cupout(nvar)%varp(klon_LOCAL,KLEV_LOCAL))
         allocate(cupout(nvar)%varn(3))
         cupout(nvar)%varp(:,:)=0.0
         cupout(nvar)%varn(:)  ="xxxx"
    enddo
-   print*,"USE_GATE=",use_gate
-   if(.not. use_gate) then
+   print*,"USE_GATE=",p_use_gate
+   if(.not. p_use_gate) then
        print*,"====================================================================="
        print*, "use_gate logical flag must be true to run in 1-d, model will stop"
        print*,"====================================================================="
@@ -280,10 +280,10 @@ program GF_1d_driver
    print*,"reading GATE soundings"
    open(7,file="GATE.dat",form="formatted",STATUS="OLD")
      read(7,*)
-     do jl=1,klon
+     do jl=1,p_klon
      	read(7,*)
      	!z(m)  p(hpa) t(c) q(g/kg) u  v (m/s) w(pa/s) q1 q2 !!!qr (k/d) advt(k/d) advq(1/s)
-     	do jk=klev,1,-1
+     	do jk=p_klev,1,-1
      	read(7,*)pgeo(jl,jk),ppres(jl,jk),ptemp(jl,jk),pq(jl,jk),        &
      		 pu(jl,jk),pv(jl,jk),pvervel(jl,jk), &
      		 zq1(jl,jk),zq2(jl,jk),zqr(jl,jk),zadvt(jl,jk),&
@@ -553,7 +553,7 @@ program GF_1d_driver
    !
    !number of variables to be written
    nvartotal=0
-   do nvar=0,nvar_grads
+   do nvar=0,p_nvar_grads
      if(cupout(nvar)%varn(1) .ne. "xxxx") nvartotal=nvartotal+1
      if(cupout(nvar)%varn(3)  ==  "3d"  ) klevgrads(nvar)=KLEV_LOCAL-1
      if(cupout(nvar)%varn(3)  ==  "2d"  ) klevgrads(nvar)=1
@@ -564,7 +564,7 @@ program GF_1d_driver
    open(19,file= trim(runname)//'.gra',form='unformatted',&
            access='direct',status='replace', recl=int_byte_size*(klon_LOCAL))
    nrec=0
-   do nvar=0,nvar_grads
+   do nvar=0,p_nvar_grads
        if(cupout(nvar)%varn(1) .ne. "xxxx") then
         do jk=1,klevgrads(nvar)
           nrec=nrec+1
@@ -598,7 +598,7 @@ program GF_1d_driver
    
    write(20,2006) 1,'00:00Z01JAN2000','1mn'
    write(20,2007) nvartotal
-   do nvar=0,nvar_grads
+   do nvar=0,p_nvar_grads
     if(cupout(nvar)%varn(1) .ne. "xxxx") then
      write(20,2008) cupout(nvar)%varn(1)(1:len_trim(cupout(nvar)%varn(1)))&
                    ,klevgrads(nvar),cupout(nvar)%varn(2)(1:len_trim(cupout(nvar)%varn(2)))

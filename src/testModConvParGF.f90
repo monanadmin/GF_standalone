@@ -1,7 +1,7 @@
 program testmodConvParGF
 
-  USE module_gate
-  use modConvParGF  , only: gfGeos5Drv,ICUMULUS_GF, CLOSURE_CHOICE, p_deep, p_shal, p_mid &
+  USE modGate
+  use modConvParGF  , only: modConvParGFDriver,ICUMULUS_GF, CLOSURE_CHOICE, p_deep, p_shal, p_mid &
       ,use_scale_dep,dicycle,TAU_DEEP,TAU_MID,hcts                       &
       ,use_tracer_transp, use_tracer_scaven,use_memory,convection_tracer &
       ,use_flux_form,use_tracer_evap,downdraft,use_fct                   &
@@ -19,7 +19,7 @@ program testmodConvParGF
       ,USE_LINEAR_SUBCL_MF,CAP_MAXS,LIQ_ICE_NUMBER_CONC,ALPHA_ADV_TUNING &
       ,SIG_FACTOR,LCL_TRIGGER, rh_dicycle, add_coldpool_prop,CUM_T_STAR  &
       ,add_coldpool_clos,MX_BUOY1, MX_BUOY2, CUM_T_STAR,cum_zuform       &
-      ,add_coldpool_diff, modConvParGFGeos5_initialized, initModConvParGFGeos5
+      ,add_coldpool_diff, modConvParGF_initialized, initModConvParGF
 
 
   implicit none
@@ -184,9 +184,9 @@ program testmodConvParGF
 
 
 !Informa que não houve inicialização do GF5
-modConvParGFGeos5_initialized = .false.
+modConvParGF_initialized = .false.
 ! Chama a rotina que inicializa as variáveis do módulo
-init_stat = initModConvParGFGeos5()
+init_stat = initModConvParGF()
 
 !------------------- simulation begins  ------------------
 !
@@ -259,8 +259,8 @@ init_stat = initModConvParGFGeos5()
 
    
    IF(trim(rundata) == "GATE.dat") THEN
-     KLON_LOCAL=KLON
-     KLEV_LOCAL=KLEV	
+     KLON_LOCAL=p_klon
+     KLEV_LOCAL=p_klev	
      output_sound = 0
    ELSE
      output_sound = 1
@@ -269,15 +269,15 @@ init_stat = initModConvParGFGeos5()
      KLEV_LOCAL=KLEV_SOUND
    ENDIF
 !--- allocation      
-   allocate(cupout(0:nvar_grads))
-   do nvar=0,nvar_grads
+   allocate(cupout(0:p_nvar_grads))
+   do nvar=0,p_nvar_grads
         allocate(cupout(nvar)%varp(klon_LOCAL,KLEV_LOCAL))
         allocate(cupout(nvar)%varn(3))
         cupout(nvar)%varp(:,:)=0.0
         cupout(nvar)%varn(:)  ="xxxx"
    enddo
-   print*,"USE_GATE=",use_gate
-   if(.not. use_gate) then
+   print*,"USE_GATE=",p_use_gate
+   if(.not. p_use_gate) then
        print*,"====================================================================="
        print*, "use_gate logical flag must be true to run in 1-d, model will stop"
        print*,"====================================================================="
@@ -289,10 +289,10 @@ init_stat = initModConvParGFGeos5()
    print*,"reading GATE soundings"
    open(7,file="GATE.dat",form="formatted",STATUS="OLD")
      read(7,*)
-     do jl=1,klon
+     do jl=1,p_klon
      	read(7,*)
      	!z(m)  p(hpa) t(c) q(g/kg) u  v (m/s) w(pa/s) q1 q2 !!!qr (k/d) advt(k/d) advq(1/s)
-     	do jk=klev,1,-1
+     	do jk=p_klev,1,-1
      	read(7,*)pgeo(jl,jk),ppres(jl,jk),ptemp(jl,jk),pq(jl,jk),        &
      		 pu(jl,jk),pv(jl,jk),pvervel(jl,jk), &
      		 zq1(jl,jk),zq2(jl,jk),zqr(jl,jk),zadvt(jl,jk),&
@@ -459,7 +459,7 @@ init_stat = initModConvParGFGeos5()
        print*," ====================================================================="
        print*,"Sounding =",jl
                
-       CALL gfGeos5Drv(mxp,myp,KLEV_LOCAL,n_aer,p_nmp, time, itime1 &
+       CALL modConvParGFDriver(mxp,myp,KLEV_LOCAL,n_aer,p_nmp, time, itime1 &
               ,ims,ime, jms,jme, kms,kme                        & 
               ,its,ite, jts,jte, kts,kte                        & 
 	          ,flip        &
@@ -562,7 +562,7 @@ init_stat = initModConvParGFGeos5()
    !
    !number of variables to be written
    nvartotal=0
-   do nvar=0,nvar_grads
+   do nvar=0,p_nvar_grads
      if(cupout(nvar)%varn(1) .ne. "xxxx") nvartotal=nvartotal+1
      if(cupout(nvar)%varn(3)  ==  "3d"  ) klevgrads(nvar)=KLEV_LOCAL-1
      if(cupout(nvar)%varn(3)  ==  "2d"  ) klevgrads(nvar)=1
@@ -573,7 +573,7 @@ init_stat = initModConvParGFGeos5()
    open(19,file= trim(runname)//'.gra',form='unformatted',&
            access='direct',status='replace', recl=int_byte_size*(klon_LOCAL))
    nrec=0
-   do nvar=0,nvar_grads
+   do nvar=0,p_nvar_grads
        if(cupout(nvar)%varn(1) .ne. "xxxx") then
         do jk=1,klevgrads(nvar)
           nrec=nrec+1
@@ -607,7 +607,7 @@ init_stat = initModConvParGFGeos5()
    
    write(20,2006) 1,'00:00Z01JAN2000','1mn'
    write(20,2007) nvartotal
-   do nvar=0,nvar_grads
+   do nvar=0,p_nvar_grads
     if(cupout(nvar)%varn(1) .ne. "xxxx") then
      write(20,2008) cupout(nvar)%varn(1)(1:len_trim(cupout(nvar)%varn(1)))&
                    ,klevgrads(nvar),cupout(nvar)%varn(2)(1:len_trim(cupout(nvar)%varn(2)))

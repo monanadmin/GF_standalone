@@ -18,7 +18,7 @@ module ConvPar_GF_GEOS5
    !  The identation was fixed and all keywords are lowercase                   !
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    !
-   use module_gate
+   use modGate
    !USE MAPL
    use MAPL_ConstantsMod ! - only for GATE soundings
    !
@@ -533,8 +533,8 @@ contains
       if(mxp>1 .and. myp>1) wrtgrads = .false.
       !call mpi_comm_rank(MPI_COMM_WORLD,WHOAMI_ALL,status)
       !----
-      if(use_gate) stop "use_gate must be false for GEOS5 runs"
-      if( .not. use_gate .and. wrtgrads) call alloc_grads_arr(1,mzp,1,jl)
+      if(p_use_gate) stop "use_gate must be false for GEOS5 runs"
+      if( .not. p_use_gate .and. wrtgrads) call alloc_grads_arr(1,mzp,1,jl)
       !--------------------------------------------------------
 
       !- time counter
@@ -1217,7 +1217,7 @@ contains
       if( allocated(src_chem))  deallocate(src_chem,stat=alloc_stat) !tendency   from convection
 
       !- for debugging purposes only
-      if(.not. use_gate .and. wrtgrads) call alloc_grads_arr(1,mzp,2,jl)
+      if(.not. p_use_gate .and. wrtgrads) call alloc_grads_arr(1,mzp,2,jl)
 
    end subroutine GF_GEOS5_INTERFACE
    !---------------------------------------------------------------------------------------------------
@@ -1633,7 +1633,7 @@ contains
          !- begin: for GATE soundings-------------------------------------------
          !- this section is intended for model developments only and must
          !- not be used for normal runs.
-         if(USE_GATE) then
+         if(p_use_gate) then
             if(CLEV_GRID == 0) stop "use_gate requires CLEV_GRID 1 or 2"
             if(USE_TRACER_TRANSP==1) then
                ispc_CO=1
@@ -1845,7 +1845,7 @@ contains
                do i=its,itf
                   do k=kts,ktf
                      kr=k!+1 <<<<
-                     if(use_gate) then
+                     if(p_use_gate) then
                         dhdt    (i,k)= cp*(temp_new_dp(i,k)-temp_old(i,k))+xlv*(qv_new_dp(i,k)-qv_old(i,k))
                         temp_new(i,k)= temp_new_dp(i,k)
                         qv_new  (i,k)= qv_new_dp  (i,k)
@@ -1869,7 +1869,7 @@ contains
             !--- deep convection
             if(plume == deep) then
 
-               if(use_gate) then
+               if(p_use_gate) then
                   do k=kts,ktf
                      do i=its,itf
                         temp_new(i,k) = temp_new_dp(i,k)
@@ -1893,7 +1893,7 @@ contains
             !--- mid/congestus type convection
             if(plume == mid) then
 
-               if(use_gate) then
+               if(p_use_gate) then
                   do k=kts,ktf
                      do i=its,itf
                         temp_new(i,k) = temp_new_dp(i,k)
@@ -2587,7 +2587,7 @@ contains
       real, allocatable, dimension (:,:,:),save    ::   se_chem_update
       !----------------------------------------------------------------------
       !--only for debug
-      if(use_gate) then
+      if(p_use_gate) then
          if( .not. allocated(se_chem_update)) allocate(se_chem_update(3,its:ite,kts:kte))
          if(jl==1) then
          !    se_chem_update(1,:,:) = mpql (lsmp,:,:)
@@ -4882,7 +4882,7 @@ contains
       if(use_tracer_transp==1)  then
 
          !--only for debug
-         if(use_gate) then
+         if(p_use_gate) then
             if(jl==1) then
                se_chem_update(1,:,:) = se_chem(1,:,:)
             else
@@ -5143,7 +5143,7 @@ contains
 
          enddo ! loop 'i'
 
-         if(use_gate) then
+         if(p_use_gate) then
             !--only for debug
             do i=its,itf
                if(ierr(i) /= 0) cycle
@@ -5201,7 +5201,7 @@ contains
 
       !
       !- begin: for GATE soundings-------------------------------------------
-      if(use_gate .or. wrtgrads) then
+      if(p_use_gate .or. wrtgrads) then
          if(cumulus == 'deep'   ) then
             cty='1'
             nvarbegin =  0
@@ -5368,7 +5368,7 @@ contains
                  !~ call set_grads_var(jl,k,nvar,(XAA0(I)-AA1(I))/MBDT(I),"xk"//cty,'xk','2d')
 333         continue
             enddo
-            if(wrtgrads .and. .not. use_gate) then
+            if(wrtgrads .and. .not. p_use_gate) then
                call wrt_bin_ctl(1,kte,po(1,1:kte),cumulus)
             endif
          enddo
@@ -8277,15 +8277,15 @@ contains
 
       if(task == 1) then
          jl = n
-         allocate (cupout(nvar_grads))
-         do nvar=1,nvar_grads
+         allocate (cupout(p_nvar_grads))
+         do nvar=1,p_nvar_grads
             allocate(cupout(nvar)%varp(n,mzp))
             allocate(cupout(nvar)%varn(3))
             cupout(nvar)%varp(:,:)=0.0
             cupout(nvar)%varn(:)  ="xxxx"
          enddo
       else
-         do nvar=1,nvar_grads
+         do nvar=1,p_nvar_grads
             deallocate(cupout(nvar)%varp)
             deallocate(cupout(nvar)%varn)
          enddo
@@ -8307,7 +8307,7 @@ contains
       cupout(nvar)%varn(2)=name2
       cupout(nvar)%varn(3)=name3
       nvar=nvar+1
-      if(nvar>nvar_grads) stop 'nvar>nvar_grads'
+      if(nvar>p_nvar_grads) stop 'nvar>nvar_grads'
 
    end subroutine set_grads_var
    !------------------------------------------------------------------------------------
@@ -8332,7 +8332,7 @@ contains
       !
       !number of variables to be written
       nvartotal=0
-      do nvar=1,nvar_grads
+      do nvar=1,p_nvar_grads
          if(cupout(nvar)%varn(1) .ne. "xxxx") nvartotal=nvartotal+1
          if(cupout(nvar)%varn(3)  ==  "3d"  ) klevgrads(nvar)=maxklevgrads
          if(cupout(nvar)%varn(3)  ==  "2d"  ) klevgrads(nvar)=1
@@ -8351,7 +8351,7 @@ contains
             access='direct',status='old', recl=recSize)
       endif
 
-      do nvar=1,nvar_grads
+      do nvar=1,p_nvar_grads
          if(cupout(nvar)%varn(1) .ne. "xxxx") then
             do jk=1,klevgrads(nvar)
                nrec=nrec+1
@@ -8374,7 +8374,7 @@ contains
       write(20,2005) maxklevgrads,(p2d(jk),jk=1,maxklevgrads)
       write(20,2006) ntimes,'00:00Z24JAN1999','10mn'
       write(20,2007) nvartotal
-      do nvar=1,nvar_grads
+      do nvar=1,p_nvar_grads
          if(cupout(nvar)%varn(1) .ne. "xxxx") then
             !
             write(20,2008) cupout(nvar)%varn(1)(1:len_trim(cupout(nvar)%varn(1))),klevgrads(nvar)&
