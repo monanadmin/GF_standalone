@@ -3,7 +3,7 @@ DSRC2=../src
 #F_OPTS= -O0 -r8 -check bounds -traceback -check uninit# -prof-gen #-fpe0
 
 F_COMP=gfortran
-F_OPTS= -O0 -fcheck=bounds -fbacktrace -ffree-line-length-200 -I../src/includes# -fdefault-real-8
+F_OPTS= -O0 -fcheck=bounds -fbacktrace -ffree-line-length-200 -I../src/includes -pg # -fdefault-real-8
 
 
 #F_OPTS=  -O0 -fpe2 -ftrapuv -check bounds -traceback -init=snan,arrays  -check uninit  # -ftz  -check uninit -check all -g #-r8 
@@ -23,7 +23,7 @@ F_OPTS= -O0 -fcheck=bounds -fbacktrace -ffree-line-length-200 -I../src/includes#
 #  -finit-real=zero -Wall
 
 LOADER=$(F_COMP)
-LOADER_OPTS=-v #-Bstatic -check_bounds -traceback #-Mlarge_arrays
+LOADER_OPTS=-v -pg #-Bstatic -check_bounds -traceback #-Mlarge_arrays
 ARCHIVE=ar rs
 
 # Compiler commands.
@@ -37,9 +37,8 @@ EXE=$(BASE).x
 ARC=$(BASE).a
 
 # Define source.
-F_SRC=  $(DSRC2)/module_gate.f90 \
+F_SRC=  $(DSRC2)/modGate.F90 \
 	$(DSRC2)/modHenrysLawCts.F90 \
-   $(DSRC2)/Phys_const.f90 \
 	$(DSRC2)/modConvParGF.F90 \
 	$(DSRC2)/testModConvParGF.f90 	
 	
