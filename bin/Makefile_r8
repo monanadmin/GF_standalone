@@ -3,7 +3,11 @@ DSRC2=../src
 #F_OPTS= -O0 -r8 -check bounds -traceback -check uninit# -prof-gen #-fpe0
 
 F_COMP=gfortran
-F_OPTS= -O0 -fcheck=bounds -fbacktrace -ffree-line-length-200 -pg -fdefault-real-8
+
+# Trapping:
+# F_OPTS= -O0 -g -pg -fbacktrace -ffree-line-length-200 -fdefault-real-8 -fcheck=bounds -finit-local-zero -ffpe-trap
+
+F_OPTS= -O0 -g -pg -fbacktrace -ffree-line-length-200 -fdefault-real-8 
 
 
 #F_OPTS=  -O0 -fpe2 -ftrapuv -check bounds -traceback -init=snan,arrays  -check uninit  # -ftz  -check uninit -check all -g #-r8 
