@@ -37,7 +37,8 @@ EXE=$(BASE).x
 ARC=$(BASE).a
 
 # Define source.
-F_SRC=  $(DSRC2)/modGate.F90 \
+F_SRC=  $(DSRC2)/modConstants.F90 \
+	$(DSRC2)/modGate.F90 \
 	$(DSRC2)/modHenrysLawCts.F90 \
 	$(DSRC2)/modConvParGF.F90 \
 	$(DSRC2)/testModConvParGF.f90 	

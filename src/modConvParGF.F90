@@ -1,14 +1,20 @@
 module modConvParGF
-   !! GF Convective parameterization
+   !! ## GF Convective parametrization
    !!
-   !! @note
+   !! ![](https://i.ibb.co/LNqGy3S/logo-Monan-Color-75x75.png)
+   !! ## MONAN
    !!
-   !! **Project**: MONAN
-   !! **Author(s)**: Saulo Freitas [SRF] e Georg Grell [GAG]
-   !! **e-mail**: <mailto:saulo.r.de.freitas@gmail.com>, <mailto:georg.a.grell@noaa.gov>
-   !! **Date**:  2014
+   !! Author: Saulo Freitas [SRF] e Georg Grell [GAG]
    !!
+   !! E-mail: <mailto:luiz.rodrigues@inpe.br>
+   !!
+   !! Date: 2014
+   !!
+   !! #####Version: 0.1.0
+   !!
+   !! ---
    !! **Full description**:
+   !!
    !! This convective parameterization is build to attempt                      
    !! a smooth transition to cloud resolving scales as proposed                 
    !! by Arakawa et al (2011, ACP). The scheme is  described                    
@@ -21,57 +27,57 @@ module modConvParGF
    !! Please, contact Saulo Freitas (saulo.r.de.freitas@gmail.com) for comments 
    !! questions, bugs, etc.                                                     
    !!
-   !! Adapted for BRAMS 6.0 by Saulo Freitas (November 2021)                    
-   !! Refactoring by Luiz Flavio Rodrigues at 20 December 2021 (Monday)         
+   !! ** History**:
+   !!
+   !! - Adapted for BRAMS 6.0 by Saulo Freitas (November 2021)                    
+   !!  -Refactoring by Luiz Flavio Rodrigues at 20 December 2021 (Monday)         
    !! Keywords using ; are separeted, some loops receives exit instead goto,    
    !! The identation was fixed and all keywords are lowercase                   
-   !!
-   !! Refactoring by GCC (INPE) at 20 January 2023 using fprettify and manual
+   !! -Refactoring by GCC (INPE) at 20 January 2023 using fprettify and manual
    !! changes according MONAN rules code patterns DTN 01
    !!
-   !! @endnote
+   !! --- 
+   !! ** Licence **:
    !!
-   !! @warning
+   !!  <img src="https://www.gnu.org/graphics/gplv3-127x51.png width="63">
    !!
-   !!  [](https://www.gnu.org/graphics/gplv3-127x51.png'')
+   !!  This program is free software: you can redistribute it and/or modify
+   !!  it under the terms of the GNU General Public License as published by
+   !!  the  Free  Software  Foundation, either version 3 of the License, or
+   !!  (at your option) any later version.
    !!
-   !!     This program is free software: you can redistribute it and/or modify
-   !!     it under the terms of the GNU General Public License as published by
-   !!     the  Free  Software  Foundation, either version 3 of the License, or
-   !!     (at your option) any later version.
+   !!  This program is distributed in the hope that it  will be useful, but
+   !!  ** WITHOUT  ANY  WARRANTY **;  without  even  the   implied   warranty  of
+   !!  **MERCHANTABILITY** or **FITNESS FOR A  PARTICULAR PURPOSE**.  See  the, GNU
+   !!  GNU General Public License for more details.
    !!
-   !!     This program is distributed in the hope that it  will be useful, but
-   !!     WITHOUT  ANY  WARRANTY;  without  even  the   implied   warranty  of
-   !!     MERCHANTABILITY or FITNESS FOR A  PARTICULAR PURPOSE.  See  the, GNU
-   !!     GNU General Public License for more details.
+   !!  You should have received a copy  of the GNU General  Public  License
+   !!  along with this program.  If not, see [GNU Public License](https://www.gnu.org/licenses/gpl-3.0.html).
    !!
-   !!     You should have received a copy  of the GNU General  Public  License
-   !!     along with this program.  If not, see <https://www.gnu.org/licenses/>.
-   !!
-   !! @endwarning
 
-   use module_gate, only: cupout &
-                        , rundata &
-                        , nvar_grads &
-                        , runlabel &
-                        , runname &
-                        , jl &
-                        , use_gate &
-                        , ppres &
-                        , ptemp &
-                        , pq &
-                        , pu &
-                        , pv &
-                        , pvervel &
-                        , pgeo &
-                        , zqr &
-                        , zadvq &
-                        , zadvt
+   use modGate, only: cupout &
+                  ,   rundata &
+                  ,   p_nvar_grads &
+                  ,   runlabel &
+                  ,   runname &
+                  ,   jl &
+                  ,   p_use_gate &
+                  ,   ppres &
+                  ,   ptemp &
+                  ,   pq &
+                  ,   pu &
+                  ,   pv &
+                  ,   pvervel &
+                  ,   pgeo &
+                  ,   zqr &
+                  ,   zadvq &
+                  ,   zadvt
 
    use modHenrysLawConstants, only: getHenryLawCts
+   use modConstants
 
    implicit none
-   include 'constants.h'
+
    character(len=*), parameter :: source_name = 'modConvParGF.F90' ! Nome do arquivo fonte
    character(len=*), parameter :: module_name = 'modConvParGF' ! Nome do módulo
 
@@ -1016,7 +1022,7 @@ contains
          !- begin: for GATE soundings-------------------------------------------
          !- this section is intended for model developments only and must
          !- not be used for normal runs.
-         if (USE_GATE) then
+         if (p_use_gate) then
             if (CLEV_GRID == 0) stop "use_gate requires CLEV_GRID 1 or 2"
             if (USE_TRACER_TRANSP == 1) then
                ispc_co = 1
@@ -1228,7 +1234,7 @@ contains
                do i = its, itf
                   do k = kts, ktf
                      kr = k!+1 <<<<
-                     if (use_gate) then
+                     if (p_use_gate) then
                         dhdt(i, k) = real(c_cp)*(temp_new_dp(i, k) - temp_old(i, k)) + real(c_xlv)*(qv_new_dp(i, k) - qv_old(i, k))
                         temp_new(i, k) = temp_new_dp(i, k)
                         qv_new(i, k) = qv_new_dp(i, k)
@@ -1252,7 +1258,7 @@ contains
             !--- deep convection
             if (plume == p_deep) then
 
-               if (use_gate) then
+               if (p_use_gate) then
                   do k = kts, ktf
                      do i = its, itf
                         temp_new(i, k) = temp_new_dp(i, k)
@@ -1276,7 +1282,7 @@ contains
             !--- mid/congestus type convection
             if (plume == p_mid) then
 
-               if (use_gate) then
+               if (p_use_gate) then
                   do k = kts, ktf
                      do i = its, itf
                         temp_new(i, k) = temp_new_dp(i, k)
@@ -2017,7 +2023,7 @@ contains
 
       !----------------------------------------------------------------------
       !--only for debug
-      if (use_gate) then
+      if (p_use_gate) then
          if (.not. allocated(se_chem_update)) allocate (se_chem_update(3, its:ite, kts:kte))
          if (jl == 1) then
             !    se_chem_update(1,:,:) = mpql (lsmp,:,:)
@@ -4039,7 +4045,7 @@ contains
       if (USE_TRACER_TRANSP == 1) then
 
          !--only for debug
-         if (use_gate) then
+         if (p_use_gate) then
             if (jl == 1) then
                se_chem_update(1, :, :) = se_chem(1, :, :)
             else
@@ -4298,7 +4304,7 @@ contains
 
          end do ! loop 'i'
 
-         if (use_gate) then
+         if (p_use_gate) then
             !--only for debug
             do i = its, itf
                if (ierr(i) /= 0) cycle
@@ -4353,7 +4359,7 @@ contains
       end if
 
       !- begin: for GATE soundings-------------------------------------------
-      if (use_gate .or. wrtgrads) then
+      if (p_use_gate .or. wrtgrads) then
          if (trim(cumulus) == 'deep') then
             cty = '1'
             nvarbegin = 0
@@ -4513,7 +4519,7 @@ contains
                !~ call set_grads_var(jl,k,nvar,(XAA0(I)-AA1(I))/MBDT(I),"xk"//cty,'xk','2d')
 333            continue
             end do
-            if (wrtgrads .and. .not. use_gate) then
+            if (wrtgrads .and. .not. p_use_gate) then
                call wrtBinCtl(1, kte, po(1, 1:kte), cumulus)
             end if
          end do
@@ -11412,7 +11418,7 @@ contains
       cupout(nvar)%varn(2) = name2
       cupout(nvar)%varn(3) = name3
       nvar = nvar + 1
-      if (nvar > nvar_grads) stop 'nvar>nvar_grads'
+      if (nvar > p_nvar_grads) stop 'nvar>nvar_grads'
 
    end subroutine setGradsVar
 
@@ -11468,7 +11474,7 @@ contains
       !
       !number of variables to be written
       nvartotal = 0
-      do nvar = 1, nvar_grads
+      do nvar = 1, p_nvar_grads
          if (cupout(nvar)%varn(1) .ne. "xxxx") nvartotal = nvartotal + 1
          if (cupout(nvar)%varn(3) == "3d") klevgrads(nvar) = maxklevgrads
          if (cupout(nvar)%varn(3) == "2d") klevgrads(nvar) = 1
@@ -11487,7 +11493,7 @@ contains
                access='direct', status='old', recl=rec_size)
       end if
 
-      do nvar = 1, nvar_grads
+      do nvar = 1, p_nvar_grads
          if (cupout(nvar)%varn(1) .ne. "xxxx") then
             do jk = 1, klevgrads(nvar)
                nrec = nrec + 1
@@ -11510,7 +11516,7 @@ contains
       write (20, 2005) maxklevgrads, (p2d(jk), jk=1, maxklevgrads)
       write (20, 2006) ntimes, '00:00Z24JAN1999', '10mn'
       write (20, 2007) nvartotal
-      do nvar = 1, nvar_grads
+      do nvar = 1, p_nvar_grads
          if (cupout(nvar)%varn(1) .ne. "xxxx") then
             !
             write (20, 2008) cupout(nvar)%varn(1) (1:len_trim(cupout(nvar)%varn(1))), klevgrads(nvar) &
