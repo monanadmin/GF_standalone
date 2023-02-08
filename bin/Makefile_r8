@@ -28,7 +28,7 @@ ARCHIVE=ar rs
 
 # Compiler commands.
 
-F_COMMAND = $(F_COMP) -c $(F_OPTS) $(INCLUDES)
+F_COMMAND = $(F_COMP) -c $(F_OPTS) #$(INCLUDES)
 
 # Define archive and executable names.
 

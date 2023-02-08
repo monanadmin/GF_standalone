@@ -33,7 +33,7 @@ module modHenrysLawConstants
    !! @endwarning
 
    implicit none
-   include 'constants.h'
+
    character(len=*), parameter :: sourceName = 'modHenrysLawCts.F90' ! Nome do arquivo fonte
    character(len=*), parameter :: moduleName = 'modHenrysLawConstants' ! Nome do módulo
 

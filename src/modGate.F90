@@ -33,7 +33,7 @@ module modGate
    !! @endwarning
 
    implicit none
-   include 'constants.h'
+
    character(len=*), parameter :: sourceName = 'module_gate.f90' ! Nome do arquivo fonte
    character(len=*), parameter :: moduleName = 'modGate' ! Nome do módulo
 
