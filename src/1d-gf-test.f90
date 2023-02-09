@@ -12,77 +12,41 @@ program GF_1d_driver
       ,cum_max_edt_land  ,cum_max_edt_ocean, cum_hei_down_land           &
       ,cum_hei_down_ocean,cum_hei_updf_land, cum_hei_updf_ocean          &
       ,use_momentum_transp,cum_entr_rate                                 &
-      ,zero_diff , p_nmp, p_lsmp, p_cnmp,moist_trigger,frac_modis,max_tq_tend  &
+      ,p_nmp, p_lsmp, p_cnmp,moist_trigger,frac_modis,max_tq_tend  &
       ,cum_fadj_massflx, cum_use_excess, cum_ave_layer, adv_trigger      &
-      ,use_smooth_prof, evap_fix,output_sound,use_cloud_dissipation      &
+      ,use_smooth_prof, output_sound,use_cloud_dissipation      &
       ,use_smooth_tend,GFConvparInit,beta_sh,c0_shal                   &
       ,use_linear_subcl_mf,cap_maxs,liq_ice_number_conc,alpha_adv_tuning &
       ,sig_factor,lcl_trigger, rh_dicycle, add_coldpool_prop,cum_t_star  &
       ,add_coldpool_clos,mx_buoy1, mx_buoy2, cum_t_star,cum_zuform       &
-      ,add_coldpool_diff
+      ,add_coldpool_diff, modConvParGF_initialized, initModConvParGF
 
 
-  IMPLICIT NONE
+  implicit none
 
-  !INTEGER ,PARAMETER  :: nmp=2 , lsmp=1 ,cnmp=2
-    
- !INTEGER,PARAMETER :: mzp=klev ,mxp=1   ,myp=1
-  INTEGER,PARAMETER :: mzp=200 ,mxp=1   ,myp=1
-  
-  !-- ichoice_deep:     0 ensemble, 1 grell, 4 omega , 7 MCONV, 10 = KF, 13 = PB
-  INTEGER, PARAMETER :: icoic=0
-  
-  !-- ichoice_shallow   0 ensemble, 1 Wstar, 4 heat-engine or 7 BLQE 
-  INTEGER, PARAMETER :: icoic_sh=1
+  integer,parameter :: mzp=200 ,mxp=1   ,myp=1
 
-  INTEGER,PARAMETER :: &
-         CCATT =1    , ngrid=1 ,ngrids_cp=1     & 
-	 ,iens  =1   , mynum=1 ,npatch=1        &
-	 ,i0    =1   , j0=1                     &	 
-	 ,ia    =1   , ja=1 ,iz=1 ,jz=1         ! 1-d column
-	 
-  INTEGER,PARAMETER :: mgmxp=mxp &
+  integer,parameter :: &
+       ngrid=1 ,ngrids_cp=1     & 
+     ,iens  =1   , mynum=1 ,npatch=1        &
+     ,i0    =1   , j0=1                     &    
+     ,ia    =1   , ja=1 ,iz=1 ,jz=1         ! 1-d column
+     
+  integer,parameter :: mgmxp=mxp &
                       ,mgmyp=myp &
-		      ,mgmzp=mzp
+                      ,mgmzp=mzp
 
-	!- converting WRF setting to BRAMS
-  INTEGER,PARAMETER :: &
-         ids=1   ,ide=mxp ,jds=1   ,jde=myp ,kds=1, kde=mzp	 &	
-	,ims=1   ,ime=mxp ,jms=1   ,jme=myp ,kms=1, kme=mzp	 &	 
-	,ips=ia+1,ipe=iz-2,jps=ja+1,jpe=jz-2,kps=1, kpe=mzp	 &	   
-	,its=ia  ,ite=iz  ,jts=ja  ,jte=jz  ,kts=1   !, kte=mzp!-1	 
+  integer,parameter :: &
+     ims=1   ,ime=mxp ,jms=1   ,jme=myp ,kms=1, kme=mzp  &   
+    ,its=ia  ,ite=iz  ,jts=ja  ,jte=jz  ,kts=1   
 
   
-   INTEGER ,PARAMETER ::  &
-	   cugd_avedx  =1 &
-          ,ishallow_g3 =1 &
-	  ,imomentum   =0 &
-	  ,training    =0 &
-	  ,level=3     
-  !integer,parameter :: autoconv = 1!2 ! =1, Kessler
-                                       ! =2, Berry 
-  integer,parameter :: aerovap = 1!3   ! =1, orig
-                                    ! =2, mix orig+new
-				    ! =3, new 
+  integer, parameter ::   maxiens    = 3 !cloud spectral size
+     
+   integer, parameter :: n_aer=1
+   real     :: fscav(n_aer)
 
-  integer, parameter ::               &
-       maxiens    = 3,  & !Cloud spectral size
-       maxens     = 3,  & ! 3  ensemble one on cap_max
-       maxens2    = 3,  & ! 3  ensemble two on precip efficiency
-       maxens_sh  = 3,  & ! 3  ensemble one on mbdt
-       maxens2_sh = 1,  & ! 1  ensemble two on precip efficiency
-       maxens3_sh = 10, & !10 ensemble three done in cup_forcing_ens16
-       maxens3    = 16, & !16 ensemble three done in cup_forcing_ens16
-
-       maxens_g3d  = 1,  & ! 1  ensemble one on cap_max for G3d
-       maxens2_g3d = 1,  & ! 1  ensemble two on precip efficiency for G3d
-       maxens3_g3d = 16, & !16 ensemble three done in cup_forcing_ens16 for G3d
-       ensdim      = 1*maxens    *maxens2    *maxens3    , &
-       ensdim_g3d  = 1*maxens_g3d*maxens2_g3d*maxens3_g3d
-   INTEGER, Parameter :: n_aer=1
-   REAL     :: FSCAV(n_aer)
-
-   REAL, PARAMETER ::      &
+   real, parameter ::      &
        rgas    = 287.,    &
        cp      = 1004.,   &
        rm      = 461.,    &
@@ -93,156 +57,143 @@ program GF_1d_driver
        xl      = 2.5e6,   &
        akmin   = 1.0,     &
        tkmin   = 1.e-5
-   
-   LOGICAL,PARAMETER :: do_cupar_mcphys_coupling = .false. ! direct link cupar-microphysics
-  
-   REAL,  DIMENSION(kms:kme)  ::  zmn,ztn
-   INTEGER, DIMENSION(kms:kme)     :: flip
+     
+   real,    dimension(kms:kme)  ::  zmn,ztn
+   integer, dimension(kms:kme)  :: flip
 
-   REAL,  DIMENSION(kms:kme ,  ims:ime , jms:jme ) :: &
-                                                          UP,   &
-                                                          VP,   &
-                                                          WP,   &
+   real,  dimension(kms:kme ,  ims:ime , jms:jme ) :: &
+                                                          up,   &
+                                                          vp,   &
+                                                          wp,   &
                                                           rv,   &
                                                           rtp,  &
-	           				                              theta   ,& 
-                   				                          thp     ,& 
-                   				                          pp      ,& 
-                   				                          pi0     ,& 
+                                                          theta   ,& 
+                                                          thp     ,& 
+                                                          pp      ,& 
+                                                          pi0     ,& 
                                                           dn0     ,&
                                                           tend_pt ,&
-		                                                  rcp,tkep,zt3d,zm3d,dm3d,rv2,&
-						                                  buoy_exc, qexp, hexcp 
+                                                          rcp,tkep,zt3d,zm3d,dm3d,rv2,&
+                                                          buoy_exc, qexp, hexcp 
            
-   REAL,  DIMENSION(p_nmp,kms:kme ,  ims:ime , jms:jme ) ::  ls_ice,  &
-					                                       ls_liq,  &
-                                         	               ls_clfrac
+   real,  dimension(p_nmp,kms:kme ,  ims:ime , jms:jme ) ::  ls_ice,  &
+                                                           ls_liq,  &
+                                                           ls_clfrac
 
-   REAL, DIMENSION(ims:ime , jms:jme,npatch)  :: patch_area
+   real, dimension(ims:ime , jms:jme,npatch)  :: patch_area
 
 
-   REAL, DIMENSION( ims:ime , jms:jme ) ::  aot500 , temp2m , rtgt &
+   real, dimension( ims:ime , jms:jme ) ::  aot500 , temp2m , rtgt &
                                            ,sflux_r, sflux_t, topt &
-					   ,rshort , xland,sfc_press&
-					   ,lons,lats,col_sat,cnv_frc, tke_pbl,wlpool
+                       ,rshort , xland,sfc_press&
+                       ,lons,lats,col_sat,cnv_frc, tke_pbl,wlpool
 
-   REAL :: DTLT,  time
+   real :: dtlt,  time
 
-   REAL, DIMENSION( ims:ime , jms:jme ) ::      &
+   real, dimension( ims:ime , jms:jme ) ::      &
                           conprr,xmb_deep,                     &
                           apr_gr,apr_w,apr_mc,apr_st,apr_as,    &
-                          xmb_shallow,err_deep ,MASS_FLUX_DP ,MASS_FLUX_SH  ,MASS_FLUX_MD     
-   REAL, DIMENSION( ims:ime , jms:jme ) ::        &
-                  weight_GR,weight_W,weight_MC,weight_ST,weight_AS &
-		 ,AA0,AA1,AA2,AA3,AA1_BL,AA1_CIN,TAU_BL,TAU_EC &
-		 ,xmbdn,LIGHTN_DENS,VAR2d,zkbcon,STOCHASTIC_SIG, rh_dicy_fct, AA1_ADV, aa1_radpbl
-			  
-   REAL,  DIMENSION(ims:ime, kms:kme ,  jms:jme, n_aer) :: SC_AER,SC_CHEM
-   REAL,  DIMENSION(n_aer, kms:kme , ims:ime ,  jms:jme) :: SRC_AER,SRC_CHEM
-  
-! Optionals
+                          xmb_shallow,err_deep ,mass_flux_dp ,mass_flux_sh  ,mass_flux_md     
+   real, dimension( ims:ime , jms:jme ) ::        &
+                  weight_gr,weight_w,weight_mc,weight_st,weight_as &
+                 ,aa0,aa1,aa2,aa3,aa1_bl,aa1_cin,tau_bl,tau_ec &
+                 ,xmbdn,lightn_dens,var2d,zkbcon,stochastic_sig, rh_dicy_fct, aa1_adv, aa1_radpbl
+              
+   real,  dimension(ims:ime, kms:kme ,  jms:jme, n_aer) :: sc_aer,sc_chem
+   real,  dimension(n_aer, kms:kme , ims:ime ,  jms:jme) :: src_aer,src_chem
+
 !
-   REAL, DIMENSION(kms:kme , ims:ime ,  jms:jme )   ::   &  
-              THSRC	 & ! temp tendency	       
-	     ,RTSRC	 & ! rv tendency	       
-	     ,CLSRC	 & ! cloud/ice tendency        
-	     ,NISRC	 & ! ice # tendency        
-	     ,NLSRC	 & ! cloud # tendency        
-	     ,USRC	 & ! U tendency 	       
-	     ,VSRC	 & ! V tendency 	       
-	     ,MUP	 & ! updraft mass flux         
-	     ,lsfth	 & ! forcing for theta deep    
-        ,advf_t &
-	     ,lsfrt	 & ! forcing for rv deep       
-	     ,lsfth_sh	 & ! forcing for theta shallow 
-	     ,lsfrt_sh	 &   ! forcing for rv shallow    
-             ,SRC_BUOY   &! Lifting tendency from downdrafts
-             ,REVSU_GF   &	 
-             ,PFIL_GF    & ! ice_or_liq convective_precipitation flux: kg m2 s-1 (deep only)
-             ,var3d_aGF	 &! dummy 3-d var for output
-             ,var3d_bGF	 &! dummy 3-d var for output
-             ,var3d_cGF	 &! dummy 3-d var for output
-             ,var3d_dGF	! dummy 3-d var for output
+   real, dimension(kms:kme , ims:ime ,  jms:jme )   ::   &  
+          thsrc  & ! temp tendency         
+         ,rtsrc  & ! rv tendency           
+         ,clsrc  & ! cloud/ice tendency        
+         ,nisrc  & ! ice # tendency        
+         ,nlsrc  & ! cloud # tendency        
+         ,usrc   & ! u tendency            
+         ,vsrc   & ! v tendency            
+         ,mup    & ! updraft mass flux         
+         ,lsfth  & ! forcing for theta deep    
+         ,advf_t     &
+         ,lsfrt      & ! forcing for rv deep       
+         ,lsfth_sh   & ! forcing for theta shallow 
+         ,lsfrt_sh   &   ! forcing for rv shallow    
+         ,src_buoy   & ! lifting tendency from downdrafts
+         ,revsu_gf   &   
+         ,pfil_gf    & ! ice_or_liq convective_precipitation flux: kg m2 s-1 (deep only)
+         ,var3d_agf  & ! dummy 3-d var for output
+         ,var3d_bgf  & ! dummy 3-d var for output
+         ,var3d_cgf  & ! dummy 3-d var for output
+         ,var3d_dgf    ! dummy 3-d var for output
 
    integer :: itime1
 
-   REAL, DIMENSION(p_nmp,kms:kme , ims:ime ,  jms:jme )   ::   &  
-              SUB_QILS & ! subsidence transport applied to grid-scale ice mix ratio
-             ,SUB_QLLS & ! subsidence transport applied to grid-scale cloud mix ratio
-             ,SUB_CFLS   ! subsidence transport applied to grid-scale cloud fraction
+   real, dimension(p_nmp,kms:kme , ims:ime ,  jms:jme )   ::   &  
+              sub_qils & ! subsidence transport applied to grid-scale ice mix ratio
+             ,sub_qlls & ! subsidence transport applied to grid-scale cloud mix ratio
+             ,sub_cfls   ! subsidence transport applied to grid-scale cloud fraction
 !
-! Flags relating to the optional tendency arrays declared above
-! Models that carry the optional tendencies will provdide the
-! optional arguments at compile time; these flags all the model
-! to determine at run-time whether a particular tracer is in
-! use or not.
-!
-   LOGICAL           ::     F_QV      &
-                           ,F_QC      &
-                           ,F_QR      &
-                           ,F_QI      &
-                           ,F_QS
 !- for convective transport-start
   integer, dimension(mgmxp,mgmyp,maxiens,ngrids_cp) ::         &
-               ierr4d  		     &  	     
+           ierr4d  		     &  	     
 	      ,jmin4d  		     & 
 	      ,kdet4d  		     & 
-	      ,k224d	             & 
+	      ,k224d	         & 
 	      ,kbcon4d 		     & 
 	      ,ktop4d  		     & 
 	      ,kpbl4d  		     & 
-              ,klcl4d       &
+          ,klcl4d            &
 	      ,kstabi4d		     & 
-	      ,kstabm4d,do_this_column		   
+	      ,kstabm4d          &
+          ,do_this_column		   
 
    real,dimension(mgmxp,mgmyp,maxiens,ngrids_cp) :: &
-               cprr4d                & 
+           cprr4d            & 
 	      ,xmb4d		     & 
 	      ,edt4d		     & 
 	      ,sigma4d		     & 
 	      ,pwav4d		     	      
-!--- use this for the version/= 4
    real,dimension(mgmzp,mgmxp,mgmyp,maxiens,ngrids_cp) ::&
-!--- use this for version =4
-!   real,dimension(mgmxp,mgmyp,mgmzp,maxiens,ngrids_cp) ::&
  	       pcup5d 		     & 
-              ,up_massentr5d	     &        
-	      ,up_massdetr5d	     &
-	      ,dd_massentr5d	     &
-	      ,dd_massdetr5d	     &
+          ,up_massentr5d	 &        
+	      ,up_massdetr5d	 &
+	      ,dd_massentr5d	 &
+	      ,dd_massdetr5d	 &
  	      ,zup5d		     &
 	      ,zdn5d   		     & 
 	      ,prup5d  		     & 
 	      ,prdn5d  		     & 
 	      ,clwup5d 		     & 
-	      ,tup5d                 &
+	      ,tup5d             &
           ,conv_cld_fr5d                  		      
   
-  real, DIMENSION(ims:ime , jms:jme ) :: grid_length
-  INTEGER, DIMENSION(ims:ime , jms:jme ) ::  kpbl
+  real,    dimension(ims:ime , jms:jme ) :: grid_length
+  integer, dimension(ims:ime , jms:jme ) ::  kpbl
   logical :: land
- !- Here are the place for data related with the GATE soundings
-!- soundings arrays
-   integer ::jk, nruns, version, KLON_LOCAL,KLEV_LOCAL,KTE
+ !- here are the place for data related with the gate soundings
+ !- soundings arrays
+   integer ::jk, nruns, version, klon_local,klev_local,kte
 
 !- this for the namelist gf.inp
-!character (len=50) :: runname, runlabel
   namelist /run/ runname, runlabel, rundata,version, land , klev_sound 
-
 
 !- for grads output
    integer :: nrec,nvx,nvar,nvartotal,klevgrads(0:300),int_byte_size,n1,n2,n3
    real    :: real_byte_size
+   logical :: init_stat
 
-
+!Informa que não houve inicialização do GF5
+modConvParGF_initialized = .false.
+! Chama a rotina que inicializa as variáveis do módulo
+init_stat = initModConvParGF()
 !------------------- simulation begins  ------------------
 !
-!- reads namelist                
+!- reads namelists
+!- namelist 1 
    open(15,file='gf.inp',status='old',form='formatted')	  
     read(15,nml=run)
    close(15)
 
-
+!- namelist 2 
   call GFConvparInit(mynum)
 
 
@@ -270,7 +221,7 @@ program GF_1d_driver
   print*, 'c0_deep           ' , real(c0_deep	         ,4)	  
   print*, 'c0_mid            ' , real(c0_mid 	         ,4)	  
   print*, 'c0_shal           ' , real(c0_shal 	         ,4)	  
-  print*, 'c1                ' , real(c1		 ,4)	  
+  print*, 'c1                ' , real(c1		     ,4)	  
   print*, 'qrc_crit          ' , real(qrc_crit	 	 ,4) 
   print*, 'lambau_deep       ' , real(lambau_deep	 ,4)	  
   print*, 'lambau_shdn       ' , real(lambau_shdn	 ,4)	  
@@ -288,14 +239,12 @@ program GF_1d_driver
   print*, 'use_scale_dep     ' , USE_SCALE_DEP    
   print*, 'dicycle	         ' , DICYCLE	  
   print*, 'land 	         ' , LAND		  
-  print*, 'zero_diff 	     ' , zero_diff		  
   print*, 'CUM_ENTR 	     ' , real(cum_entr_rate	 ,4)
   print*, 'FRAC_MODIS	     ' , FRAC_MODIS
   print*, 'MOIST_TRIGGER     ' , MOIST_TRIGGER	  
   print*, 'ADV_TRIGGER       ' , ADV_TRIGGER	
   print*, 'tau_deep,tau_mid  ' , real(tau_deep,4),real(tau_mid,4)
   print*, 'use_smooth_prof   ' , use_smooth_prof
-  print*, 'evap_fix          ' , evap_fix
   print*, 'use_cloud_dissipation', real(use_cloud_dissipation,4)
   print*, 'beta_sh 	         ' , real(beta_sh,4)
   print*, 'use_linear_subcl_mf',use_linear_subcl_mf
@@ -329,8 +278,6 @@ program GF_1d_driver
        print*,"====================================================================="
        stop "use_gate flag"
    endif
-!
-!  cum_use_excess
 !  
 !- reads gate soundings                
    IF(trim(RUNDATA) == "GATE.dat") THEN
@@ -353,8 +300,7 @@ program GF_1d_driver
 !-
 !-
 !- general  initialization ---------------------------------------
-  ! USE_MEMORY        = -1
-  !CONVECTION_TRACER = 0
+
    grid_length = 22000. ! meters
    dtlt=450. !seconds
    time=0.
@@ -393,7 +339,7 @@ program GF_1d_driver
    topt       (:,:) = 0.
    rshort     (:,:) = 0.
    sfc_press  (:,:) = 1000.
-   kpbl       (:,:) = 5
+   kpbl        (:,:) = 5
    MASS_FLUX_DP(:,:) = 0.  
    MASS_FLUX_SH(:,:) = 0.  
    wlpool      (:,:) = 5.
@@ -404,8 +350,6 @@ program GF_1d_driver
    else
      xland (:,:) = 1. !ocean
    endif
-   !print*,'LAND=',land
-   != nz,nx,ny
 
    dn0    (:,:,:)= 1.
    up     (:,:,:)= 1.
@@ -418,56 +362,56 @@ program GF_1d_driver
    rv     (:,:,:)= 0.001
    rv2    (:,:,:)= 0.001
    rtp    (:,:,:)= 0.001
-   tend_PT(:,:,:)= 0.
-   SUB_QILS       =0.
-   SUB_QLLS       =0.
-   SUB_CFLS       =0.
-   ls_ice=0.0
-   ls_liq=0.0
-   ls_clfrac = 0.0
-   advf_t = 0.
-   rh_dicy_fct = 0.
-   THSRC  (:,:,:)= 0.
-   RTSRC  (:,:,:)= 0.
-   CLSRC  (:,:,:)= 0.
-   NLSRC  (:,:,:)= 0.
-   NISRC  (:,:,:)= 0.
-   USRC   (:,:,:)= 0.
-   VSRC   (:,:,:)= 0.
-   MUP	  (:,:,:)= 0.
+   tend_pt(:,:,:)= 0.
+   sub_qils      = 0.
+   sub_qlls      = 0.
+   sub_cfls      = 0.
+   ls_ice        = 0.
+   ls_liq        = 0.
+   ls_clfrac     = 0.
+   advf_t        = 0.
+   rh_dicy_fct   = 0.
+   thsrc  (:,:,:)= 0.
+   rtsrc  (:,:,:)= 0.
+   clsrc  (:,:,:)= 0.
+   nlsrc  (:,:,:)= 0.
+   nisrc  (:,:,:)= 0.
+   usrc   (:,:,:)= 0.
+   vsrc   (:,:,:)= 0.
+   mup    (:,:,:)= 0.
    lsfth  (:,:,:)= 0.
    lsfrt  (:,:,:)= 0.
-   lsfth_sh  (:,:,:)= 0.
-   lsfrt_sh  (:,:,:)= 0.
-   rcp    (:,:,:)= 0.
-   tkep   (:,:,:)= tkmin
-   SC_AER      =0.
-   SC_CHEM     =0.
-   SRC_AER     =0.
-   SRC_CHEM    =0.
-   buoy_exc    =0.
-   qexp        =0.
-   hexcp       =0.
-   do_this_column = 1 !integer
-   col_sat (:,:)=1.
-   LIGHTN_DENS    =0.
-   REVSU_GF       =0.
-   PFIL_GF   =0.
-   var3d_aGF  =0.
-   var3d_bGF  =0.
-   var3d_cGF  =0.
-   var3d_dGF  =0.
-   VAR2d =0.
-   zkbcon=0.
-   STOCHASTIC_SIG=1.
-   tke_pbl(:,:) = tkmin
+   lsfth_sh (:,:,:)= 0.
+   lsfrt_sh (:,:,:)= 0.
+   rcp      (:,:,:)= 0.
+   tkep     (:,:,:)= tkmin
+   sc_aer     =0.
+   sc_chem    =0.
+   src_aer    =0.
+   src_chem   =0.
+   buoy_exc   =0.
+   qexp       =0.
+   hexcp      =0.
+   col_sat    =1.
+   lightn_dens=0.
+   revsu_gf   =0.
+   pfil_gf    =0.
+   var3d_agf  =0.
+   var3d_bgf  =0.
+   var3d_cgf  =0.
+   var3d_dgf  =0.
+   var2d      =0.
+   zkbcon     =0.
+   stochastic_sig =1.
+   do_this_column =1 !integer
+   tke_pbl        =tkmin
 !- end of  initialization ---------------------------------------
 
 
 !- big loop on the gate soundings
       
    do jl=1,klon_LOCAL !klon=number of soundings
-!   do jl=1,1 !klon=number of soundings
+  !do jl=1,1 !klon=number of soundings
 
      TIME=TIME+DTLT
      !IF(TIME/86400. > 2.) CYCLE
@@ -476,8 +420,8 @@ program GF_1d_driver
      !grid_length= float(jl)*1000.
      
      
- !---tmp-------------------------------
-     !-initialization 
+ 
+  !-initialization 
     ierr4d         =0               
     jmin4d         =0 
     klcl4d         =0
@@ -550,46 +494,44 @@ program GF_1d_driver
               ,ls_clfrac   &
 	          ,rv2	       & !basic_g(ngrid)%rv      
 	          ,SC_CHEM     &
-
-	           ,buoy_exc   &
-!	           ,xmbdn      & ! = transported downdraft mass flux of the previous timestep  
-              ,lsfth      & ! forcing for theta deep    cuforc_g(ngrid)% lsfth  
-	          ,lsfrt 	  & ! forcing for rv deep       cuforc_g(ngrid)% lsfrt  
-              ,advf_t     &
-	          ,lsfth_sh   & ! forcing for theta shallow cuforc_sh_g(ngrid)%lsfth
-	          ,lsfrt_sh   & ! forcing for rv shallow    cuforc_sh_g(ngrid)%lsfrt
+	          ,buoy_exc    &
+              ,lsfth       & ! forcing for theta deep    cuforc_g(ngrid)% lsfth  
+	          ,lsfrt 	   & ! forcing for rv deep       cuforc_g(ngrid)% lsfrt  
+              ,advf_t      &
+	          ,lsfth_sh    & ! forcing for theta shallow cuforc_sh_g(ngrid)%lsfth
+	          ,lsfrt_sh    & ! forcing for rv shallow    cuforc_sh_g(ngrid)%lsfrt
 !
-	          ,CONPRR     & !cupout_g(ngrid)%CONPRR 
-              ,LIGHTN_DENS&
+	          ,CONPRR      & !cupout_g(ngrid)%CONPRR 
+              ,LIGHTN_DENS &
               ,rh_dicy_fct &
-              ,THSRC	  & ! temp tendency		   g3d_g(ngrid)%THSRC	   
-              ,RTSRC	  & ! rv tendency		   g3d_g(ngrid)%RTSRC	   
-              ,CLSRC	  & ! cloud/ice tendency	   g3d_g(ngrid)%CLSRC	   
+              ,THSRC	   & ! temp tendency		   g3d_g(ngrid)%THSRC	   
+              ,RTSRC	   & ! rv tendency		   g3d_g(ngrid)%RTSRC	   
+              ,CLSRC	   & ! cloud/ice tendency	   g3d_g(ngrid)%CLSRC	   
               ,NLSRC       &
               ,NISRC       &
-              ,USRC	      & ! U tendency		   g3d_g(ngrid)%USRC	   
-              ,VSRC	      & ! V tendency		   g3d_g(ngrid)%VSRC	   
+              ,USRC	       & ! U tendency		   g3d_g(ngrid)%USRC	   
+              ,VSRC	       & ! V tendency		   g3d_g(ngrid)%VSRC	   
               ,SUB_QILS    & 
               ,SUB_QLLS    & 
               ,SUB_CFLS	   &   
               ,SRC_BUOY    &
-	           ,SRC_CHEM    &
+	          ,SRC_CHEM    &
               ,REVSU_GF    & 
-	           ,PFIL_GF     & 
-	           ,do_this_column&
+	          ,PFIL_GF     & 
+	          ,do_this_column&
               ,ierr4d	    &
               ,jmin4d	    &
               ,klcl4d	    &
-              ,k224d	       &
+              ,k224d	    &
               ,kbcon4d      &
               ,ktop4d	    &
               ,kstabi4d     &
               ,kstabm4d     &
               ,cprr4d	    &
-              ,xmb4d	       &
-              ,edt4d	       &
+              ,xmb4d	    &
+              ,edt4d	    &
               ,pwav4d	    &
-	           ,sigma4d      &
+	          ,sigma4d      &
               ,pcup5d	    &
               ,up_massentr5d&
               ,up_massdetr5d&
@@ -634,14 +576,6 @@ program GF_1d_driver
         enddo
        endif
    enddo
-   !do nvx=21,20+nvar2d
-   !   klevgrads=1
-   !   do jk=1,klevgrads
-   !     nrec=nrec+1
-   !     WRITE(19,REC=nrec) real(vargrads(:,jk,nvx),4)
-   !   enddo
-   !enddo
-
 
    close (19)
 
@@ -674,10 +608,7 @@ program GF_1d_driver
                    ,klevgrads(nvar),cupout(nvar)%varn(2)(1:len_trim(cupout(nvar)%varn(2)))
     endif
    enddo
-   !do nvx=21,20+nvar2d
-   !  klevgrads=0
-   !  write(20,2008) gradsname(nvx,1),klevgrads,gradsname(nvx,2)
-   !enddo
+  
    write(20,2002) 'endvars'
    close(20)
  

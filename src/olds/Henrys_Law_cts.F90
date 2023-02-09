@@ -1,5 +1,5 @@
-module modHenrysLawCts
-   !! ## Henry's Law Constants
+module modHenrysLawConstants
+   !! ## Henry Law Constants
    !!
    !! ![](https://i.ibb.co/LNqGy3S/logo-Monan-Color-75x75.png)
    !! ## MONAN
@@ -39,23 +39,30 @@ module modHenrysLawCts
    !!
    
    implicit none
-   character(len=*), parameter :: sourceName = 'modHenrysLawCts.F90' 
+   include 'constants.h'
+   character(len=*), parameter :: sourceName = 'Henrys_Law_cts.F90' 
    !! Source code name 
-   character(len=*), parameter :: moduleName = 'modHenrysLawCts' 
+   character(len=*), parameter :: moduleName = 'modHenrysLawConstants' 
    !! module name 
 
-   integer, parameter :: p_nspecies_hl = 051
-   real, parameter :: p_not_found = -1.
-
    private
-   public :: getHenrysLawCts
+   public :: 
 
+contains
+
+
+end module modHenrysLawConstants
+module modHenrysLawConstants
+   implicit none
    !--- : ak0(ispc), dak(ispc),  hstar(ispc), dhr(ispc)
    !--- corrh=1.+ak0(ispc)*exp(dak(ispc)*tcorr)/hplus
    !--- hplus = 1.175E-4  - for cloud water. pH is assumed to be 3.93: pH=3.93 =>hplus=10**(-pH)
    !--- tcorr = 1./temp - 1./298.15
    !--- fct   = 1.e-3 * rgas * temp
    !--- henry_coef =  hstar(ispc)* exp(dhr(ispc)*tcorr) * fct * corrh
+
+   integer, parameter :: p_nspecies_hl = 051
+   real, parameter :: p_not_found = -1.
 
    type t_hcts_vars
       real :: hstar, dhr, ak0, dak
@@ -469,46 +476,12 @@ module modHenrysLawCts
 
 contains
 
-   ! -----------------------------------------------------------------------
+!---------------------------------------------------------------------------------------------------
    subroutine getHenrysLawCts(name, c1, c2, c3, c4)
-      !! ## Get the constants
-      !!
-      !! Author: autor
-      !!
-      !! E-mail: <mailto:email>
-      !!
-      !! Date: 09Fevereiro2023 18:06
-      !!
-      !! #####Version: version
-      !!
-      !! ---
-      !! **Full description**:
-      !!
-      !! Get the constants
-      !!
-      !! ** History**:
-      !!
-      !! --- 
-      !! ** Licence **: Under the terms of the GNU General Public version 3
-      !!   <img src="https://www.gnu.org/graphics/gplv3-127x51.png width="63">
-      !!
-   
       implicit none
-      !Parameters:
-      character(len=*), parameter :: procedureName = 'getHenrysLawCts' 
-      !! subroutine name
-   
-      !Variables (input, output, inout)
       character(len=*), intent(in) :: name
-
-      real, intent(out) :: c1
-      real, intent(out) :: c2
-      real, intent(out) :: c3
-      real, intent(out) :: c4
-
-      !Local variables:
+      real, intent(out):: c1, c2, c3, c4
       integer :: l, found
-      
       found = 0
       loop2: do l = 1, p_nspecies_hl
          if (trim(spc_name(l)) == trim(name)) then
@@ -526,7 +499,6 @@ contains
          c3 = p_not_found
          c4 = p_not_found
       end if
-
    end subroutine getHenrysLawCts
 
-end module modHenrysLawCts
+end module modHenrysLawConstants

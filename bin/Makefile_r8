@@ -3,7 +3,7 @@ DSRC2=../src
 #F_OPTS= -O0 -r8 -check bounds -traceback -check uninit# -prof-gen #-fpe0
 
 F_COMP=gfortran
-F_OPTS= -O0 -fcheck=bounds -fbacktrace -ffree-line-length-200 -I../src/includes -pg # -fdefault-real-8
+F_OPTS= -O0 -fcheck=bounds -fbacktrace -ffree-line-length-200 # -fdefault-real-8
 
 
 #F_OPTS=  -O0 -fpe2 -ftrapuv -check bounds -traceback -init=snan,arrays  -check uninit  # -ftz  -check uninit -check all -g #-r8 
@@ -23,12 +23,12 @@ F_OPTS= -O0 -fcheck=bounds -fbacktrace -ffree-line-length-200 -I../src/includes 
 #  -finit-real=zero -Wall
 
 LOADER=$(F_COMP)
-LOADER_OPTS=-v -pg #-Bstatic -check_bounds -traceback #-Mlarge_arrays
+LOADER_OPTS=-v #-Bstatic -check_bounds -traceback #-Mlarge_arrays
 ARCHIVE=ar rs
 
 # Compiler commands.
 
-F_COMMAND = $(F_COMP) -c $(F_OPTS) #$(INCLUDES)
+F_COMMAND = $(F_COMP) -c $(F_OPTS) $(INCLUDES)
 
 # Define archive and executable names.
 
@@ -38,11 +38,14 @@ ARC=$(BASE).a
 
 # Define source.
 F_SRC=  $(DSRC2)/modConstants.F90 \
-	$(DSRC2)/modGate.F90 \
 	$(DSRC2)/modHenrysLawCts.F90 \
+	$(DSRC2)/modGate.F90 \
 	$(DSRC2)/modConvParGF.F90 \
-	$(DSRC2)/testModConvParGF.f90 	
+	$(DSRC2)/1d-gf-test.f90 	
 	
+
+
+
 # Define targets.
 
 all: $(EXE)

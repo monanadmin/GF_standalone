@@ -68,17 +68,11 @@ module modConstants
    !# Phys & others constants
    real(kind=kind_rb), parameter :: c_pi       = 3.1415926535897932384626433
    real(kind=kind_rb), parameter :: c_rgas     = 287.
-   real(kind=kind_rb), parameter :: c_rgas_rd  = 287.06
    real(kind=kind_rb), parameter :: c_cp       = 1004.
-   real(kind=kind_rb), parameter :: c_cp_pd    = 1004.71
    real(kind=kind_rb), parameter :: c_cv       = 717.
    real(kind=kind_rb), parameter :: c_rm       = 461.
-   real(kind=kind_rb), parameter :: c_rm_rd    = 461.52
    real(kind=kind_rb), parameter :: c_p00      = 1.e5
    real(kind=kind_rb), parameter :: c_t00      = 273.16
-   real(kind=kind_rb), parameter :: c_t01      = 273.155
-   real(kind=kind_rb), parameter :: c_t100     = c_t00+100.
-
    !Absolute temperature
    real(kind=kind_rb), parameter :: c_pi180    = c_pi / 180.
    real(kind=kind_rb), parameter :: c_i_pi180  = 1./c_pi180
@@ -121,52 +115,14 @@ module modConstants
    !#  = p00 ** rocp
    real(kind=kind_rb), parameter :: c_p00ki    = 1. / c_p00k
 
-   real(kind=kind_rb), parameter :: c_tcrit    = 258.
-   real(kind=kind_rb), parameter :: c_akmin    = 1.0
+   real(kind=kind_rb), parameter :: c_tcrit = 258.
+   real(kind=kind_rb), parameter :: c_akmin = 1.0
    real(kind=kind_rb), parameter :: c_tkmin_ms = 1.e-5
    real(kind=kind_rb), parameter :: c_ccnclean = 250.
-   real(kind=kind_rb), parameter :: c_t_ice    = 235.16
-   real(kind=kind_rb), parameter :: c_xlf      = 0.333e6
+   real(kind=kind_rb), parameter :: c_t_ice = 235.16
+   real(kind=kind_rb), parameter :: c_xlf = 0.333e6
    !! ! latent heat of freezing (J kg-1)
    real(kind=kind_rb), parameter :: c_max_qsat = 0.5
-   real(kind=kind_rb), parameter :: c_smaller_qv = 1.e-16
-   real, parameter :: p_mintracer = tiny(1.)
-   real, parameter :: p_xmbmaxshal = 0.05
-   real, parameter :: c_temp0 =    298.15
-   !! standard temperature [K]
-   real, parameter :: c_temp0i= 1./c_temp0
-   !! inverse of standard temperature [K]
-   real, parameter :: c_rgas_atm = 8.205e-2 
-   ! atm M^-1 K^-1 ! 8.314 gas constant [J/(mol*K)]
-   real(kind=kind_rb), parameter :: c_hplus = 1.175e-4     
-   !!  for cloud water. pH is asuumed to be 3.93: pH=3.93 =>hplus=10**(-pH)
-   real(kind=kind_rb), parameter :: c_retv = c_rm_rd/c_rgas_rd - 1.0
-   real(kind=kind_rb), parameter :: c_r2es = 611.21*c_rgas_rd/c_rm_rd
-   real(kind=kind_rb), parameter :: c_r3les = 17.502
-   real(kind=kind_rb), parameter :: c_r3ies = 22.587
-   real(kind=kind_rb), parameter :: c_r4les = 32.19
-   real(kind=kind_rb), parameter :: c_r4ies = -0.7
-   real(kind=kind_rb), parameter :: c_rtice = c_t00 - 23.
-   real(kind=kind_rb), parameter :: c_rticecu = c_t00 - 23.
-   real(kind=kind_rb), parameter :: c_rtwat_rtice_r = 1./(c_t00 - c_rtice)
-   real(kind=kind_rb), parameter :: c_rtwat_rticecu_r = 1./(c_t00 - c_rticecu)
-   real(kind=kind_rb), parameter :: c_r5les = c_r3les*(c_t00 - c_r4les)
-   real(kind=kind_rb), parameter :: c_r5ies = c_r3ies*(c_t00 - c_r4ies)
-   real(kind=kind_rb), parameter :: c_rlvtt = 2.5008e+6
-   real(kind=kind_rb), parameter :: c_rlstt = 2.8345e+6
-   real(kind=kind_rb), parameter :: c_rlmlt = c_rlstt - c_rlvtt
-   real(kind=kind_rb), parameter :: c_rho_h2o = 1000.
-   real(kind=kind_rb), parameter :: c_r5alvcp = c_r5les*c_rlvtt/c_cp_pd
-   real(kind=kind_rb), parameter :: c_r5alscp = c_r5ies*c_rlstt/c_cp_pd
-   real(kind=kind_rb), parameter :: c_ralvdcp = c_rlvtt/c_cp_pd
-   real(kind=kind_rb), parameter :: c_ralsdcp = c_rlstt/c_cp_pd
-   real(kind=kind_rb), parameter :: c_ralfdcp = c_rlmlt/c_cp_pd
-   real(kind=kind_rb), parameter :: c_rcpv = 4.*c_rm_rd
-   real(kind=kind_rb), parameter :: c_rvtmp2 = c_rcpv/c_cp_pd - 1.0
-   real(kind=kind_rb), parameter :: c_rtber = c_t00 - 5. 
-   real(kind=kind_rb), parameter :: c_rtbercu = c_t00 - 5.0 
-
-   real(kind=kind_rb), parameter :: p_zqmax = 0.5
 
    real(kind=kind_rb), parameter :: c_onethird  = 1./3.
    !# 1/3
