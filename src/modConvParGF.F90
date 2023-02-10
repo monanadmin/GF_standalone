@@ -681,7 +681,7 @@ contains
             !------------------------------------------------------------------------
       integer, intent(in) :: ims, ime, jms, jme, kms, kme, its, ite, jts, jte, kts, kte, mzp, mxp, myp, mtp, nmp, mynum &
                            , itime1
-      integer, intent(in) :: flip(mzp)
+      integer, intent(in) :: flip(:)
       integer, intent(in) :: kpbl(its:ite, jts:jte)
 
       real, intent(in) :: dt
@@ -734,7 +734,7 @@ contains
       integer, intent(inout) :: kstabi4d(mxp, myp, p_maxiens)
       integer, intent(inout) :: kstabm4d(mxp, myp, p_maxiens)
 
-      real, intent(inout) :: fscav(mtp)
+      real, intent(inout) :: fscav(:)
       real, intent(inout) :: rh_dicycle_fct(its:ite, jts:jte)
 
       !input but communicate to another subroutine
@@ -1699,118 +1699,118 @@ contains
                            , kte, ichoice, use_excess  &
                            , mtp, nmp
 
-      real, intent(in) :: col_sat(its:ite)
-      real, intent(in) :: stochastic_sig(its:ite)
-      real, intent(in) :: tke_pbl(its:ite)
+      real, intent(in) :: col_sat(:)
+      real, intent(in) :: stochastic_sig(:)
+      real, intent(in) :: tke_pbl(:)
       !- atmos composition arrays
-      real, intent(in) :: fscav(mtp)
+      real, intent(in) :: fscav(:)
       real, intent(in) :: dtime
       real, intent(in) :: entr_rate_input
       
       character(len=*), intent(in) :: cumulus
 
-      integer, intent(inout) :: kpbl(its:ite)
-      integer, intent(inout) :: last_ierr(its:ite)
-      integer, intent(inout) :: ierr(its:ite)
-      integer, intent(inout) :: jmin(its:ite)
-      integer, intent(inout) :: klcl(its:ite)
-      integer, intent(inout) :: k22(its:ite)
-      integer, intent(inout) :: kbcon(its:ite)
-      integer, intent(inout) :: ktop(its:ite)
-      integer, intent(inout) :: kstabi(its:ite)
-      integer, intent(inout) :: kstabm(its:ite)
+      integer, intent(inout) :: kpbl(:)
+      integer, intent(inout) :: last_ierr(:)
+      integer, intent(inout) :: ierr(:)
+      integer, intent(inout) :: jmin(:)
+      integer, intent(inout) :: klcl(:)
+      integer, intent(inout) :: k22(:)
+      integer, intent(inout) :: kbcon(:)
+      integer, intent(inout) :: ktop(:)
+      integer, intent(inout) :: kstabi(:)
+      integer, intent(inout) :: kstabm(:)
 
-      real, intent(inout) :: outu(its:ite, kts:kte)
-      real, intent(inout) :: outv(its:ite, kts:kte)
-      real, intent(inout) :: outt(its:ite, kts:kte)
+      real, intent(inout) :: outu(:, :)
+      real, intent(inout) :: outv(:, :)
+      real, intent(inout) :: outt(:, :)
       !! output temp tendency (per s)
-      real, intent(inout) :: outq(its:ite, kts:kte)
+      real, intent(inout) :: outq(:, :)
       !! output q tendency (per s)
-      real, intent(inout) :: outqc(its:ite, kts:kte)
+      real, intent(inout) :: outqc(:, :)
       !! output qc tendency (per s)
-      real, intent(inout) :: outbuoy(its:ite, kts:kte)
-      real, intent(inout) :: revsu_gf(its:ite, kts:kte)
-      real, intent(inout) :: prfil_gf(its:ite, kts:kte)
-      real, intent(inout) :: var3d_agf(its:ite, kts:kte)
-      real, intent(inout) :: var3d_bgf(its:ite, kts:kte)
-      real, intent(inout) :: outnliq(its:ite, kts:kte)
-      real, intent(inout) :: outnice(its:ite, kts:kte)
+      real, intent(inout) :: outbuoy(:, :)
+      real, intent(inout) :: revsu_gf(:, :)
+      real, intent(inout) :: prfil_gf(:, :)
+      real, intent(inout) :: var3d_agf(:, :)
+      real, intent(inout) :: var3d_bgf(:, :)
+      real, intent(inout) :: outnliq(:, :)
+      real, intent(inout) :: outnice(:, :)
       ! basic environmental input includes
       ! omega (omeg), windspeed (us,vs), and a flag (aaeq) to turn off
       ! convection for this call only and at that particular gridpoint
-      real, intent(inout) :: buoy_exc(its:ite, kts:kte)
-      real, intent(inout) :: ccn(its:ite)
-      real, intent(inout) :: clfrac(its:ite, kts:kte)
-      real, intent(inout) :: dd_massdetro(its:ite, kts:kte)
-      real, intent(inout) :: dd_massentro(its:ite, kts:kte)
-      real, intent(inout) :: dhdt(its:ite, kts:kte)
-      real, intent(inout) :: dm2d(its:ite, kts:kte)
-      real, intent(inout) :: dx(its:ite)
-      real, intent(inout) :: edto(its:ite)
-      real, intent(inout) :: h_sfc_flux(its:ite)
-      real, intent(inout) :: le_sfc_flux(its:ite)
-      real, intent(inout) :: mpcf(nmp, its:ite, kts:kte)
-      real, intent(inout) :: mpqi(nmp, its:ite, kts:kte)
-      real, intent(inout) :: mpql(nmp, its:ite, kts:kte)
-      real, intent(inout) :: omeg(its:ite, kts:kte, 1:p_ens4)
-      real, intent(inout) :: out_chem(mtp, its:ite, kts:kte)
-      real, intent(inout) :: outmpcf(nmp, its:ite, kts:kte)
-      real, intent(inout) :: outmpqi(nmp, its:ite, kts:kte)
-      real, intent(inout) :: outmpql(nmp, its:ite, kts:kte)
-      real, intent(inout) :: po_cup(its:ite, kts:kte)
-      real, intent(inout) :: po(its:ite, kts:kte)
-      real, intent(inout) :: psur(its:ite)
-      real, intent(inout) :: pwavo(its:ite)
-      real, intent(inout) :: pwdo(its:ite, kts:kte)
-      real, intent(inout) :: pwo(its:ite, kts:kte)
-      real, intent(inout) :: q(its:ite, kts:kte)
+      real, intent(inout) :: buoy_exc(:, :)
+      real, intent(inout) :: ccn(:)
+      real, intent(inout) :: clfrac(:, :)
+      real, intent(inout) :: dd_massdetro(:, :)
+      real, intent(inout) :: dd_massentro(:, :)
+      real, intent(inout) :: dhdt(:, :)
+      real, intent(inout) :: dm2d(:, :)
+      real, intent(inout) :: dx(:)
+      real, intent(inout) :: edto(:)
+      real, intent(inout) :: h_sfc_flux(:)
+      real, intent(inout) :: le_sfc_flux(:)
+      real, intent(inout) :: mpcf(:, :, :)
+      real, intent(inout) :: mpqi(:, :, :)
+      real, intent(inout) :: mpql(:, :, :)
+      real, intent(inout) :: omeg(:, :, :)
+      real, intent(inout) :: out_chem(: , :, :)
+      real, intent(inout) :: outmpcf(:, :, :)
+      real, intent(inout) :: outmpqi(:, :, :)
+      real, intent(inout) :: outmpql(:, :, :)
+      real, intent(inout) :: po_cup(:, :)
+      real, intent(inout) :: po(:, :)
+      real, intent(inout) :: psur(:)
+      real, intent(inout) :: pwavo(:)
+      real, intent(inout) :: pwdo(:, :)
+      real, intent(inout) :: pwo(:, :)
+      real, intent(inout) :: q(:, :)
       !! environmental mixing ratio
-      real, intent(inout) :: qo_adv(its:ite, kts:kte)
-      real, intent(inout) :: qo_bl(its:ite, kts:kte)
-      real, intent(inout) :: qo(its:ite, kts:kte)
-      real, intent(inout) :: qrco(its:ite, kts:kte)
-      real, intent(inout) :: rh_dicycle_fct(its:ite)
-      real, intent(inout) :: rho(its:ite, kts:kte)
-      real, intent(inout) :: se_chem(mtp, its:ite, kts:kte)
-      real, intent(inout) :: t(its:ite, kts:kte)
+      real, intent(inout) :: qo_adv(:, :)
+      real, intent(inout) :: qo_bl(:, :)
+      real, intent(inout) :: qo(:, :)
+      real, intent(inout) :: qrco(:, :)
+      real, intent(inout) :: rh_dicycle_fct(:)
+      real, intent(inout) :: rho(:, :)
+      real, intent(inout) :: se_chem(:, :, :)
+      real, intent(inout) :: t(:, :)
       !! environmental temp
-      real, intent(inout) :: tn_adv(its:ite, kts:kte)
-      real, intent(inout) :: tn_bl(its:ite, kts:kte)
-      real, intent(inout) :: tn(its:ite, kts:kte)
-      real, intent(inout) :: tpert(its:ite, kts:kte)
-      real, intent(inout) :: tsur(its:ite)
-      real, intent(inout) :: tup(its:ite, kts:kte)
-      real, intent(inout) :: up_massdetro(its:ite, kts:kte)
-      real, intent(inout) :: up_massentro(its:ite, kts:kte)
-      real, intent(inout) :: us(its:ite, kts:kte)
-      real, intent(inout) :: vs(its:ite, kts:kte)
-      real, intent(inout) :: wlpool(its:ite)
-      real, intent(inout) :: xland(its:ite)
-      real, intent(inout) :: xlats(its:ite)
-      real, intent(inout) :: xlons(its:ite)
-      real, intent(inout) :: xmb(its:ite)
-      real, intent(inout) :: z1(its:ite)
-      real, intent(inout) :: zdo(its:ite, kts:kte)
-      real, intent(inout) :: zqexec(its:ite)
-      real, intent(inout) :: ztexec(its:ite)
-      real, intent(inout) :: zuo(its:ite, kts:kte)
-      real, intent(inout) :: zws(its:ite)
+      real, intent(inout) :: tn_adv(:, :)
+      real, intent(inout) :: tn_bl(:, :)
+      real, intent(inout) :: tn(:, :)
+      real, intent(inout) :: tpert(:, :)
+      real, intent(inout) :: tsur(:)
+      real, intent(inout) :: tup(:, :)
+      real, intent(inout) :: up_massdetro(:, :)
+      real, intent(inout) :: up_massentro(:, :)
+      real, intent(inout) :: us(:, :)
+      real, intent(inout) :: vs(:, :)
+      real, intent(inout) :: wlpool(:)
+      real, intent(inout) :: xland(:)
+      real, intent(inout) :: xlats(:)
+      real, intent(inout) :: xlons(:)
+      real, intent(inout) :: xmb(:)
+      real, intent(inout) :: z1(:)
+      real, intent(inout) :: zdo(:, :)
+      real, intent(inout) :: zqexec(:)
+      real, intent(inout) :: ztexec(:)
+      real, intent(inout) :: zuo(:, :)
+      real, intent(inout) :: zws(:)
       !-- debug/diag
-      real, intent(inout) :: aaa0_(its:ite)
-      real, intent(inout) :: aa1_(its:ite)
-      real, intent(inout) :: aa1_adv_(its:ite)
-      real, intent(inout) :: aa1_bl_(its:ite)
-      real, intent(inout) :: aa1_cin_(its:ite)
-      real, intent(inout) :: aa1_radpbl_(its:ite)
-      real, intent(inout) :: aa2_(its:ite)
-      real, intent(inout) :: aa3_(its:ite)
-      real, intent(inout) :: tau_bl_(its:ite)
-      real, intent(inout) :: tau_ec_(its:ite)
+      real, intent(inout) :: aaa0_(:)
+      real, intent(inout) :: aa1_(:)
+      real, intent(inout) :: aa1_adv_(:)
+      real, intent(inout) :: aa1_bl_(:)
+      real, intent(inout) :: aa1_cin_(:)
+      real, intent(inout) :: aa1_radpbl_(:)
+      real, intent(inout) :: aa2_(:)
+      real, intent(inout) :: aa3_(:)
+      real, intent(inout) :: tau_bl_(:)
+      real, intent(inout) :: tau_ec_(:)
 
-      real, intent(out) :: lightn_dens(its:ite)
-      real, intent(out) :: pre(its:ite)
-      real, intent(out) :: sig(its:ite)
-      real, intent(out) :: var2d(its:ite)
+      real, intent(out) :: lightn_dens(:)
+      real, intent(out) :: pre(:)
+      real, intent(out) :: sig(:)
+      real, intent(out) :: var2d(:)
 
       !Local variables:
       ! local ensemble dependent variables in this routine
@@ -4601,30 +4601,30 @@ contains
       !Variables (input, output, inout)
       integer, intent(in) :: ipr, jpr, aeroevap, itf, ktf, its, ite, kts, kte, maxens2
 
-      integer, intent(in) :: ktop(its:ite)
-      integer, intent(in) :: kbcon(its:ite)
+      integer, intent(in) :: ktop(:)
+      integer, intent(in) :: kbcon(:)
 
-      real, intent(in) :: rho(its:ite, kts:kte)
-      real, intent(in) :: us(its:ite, kts:kte)
-      real, intent(in) :: vs(its:ite, kts:kte)
-      real, intent(in) :: z(its:ite, kts:kte)
-      real, intent(in) :: p(its:ite, kts:kte)
-      real, intent(in) :: pw(its:ite, kts:kte)
-      real, intent(in) :: pwav(its:ite)
-      real, intent(in) :: pwev(its:ite)
-      real, intent(in) :: ccn(its:ite)
-      real, intent(in) :: psum2(its:ite)
-      real, intent(in) :: psumh(its:ite)
-      real, intent(in) :: edtmax(its:ite)
-      real, intent(in) :: edtmin(its:ite)
+      real, intent(in) :: rho(:, :)
+      real, intent(in) :: us(:, :)
+      real, intent(in) :: vs(:, :)
+      real, intent(in) :: z(:, :)
+      real, intent(in) :: p(:, :)
+      real, intent(in) :: pw(:, :)
+      real, intent(in) :: pwav(:)
+      real, intent(in) :: pwev(:)
+      real, intent(in) :: ccn(:)
+      real, intent(in) :: psum2(:)
+      real, intent(in) :: psumh(:)
+      real, intent(in) :: edtmax(:)
+      real, intent(in) :: edtmin(:)
 
       character(len=*), intent(in)  :: cumulus
 
-      integer, intent(inout) :: ierr(its:ite)
+      integer, intent(inout) :: ierr(:)
 
-      real, intent(out) :: edtc(its:ite, 1:maxens2)
-      real, intent(out) :: edt(its:ite)
-      real, intent(out) :: vshear(its:ite)
+      real, intent(out) :: edtc(:, :)
+      real, intent(out) :: edt(:)
+      real, intent(out) :: vshear(:)
       
       !Local variables:
       integer :: i, k, kk
@@ -4733,7 +4733,7 @@ contains
       integer, intent(in) :: itf, ktf, its, ite, kts, kte   
 
       integer, intent(in) :: iloop
-      integer, intent(in) :: jmin(its:ite)
+      integer, intent(in) :: jmin(:)
 
       ! mentr_rate = entrainment rate
       ! qrch = saturation q in cloud
@@ -4741,44 +4741,44 @@ contains
       ! entr = entrainment rate
       ! cdd  = detrainment function
       !
-      real, intent(in) :: t_wetbulb(its:ite)
-      real, intent(in) :: q_wetbulb(its:ite)
-      real, intent(in) :: pwavo(its:ite)
-      real, intent(in) :: zd(its:ite, kts:kte)
+      real, intent(in) :: t_wetbulb(:)
+      real, intent(in) :: q_wetbulb(:)
+      real, intent(in) :: pwavo(:)
+      real, intent(in) :: zd(:, :)
       !! normalized downdraft mass flux
-      real, intent(in) :: t_cup(its:ite, kts:kte)
-      real, intent(in) :: hes_cup(its:ite, kts:kte)
+      real, intent(in) :: t_cup(:, :)
+      real, intent(in) :: hes_cup(:, :)
       !! saturation h on model cloud levels
-      real, intent(in) :: hcd(its:ite, kts:kte)
+      real, intent(in) :: hcd(:, :)
       !! h in model cloud
-      real, intent(in) :: qes_cup(its:ite, kts:kte)
+      real, intent(in) :: qes_cup(:, :)
       !! saturation q on model cloud levels
-      real, intent(in) :: q_cup(its:ite, kts:kte)
+      real, intent(in) :: q_cup(:, :)
       !! environmental q on model cloud levels
-      real, intent(in) :: z_cup(its:ite, kts:kte)
-      real, intent(in) :: dd_massentr(its:ite, kts:kte)
-      real, intent(in) :: dd_massdetr(its:ite, kts:kte)
-      real, intent(in) :: gamma_cup(its:ite, kts:kte)
+      real, intent(in) :: z_cup(:, :)
+      real, intent(in) :: dd_massentr(:, :)
+      real, intent(in) :: dd_massdetr(:, :)
+      real, intent(in) :: gamma_cup(:, :)
       !! gamma on model cloud levels
-      real, intent(in) :: q_env(its:ite, kts:kte)
+      real, intent(in) :: q_env(:, :)
       !! environmental q on model levels
-      real, intent(in) :: he(its:ite, kts:kte)
-      real, intent(in) :: qco(its:ite, kts:kte)
+      real, intent(in) :: he(:, :)
+      real, intent(in) :: qco(:, :)
 
       character(len=*), intent(in) :: cumulus
 
-      integer, intent(inout) :: ierr(its:ite)
+      integer, intent(inout) :: ierr(:)
 
-      real, intent(out) :: qcd(its:ite, kts:kte)
+      real, intent(out) :: qcd(:, :)
       !! cloud q (including liquid water) after entrainment
       !! in-downdradt water vapor mixing ratio
-      real, intent(out) :: qrcd(its:ite, kts:kte)
+      real, intent(out) :: qrcd(:, :)
       !! saturation water vapor mixing ratio
-      real, intent(out) :: pwd(its:ite, kts:kte)
+      real, intent(out) :: pwd(:, :)
       !! evaporate at that level
-      real, intent(out) :: pwev(its:ite)
+      real, intent(out) :: pwev(:)
       !! column integrated rain evaporation (normalized)
-      real, intent(out) :: bu(its:ite)
+      real, intent(out) :: bu(:)
       !! buoancy term
 
       !Local variables:
@@ -4916,25 +4916,25 @@ contains
       !Variables (input, output, inout)
       integer, intent(in) :: itf, ktf, its, ite, kts, kte, itest
 
-      integer, intent(in) :: ierr(its:ite)
+      integer, intent(in) :: ierr(:)
 
-      real, intent(in) :: press_env(its:ite, kts:kte)
+      real, intent(in) :: press_env(:, :)
       !! environmental pressure
-      real, intent(in) :: temp_env(its:ite, kts:kte)
+      real, intent(in) :: temp_env(:, :)
       !! environmental temp
-      real, intent(in) :: mixratio_env(its:ite, kts:kte)
+      real, intent(in) :: mixratio_env(:, :)
       !! environmental mixing ratio
-      real, intent(in) :: psur(its:ite)
+      real, intent(in) :: psur(:)
       !! surface pressure
-      real, intent(in) :: z1(its:ite)
+      real, intent(in) :: z1(:)
       !! terrain elevation
-      real, intent(inout)  :: z_heights(its:ite, kts:kte)
+      real, intent(inout)  :: z_heights(:, :)
       !! environmental heights
-      real, intent(out) :: he(its:ite, kts:kte)
+      real, intent(out) :: he(:, :)
       !! environmental moist static energy
-      real, intent(out) :: hes(its:ite, kts:kte)
+      real, intent(out) :: hes(:, :)
       !! environmental saturation moist static energy
-      real, intent(out) :: qes(its:ite, kts:kte)
+      real, intent(out) :: qes(:, :)
       !! environmental saturation mixing ratio
 
       !Local variables
@@ -5057,51 +5057,51 @@ contains
       !Variables (input, output, inout)
       integer, intent(in) :: itf, ktf, its, ite, kts, kte
 
-      integer, intent(in) :: ierr(its:ite)
+      integer, intent(in) :: ierr(:)
 
-      real, intent(in) :: qes(its:ite, kts:kte)
+      real, intent(in) :: qes(:, :)
       !! environmental saturation mixing ratio
-      real, intent(in) :: q(its:ite, kts:kte)
+      real, intent(in) :: q(:, :)
       !! environmental mixing ratio
-      real, intent(in) :: he(its:ite, kts:kte)
+      real, intent(in) :: he(:, :)
       !! environmental moist static energy
-      real, intent(in) :: hes(its:ite, kts:kte)
+      real, intent(in) :: hes(:, :)
       !! environmental saturation moist static energy
-      real, intent(in) :: z_heights(its:ite, kts:kte)
+      real, intent(in) :: z_heights(:, :)
       !! environmental heights
-      real, intent(in) :: pres_env(its:ite, kts:kte)
+      real, intent(in) :: pres_env(:, :)
       !! environmental pressure
-      real, intent(in) :: temp_env(its:ite, kts:kte)
+      real, intent(in) :: temp_env(:, :)
       !! environmental temp
-      real, intent(in) :: us(its:ite, kts:kte)
+      real, intent(in) :: us(:, :)
       !!
-      real, intent(in) :: vs(its:ite, kts:kte)
+      real, intent(in) :: vs(:, :)
       !!
-      real, intent(in) :: psur(its:ite)
+      real, intent(in) :: psur(:)
       !! surface pressure
-      real, intent(in) :: z1(its:ite)
+      real, intent(in) :: z1(:)
       !! terrain elevation
-      real, intent(in) :: tsur(its:ite)
+      real, intent(in) :: tsur(:)
       !! surface temperature
 
-      real, intent(out) :: qes_cup(its:ite, kts:kte)
+      real, intent(out) :: qes_cup(:, :)
       !! environmental saturation mixing ratio on cloud levels
-      real, intent(out) :: q_cup(its:ite, kts:kte)
+      real, intent(out) :: q_cup(:, :)
       !! environmental mixing ratio on cloud levels
-      real, intent(out) :: he_cup(its:ite, kts:kte)
+      real, intent(out) :: he_cup(:, :)
       !! environmental moist static energy on cloud levels
-      real, intent(out) :: hes_cup(its:ite, kts:kte)
+      real, intent(out) :: hes_cup(:, :)
       !! environmental saturation moist static energy on cloud levels
-      real, intent(out) :: z_cup(its:ite, kts:kte)
+      real, intent(out) :: z_cup(:, :)
       !! environmental heights on cloud levels
-      real, intent(out) :: p_cup(its:ite, kts:kte)
+      real, intent(out) :: p_cup(:, :)
       !! environmental pressure on cloud levels
-      real, intent(out) :: gamma_cup(its:ite, kts:kte)
+      real, intent(out) :: gamma_cup(:, :)
       !! gamma on cloud levels
-      real, intent(out) :: t_cup(its:ite, kts:kte)
+      real, intent(out) :: t_cup(:, :)
       !! environmental temp on cloud levels
-      real, intent(out) :: u_cup(its:ite, kts:kte)
-      real, intent(out) :: v_cup(its:ite, kts:kte)
+      real, intent(out) :: u_cup(:, :)
+      real, intent(out) :: v_cup(:, :)
 
       !Local variables:
       integer :: i, k
@@ -5326,40 +5326,40 @@ contains
       integer, intent(in) :: ichoice
       !! flag if only want one closure
 
-      integer, intent(in) :: k22(its:ite)
+      integer, intent(in) :: k22(:)
       !! updraft originating level
-      integer, intent(in) :: kbcon(its:ite)
+      integer, intent(in) :: kbcon(:)
       !! LFC of parcel from k22
-      integer, intent(in) :: ktop(its:ite)
-      integer, intent(in) :: kpbl(its:ite)
+      integer, intent(in) :: ktop(:)
+      integer, intent(in) :: kpbl(:)
 
-      real, intent(in) :: po_cup(its:ite, kts:kte)
-      real, intent(in) :: dhdt(its:ite, kts:kte)
-      real, intent(in) :: hc(its:ite, kts:kte)
-      real, intent(in) :: hco(its:ite, kts:kte)
-      real, intent(in) :: he_cup(its:ite, kts:kte)
-      real, intent(in) :: heo_cup(its:ite, kts:kte)
-      real, intent(in) :: aa1_bl(its:ite)
-      real, intent(in) :: tau_ecmwf(its:ite)
-      real, intent(in) :: wlpool(its:ite)
-      real, intent(in) :: xaa0(its:ite)
+      real, intent(in) :: po_cup(:, :)
+      real, intent(in) :: dhdt(:, :)
+      real, intent(in) :: hc(:, :)
+      real, intent(in) :: hco(:, :)
+      real, intent(in) :: he_cup(:, :)
+      real, intent(in) :: heo_cup(:, :)
+      real, intent(in) :: aa1_bl(:)
+      real, intent(in) :: tau_ecmwf(:)
+      real, intent(in) :: wlpool(:)
+      real, intent(in) :: xaa0(:)
       !! cloud work function with cloud effects
-      real, intent(in) :: aa1(its:ite)
+      real, intent(in) :: aa1(:)
       !! cloud work function with forcing effects
-      real, intent(in) :: zws(its:ite)
-      real, intent(in) :: mbdt(its:ite)
+      real, intent(in) :: zws(:)
+      real, intent(in) :: mbdt(:)
       !! arbitrary numerical parameter
-      real, intent(in) :: aa0(its:ite)
+      real, intent(in) :: aa0(:)
       !! cloud work function without forcing effects
       real, intent(in) :: dtime
       !! dt over which forcing is applied
 
-      integer, intent(inout) :: ierr(its:ite)
+      integer, intent(inout) :: ierr(:)
 
-      real, intent(inout) :: xf_dicycle(its:ite)
-      real, intent(inout) :: xf_coldpool(its:ite)
+      real, intent(inout) :: xf_dicycle(:)
+      real, intent(inout) :: xf_coldpool(:)
 
-      real, intent(out)   :: xff_mid(its:ite, 1:maxens3)
+      real, intent(out)   :: xff_mid(:, :)
 
       !Local variables:
       real, dimension(1:maxens) :: xk
@@ -5436,14 +5436,14 @@ contains
       !Variables (input, output, inout)
       integer, intent(in) :: itf, ktf, its, ite, kts, kte
 
-      integer, intent(in) :: ierr(its:ite)
-      integer, intent(in) :: ks(its:ite)
+      integer, intent(in) :: ierr(:)
+      integer, intent(in) :: ks(:)
       !! check-range
-      integer, intent(in) :: kend(its:ite)
+      integer, intent(in) :: kend(:)
       !! check-range
-      real, intent(in) :: array(its:ite, kts:kte)
+      real, intent(in) :: array(:, :)
       !! array input array
-      integer, intent(out) :: kt(its:ite)
+      integer, intent(out) :: kt(:)
       !! kt output array of levels
 
       !Local variables:
@@ -5499,25 +5499,25 @@ contains
       !Variables (input, output, inout)
       integer, intent(in) :: itf, ktf, its, ite, kts, kte
 
-      integer, intent(in) :: k22(its:ite)
-      integer, intent(in) :: klcl(its:ite)
-      integer, intent(in) :: kbcon(its:ite)
-      integer, intent(in) :: ktop(its:ite)
-      integer, intent(in) :: ierr (its:ite)
+      integer, intent(in) :: k22(:)
+      integer, intent(in) :: klcl(:)
+      integer, intent(in) :: kbcon(:)
+      integer, intent(in) :: ktop(:)
+      integer, intent(in) :: ierr (:)
 
-      real, intent(in) :: z_cup(its:ite, kts:kte)
-      real, intent(in) :: zu(its:ite, kts:kte)
+      real, intent(in) :: z_cup(:, :)
+      real, intent(in) :: zu(:, :)
       !! normalized updraft mass flux
-      real, intent(in) :: gamma_cup(its:ite, kts:kte)
+      real, intent(in) :: gamma_cup(:, :)
       !! gamma on model cloud levels
-      real, intent(in) :: t_cup(its:ite, kts:kte)
+      real, intent(in) :: t_cup(:, :)
       !! temperature (Kelvin) on model cloud levels
-      real, intent(in) :: dby(its:ite, kts:kte)
+      real, intent(in) :: dby(:, :)
       !! buoancy term
 
       character(len=*), optional, intent(in) :: integ_interval
 
-      real, intent(out)  :: aa0(its:ite)
+      real, intent(out)  :: aa0(:)
       !! cloud work function
 
       !Local variables:
@@ -5600,63 +5600,63 @@ contains
       !Variables (input, output, inout)
       integer, intent(in) :: use_excess, itest, itf, ktf, its, ite, ipr, jpr, kts, kte
 
-      integer, intent(in) :: kbcon(its:ite)
-      integer, intent(in) :: ktop(its:ite)
-      integer, intent(in) :: k22(its:ite)
-      integer, intent(in) :: klcl(its:ite)
-      integer, intent(in) :: start_level(its:ite)
+      integer, intent(in) :: kbcon(:)
+      integer, intent(in) :: ktop(:)
+      integer, intent(in) :: k22(:)
+      integer, intent(in) :: klcl(:)
+      integer, intent(in) :: start_level(:)
 
-      real, intent(in) :: t_cup(its:ite, kts:kte)
-      real, intent(in) :: p_cup(its:ite, kts:kte)
-      real, intent(in) :: rho(its:ite, kts:kte)
-      real, intent(in) :: q_env(its:ite, kts:kte)
+      real, intent(in) :: t_cup(:, :)
+      real, intent(in) :: p_cup(:, :)
+      real, intent(in) :: rho(:, :)
+      real, intent(in) :: q_env(:, :)
       !! environmental q on model levels
-      real, intent(in) :: zu(its:ite, kts:kte)
+      real, intent(in) :: zu(:, :)
       !! normalized updraft mass flux
-      real, intent(in) :: gamma_cup(its:ite, kts:kte)
+      real, intent(in) :: gamma_cup(:, :)
       !! gamma on model cloud levels
-      real, intent(in) :: qe_cup(its:ite, kts:kte)
+      real, intent(in) :: qe_cup(:, :)
       !! environmental q on model cloud levels
-      real, intent(in) :: hc(its:ite, kts:kte)
-      real, intent(in) :: po(its:ite, kts:kte)
-      real, intent(in) :: up_massentr(its:ite, kts:kte)
-      real, intent(in) :: up_massdetr(its:ite, kts:kte)
-      real, intent(in) :: dby(its:ite, kts:kte)
+      real, intent(in) :: hc(:, :)
+      real, intent(in) :: po(:, :)
+      real, intent(in) :: up_massentr(:, :)
+      real, intent(in) :: up_massdetr(:, :)
+      real, intent(in) :: dby(:, :)
       !! buoancy term
-      real, intent(in) :: qes_cup(its:ite, kts:kte)
+      real, intent(in) :: qes_cup(:, :)
       !! saturation q on model cloud levels
-      real, intent(in) :: z_cup(its:ite, kts:kte)
-      real, intent(in) :: cd(its:ite, kts:kte)
+      real, intent(in) :: z_cup(:, :)
+      real, intent(in) :: cd(:, :)
       !! detrainment function
-      real, intent(in) :: c1d(its:ite, kts:kte)
-      real, intent(in) ::  entr_rate_2d(its:ite, kts:kte)
-      real, intent(in) ::  vvel2d(its:ite, kts:kte)
-      real, intent(in) :: zqexec(its:ite)
-      real, intent(in) :: xland(its:ite)
-      real, intent(in) :: x_add_buoy(its:ite)
-      real, intent(in) :: vvel1d(its:ite)
-      real, intent(in) :: zws(its:ite)
-      real, intent(in) :: ccn(its:ite)
+      real, intent(in) :: c1d(:, :)
+      real, intent(in) ::  entr_rate_2d(:, :)
+      real, intent(in) ::  vvel2d(:, :)
+      real, intent(in) :: zqexec(:)
+      real, intent(in) :: xland(:)
+      real, intent(in) :: x_add_buoy(:)
+      real, intent(in) :: vvel1d(:)
+      real, intent(in) :: zws(:)
+      real, intent(in) :: ccn(:)
 
       character(len=*), intent(in) ::  name
 
-      integer, intent(inout) :: ierr(its:ite)
+      integer, intent(inout) :: ierr(:)
       !! ierr error value, maybe modified in this routine
 
-      character(len=128), intent(inout) :: ierrc(its:ite)
+      character(len=128), intent(inout) :: ierrc(:)
       
-      real, intent(out) :: qc(its:ite, kts:kte)
+      real, intent(out) :: qc(:, :)
       !! cloud q (including liquid water) after entrainment
-      real, intent(out) :: qrc(its:ite, kts:kte)
+      real, intent(out) :: qrc(:, :)
       !! liquid water content in cloud after rainout
-      real, intent(out) :: pw(its:ite, kts:kte)
+      real, intent(out) :: pw(:, :)
       !! condensate that will fall out at that level
-      real, intent(out) :: clw_all(its:ite, kts:kte)
-      real, intent(out) :: tempc(its:ite, kts:kte)
-      real, intent(out) :: pwav(its:ite)
+      real, intent(out) :: clw_all(:, :)
+      real, intent(out) :: tempc(:, :)
+      real, intent(out) :: pwav(:)
       !! totan normalized integrated condensate (I1)
-      real, intent(out) :: psum(its:ite)
-      real, intent(out) :: psumh(its:ite)
+      real, intent(out) :: psum(:)
+      real, intent(out) :: psumh(:)
 
       !Local variables:
       integer :: iounit, iprop, i, k, k1, k2, n, nsteps
