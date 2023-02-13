@@ -48,7 +48,7 @@
 #
 
 # parameters
-times_to_execute=3
+times_to_execute=2
 
 # code
 ln -fs ../gf.inp
@@ -62,15 +62,23 @@ hpct_db="hpctoolkit-gf.x-database"
 rm -rf executions 
 
 for counter in $(seq 1 $times_to_execute); do 
-  echo -e "\n\n\nExecution of profiler on gf.x # $counter"
-
-  hpcrun -t ../bin/gf.x 
-  hpcstruct ../bin/gf.x 
-  hpcprof -I . -S "${hpct_struct}" "${hpct_measure}"
-
   dir_exec="executions/exec_${counter}"
   mkdir -p ${dir_exec}
-  mv $hpct_measure $hpct_struct ref_g.* ${hpct_db} "${dir_exec}"
+
+  echo -e "\n\n\nExecution of profiler on gf.x # $counter"
+  
+  # for HPCtoolkit =======================
+  # hpcrun -t ../bin/gf.x 
+  # hpcstruct ../bin/gf.x 
+  # hpcprof -I . -S ${hpct_struct} ${hpct_measure}
+  #mv $hpct_measure $hpct_structf ${hpct_db} ${dir_exec}
+
+  # for gprof =============================
+  ../bin/gf.x
+  gprof --graph ../bin/gf.x > gprof.out  # --exec-times --graph --brief --flat-profile
+  mv ./gmon.out ./gprof.out ${dir_exec}
+
+  mv ref_g.* ${dir_exec}
 
 done
 
