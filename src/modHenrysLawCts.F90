@@ -1,44 +1,54 @@
-module modHenrysLawConstants
-   !! brief
+module modHenrysLawCts
+   !! ## Henry's Law Constants
    !!
-   !! @note
+   !! ![](https://i.ibb.co/LNqGy3S/logo-Monan-Color-75x75.png)
+   !! ## MONAN
    !!
-   !! **Project**: MONAN
-   !! **Author(s)**: Saulo Freitas [SRF] e Georg Grell [GAG]
-   !! **e-mail**: <mailto:saulo.r.de.freitas@gmail.com>, <mailto:georg.a.grell@noaa.gov>
-   !! **Date**:  2014
+   !! Author: Saulo Freitas [SRF]
    !!
+   !! E-mail: <mailto:saulo.freitas@inpe.br>
+   !!
+   !! Date: 09Fevereiro2023 18:01
+   !!
+   !! #####Version: version
+   !!
+   !! ---
    !! **Full description**:
-   !! brief
    !!
-   !! @endnote
+   !! Henry Law Constants
    !!
-   !! @warning
+   !! ** History**:
    !!
-   !!  [](https://www.gnu.org/graphics/gplv3-127x51.png'')
+   !! --- 
+   !! ** Licence **:
    !!
-   !!     This program is free software: you can redistribute it and/or modify
-   !!     it under the terms of the GNU General Public License as published by
-   !!     the  Free  Software  Foundation, either version 3 of the License, or
-   !!     (at your option) any later version.
+   !!  <img src="https://www.gnu.org/graphics/gplv3-127x51.png width="63">
    !!
-   !!     This program is distributed in the hope that it  will be useful, but
-   !!     WITHOUT  ANY  WARRANTY;  without  even  the   implied   warranty  of
-   !!     MERCHANTABILITY or FITNESS FOR A  PARTICULAR PURPOSE.  See  the, GNU
-   !!     GNU General Public License for more details.
+   !!  This program is free software: you can redistribute it and/or modify
+   !!  it under the terms of the GNU General Public License as published by
+   !!  the  Free  Software  Foundation, either version 3 of the License, or
+   !!  (at your option) any later version.
    !!
-   !!     You should have received a copy  of the GNU General  Public  License
-   !!     along with this program.  If not, see <https://www.gnu.org/licenses/>.
+   !!  This program is distributed in the hope that it  will be useful, but
+   !!  ** WITHOUT  ANY  WARRANTY **;  without  even  the   implied   warranty  of
+   !!  **MERCHANTABILITY** or **FITNESS FOR A  PARTICULAR PURPOSE**.  See  the, GNU
+   !!  GNU General Public License for more details.
    !!
-   !! @endwarning
-
+   !!  You should have received a copy  of the GNU General  Public  License
+   !!  along with this program.  If not, see [GNU Public License](https://www.gnu.org/licenses/gpl-3.0.html).
+   !!
+   
    implicit none
+   character(len=*), parameter :: sourceName = 'modHenrysLawCts.F90' 
+   !! Source code name 
+   character(len=*), parameter :: moduleName = 'modHenrysLawCts' 
+   !! module name 
 
-   character(len=*), parameter :: sourceName = 'modHenrysLawCts.F90' ! Nome do arquivo fonte
-   character(len=*), parameter :: moduleName = 'modHenrysLawConstants' ! Nome do módulo
+   integer, parameter :: p_nspecies_hl = 051
+   real, parameter :: p_not_found = -1.
 
    private
-   public :: getHenryLawCts
+   public :: getHenrysLawCts
 
    !--- : ak0(ispc), dak(ispc),  hstar(ispc), dhr(ispc)
    !--- corrh=1.+ak0(ispc)*exp(dak(ispc)*tcorr)/hplus
@@ -47,14 +57,8 @@ module modHenrysLawConstants
    !--- fct   = 1.e-3 * rgas * temp
    !--- henry_coef =  hstar(ispc)* exp(dhr(ispc)*tcorr) * fct * corrh
 
-   integer, parameter :: p_nspecies_hl = 051
-   real, parameter :: p_not_found = -1.
-
    type t_hcts_vars
-      real :: hstar
-      real :: dhr
-      real :: ak0
-      real :: dak
+      real :: hstar, dhr, ak0, dak
    end type t_hcts_vars
    type(t_hcts_vars) :: hcts(p_nspecies_hl)
 
@@ -176,7 +180,7 @@ module modHenrysLawConstants
 !     Environmental Chemistry (Version 3)
 !     http://www.henrys-law.org
 !     * indica artigos nao encontrados nesse endere�o eletronico
-   real, parameter, dimension(p_nspecies_hl) :: hstar = (/ &
+   real, parameter, dimension(p_nspecies_hl) :: p_hstar = (/ &
                                               1.10e-2, & ! O3 - 001
                                               8.30e+4, & ! H2O2 - 002
                                               1.90e-3, & ! NO - 003
@@ -238,7 +242,7 @@ module modHenrysLawConstants
 !     of Potential Importance in
 !     Environmental Chemistry (Version 3)
 !     http://www.henrys-law.org
-   real, parameter, dimension(p_nspecies_hl) :: dhr = (/ &
+   real, parameter, dimension(p_nspecies_hl) :: p_dhr = (/ &
                                               2400., & ! O3 - 001
                                               7400., & ! H2O2 - 002
                                               1400., & ! NO - 003
@@ -292,7 +296,7 @@ module modHenrysLawConstants
                                               2700. & ! N2O - 048
                                               /)
 
-   real, parameter, dimension(p_nspecies_hl) :: weight = (/ &
+   real, parameter, dimension(p_nspecies_hl) :: p_weight = (/ &
                                               48., & ! O3 - 001
                                               34., & ! H2O2 - 002
                                               30., & ! NO - 003
@@ -351,7 +355,7 @@ module modHenrysLawConstants
 !     Referencias: Barth et al. JGR 112, D13310 2007
 !     Martell and Smith, 1976, Critical stability
 !     vol1-4 Plenum Press New York
-   real, parameter, dimension(p_nspecies_hl) :: ak0 = (/ &
+   real, parameter, dimension(p_nspecies_hl) :: p_ak0 = (/ &
                                               0.00e+00, & ! O3 - 001
                                               2.20e-12, & ! H2O2 - 002
                                               0.00e+00, & ! NO - 003
@@ -409,7 +413,7 @@ module modHenrysLawConstants
 !     acid dissociation constants
 !     [K]
 !     Referencias: Barth et al. JGR 112, D13310 2007
-   real, parameter, dimension(p_nspecies_hl) :: dak = (/ &
+   real, parameter, dimension(p_nspecies_hl) :: p_dak = (/ &
                                               0., & ! O3 - 001
                                               -3700., & ! H2O2 - 002
                                               0., & ! NO - 003
@@ -465,37 +469,38 @@ module modHenrysLawConstants
 
 contains
 
-   !---------------------------------------------------------------------------------------------------
-   subroutine getHenryLawCts(name, c1, c2, c3, c4)
-      !! brief
+   ! -----------------------------------------------------------------------
+   subroutine getHenrysLawCts(name, c1, c2, c3, c4)
+      !! ## Get the constants
       !!
-      !! @note
+      !! Author: autor
       !!
-      !! **Project**: MONAN
-      !! **Author(s)**: Saulo Freitas [SRF] e Georg Grell [GAG]
-      !! **e-mail**: <mailto:saulo.r.de.freitas@gmail.com>, <mailto:georg.a.grell@noaa.gov>
-      !! **Date**:  2014
+      !! E-mail: <mailto:email>
       !!
+      !! Date: 09Fevereiro2023 18:06
+      !!
+      !! #####Version: version
+      !!
+      !! ---
       !! **Full description**:
-      !! brief
       !!
-      !! @endnote
+      !! Get the constants
       !!
-      !! @warning
+      !! ** History**:
       !!
-      !!  [](https://www.gnu.org/graphics/gplv3-127x51.png'')
+      !! --- 
+      !! ** Licence **: Under the terms of the GNU General Public version 3
+      !!   <img src="https://www.gnu.org/graphics/gplv3-127x51.png width="63">
       !!
-      !!     Under the terms of the GNU General Public version 3
-      !!
-      !! @endwarning
    
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'getHenryLawCts' ! Nome da subrotina
+      character(len=*), parameter :: procedureName = 'getHenrysLawCts' 
+      !! subroutine name
    
       !Variables (input, output, inout)
       character(len=*), intent(in) :: name
-      
+
       real, intent(out) :: c1
       real, intent(out) :: c2
       real, intent(out) :: c3
@@ -503,14 +508,14 @@ contains
 
       !Local variables:
       integer :: l, found
-      found = 0
       
+      found = 0
       loop2: do l = 1, p_nspecies_hl
          if (trim(spc_name(l)) == trim(name)) then
-            c1 = hstar(l)
-            c2 = dhr(l)
-            c3 = ak0(l)
-            c4 = dak(l)
+            c1 = p_hstar(l)
+            c2 = p_dhr(l)
+            c3 = p_ak0(l)
+            c4 = p_dak(l)
             found = 1
             exit loop2
          end if
@@ -521,6 +526,7 @@ contains
          c3 = p_not_found
          c4 = p_not_found
       end if
-   end subroutine getHenryLawCts
 
-end module modHenrysLawConstants
+   end subroutine getHenrysLawCts
+
+end module modHenrysLawCts
