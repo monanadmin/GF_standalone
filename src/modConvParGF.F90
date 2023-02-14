@@ -4779,24 +4779,20 @@ contains
          do k = kts, ktf
             do i = its, itf
                if (ierr(i) /= 0) cycle
-
-                  e = SatVap(temp_env(i, k))
-                  qes(i, k) = 0.622*e/max(1.e-8, (press_env(i, k) - e))
-
-                  if (qes(i, k) .le. 1.e-08) qes(i, k) = 1.e-08
-                  if (qes(i, k) .gt. c_max_qsat) qes(i, k) = c_max_qsat
-                  if (qes(i, k) .lt. mixratio_env(i, k)) qes(i, k) = mixratio_env(i, k)
-                  !       IF(Q(I,K).GT.QES(I,K))Q(I,K)=QES(I,K)
-                  tv(i, k) = temp_env(i, k) + .608*mixratio_env(i, k)*temp_env(i, k)
-               end if
+               e = SatVap(temp_env(i, k))
+               qes(i, k) = 0.622*e/max(1.e-8, (press_env(i, k) - e))
+               if (qes(i, k) .le. 1.e-08) qes(i, k) = 1.e-08
+               if (qes(i, k) .gt. c_max_qsat) qes(i, k) = c_max_qsat
+               if (qes(i, k) .lt. mixratio_env(i, k)) qes(i, k) = mixratio_env(i, k)
+               !       IF(Q(I,K).GT.QES(I,K))Q(I,K)=QES(I,K)
+               tv(i, k) = temp_env(i, k) + .608*mixratio_env(i, k)*temp_env(i, k)
             end do
          end do
       else
          !--- better formulation for the mixed phase regime
          do k = kts, ktf
             do i = its, itf
-                 if (ierr(i) /= 0) cycle
-
+                  if (ierr(i) /= 0) cycle
                   qes(i, k) = SaturSpecHum(temp_env(i, k), press_env(i, k))
                   qes(i, k) = min(c_max_qsat, max(1.e-08, qes(i, k)))
                   qes(i, k) = max(qes(i, k), mixratio_env(i, k))
@@ -12351,7 +12347,7 @@ contains
 
    subroutine initDriverJ(its,itf, aot500, xland, sfc_press, temp2m, topt, kpbl, lons, lats, rtgt, ztexec &
                      ,   zqexec, last_ierr, fixout_qv, conprr, lightn_dens, var2d, revsu_gf_2d, prfil_gf_2d &
-                     ,   var3d_agf_2d, var3d_bgf_2d, Tpert_2d, temp_tendqv, outt, outu, outv, outq, outqc, outnice &
+                     ,   var3d_agf_2d, var3d_bgf_2d, t_pert_2d, temp_tendqv, outt, outu, outv, outq, outqc, outnice &
                      ,   outnliq, outbuoy, outmpqi, outmpql, outmpcf, omeg, out_chem, ccn, xlandi, psur, tsur &
                      ,   ter11, kpbli, xlons, xlats)
       !! ## Init some variables and arrays for driver
@@ -12415,7 +12411,7 @@ contains
       real, intent(out) :: prfil_gf_2d(:,:)
       real, intent(out) :: var3d_agf_2d(:,:)
       real, intent(out) :: var3d_bgf_2d(:,:)
-      real, intent(out) :: Tpert_2d(:,:)
+      real, intent(out) :: t_pert_2d(:,:)
       real, intent(out) :: temp_tendqv(:, :)
       real, intent(out) :: outt   (:,:,:)
       real, intent(out) :: outu(:,:,:)
@@ -12451,7 +12447,7 @@ contains
          prfil_gf_2d (i_cnt, :) = 0.0
          var3d_agf_2d(i_cnt, :) = 0.0
          var3d_bgf_2d(i_cnt, :) = 0.0
-         Tpert_2d    (i_cnt, :) = 0.0
+         t_pert_2d    (i_cnt, :) = 0.0
          !
          temp_tendqv(i_cnt, :) = 0.0
          !- tendencies (w/ maxiens)
@@ -12501,7 +12497,7 @@ contains
 
    end subroutine initDriverJ
 
-   subroutine InitDriverK(its, itf, kts, ktf, kte, mtp, dt, rtgt, topt, zt, press, temp, rvap, curr_rvap, u_wind, v_wind &   
+   subroutine initDriverK(its, itf, kts, ktf, kte, mtp, dt, rtgt, topt, zt, press, temp, rvap, curr_rvap, u_wind, v_wind &   
                         , w_wind, dm, buoy_exc, rth_advten, rqvften, flip, mp_ice, mp_liq, mp_cf, tracer, zo, po, temp_old  &  
                         , qv_old, qv_curr, rhoi, tkeg, rcpg, us, vs, dm2d, buoy_exc2d, temp_new_adv, qv_new_adv &
                         , mpqi, mpql, mpcf, se_chem, omeg)
