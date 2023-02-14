@@ -29,7 +29,7 @@ module modConvParGF
    !!
    !! ** History**:
    !!
-   !! - Adapted for BRAMS 6.0 by Saulo Freitas (November 2021)                    
+   !! -Adapted for BRAMS 6.0 by Saulo Freitas (November 2021)                    
    !! -Refactoring by Luiz Flavio Rodrigues at 20 December 2021 (Monday)         
    !! Keywords using ; are separeted, some loops receives exit instead goto,    
    !! The identation was fixed and all keywords are lowercase                   
@@ -167,7 +167,7 @@ module modConvParGF
    real :: MAX_TQ_TEND
    !! max T,Q tendency allowed (100 K/day)
    real :: OVERSHOOT
-   !! 0, 1
+   !!  values = 0 or 1 simulates an additional capping layer above the cloud top
    real ::  C0_DEEP
    !! default= 3.e-3   conversion rate (cloud to rain, m-1) - for deep      plume
    real ::  C0_MID
@@ -208,29 +208,28 @@ module modConvParGF
    !! typical range is [-200,200] J/kg/hr, Wu et all (2007) recomends ~ 70 J/kg/hr
    !! 55 J/kg/hr is indicated for the Amazon basin (Song&Zhang 2017)
    real :: TAU_OCEA_CP
-   !!
+   !! default 7200 s:  cold pool timescale over the oceans
    real :: TAU_LAND_CP
-   !!
+   !! default 7200 s:  cold pool timescale over land 
    real :: MX_BUOY1
-   !! 250.5 J/kg
+   !! 250.5 J/kg: Lower range of buoyancy-excess 
    real :: MX_BUOY2
-   != 20004.0 J/kg: temp exc=10 K, q deficit=4 g/kg (=> mx_buoy ~ 20 kJ/kg)
+   != 20004.0 J/kg: Upper range of buoyancy-excess (temp exc=10 K, q deficit=4 g/kg => mx_buoy ~ 20 kJ/kg)
    real :: USE_CLOUD_DISSIPATION
-   !! to acccount for the cloud dissipation at the decayment phase
+   !! values 0. or 1. to acccount for the cloud dissipation at the decayment phase (implies on extra moistening and cooling)
    real :: USE_RANDOM_NUM
    !! stochastic pertubation for the height of maximum Zu
    real :: BETA_SH
-   !! only for shallow plume
+   !! default 2.2: Beta factor of the Beta PDF (only for shallow plume)
    real :: ALPHA_ADV_TUNING
-   !! tuning parameter for the Becker et al (2021) closure
+   !! default = 0.8 : tuning parameter for the Becker et al (2021) closure
    real :: SIG_FACTOR
-   !! exponential factor for the sigma determination (orig = 0.1)
+   !! default 2.2 : exponential factor for the sigma determination
    real :: CAP_MAXS
-   !! max distance (hPa) the air parcel is allowed to go up looking for the LFC
+   !! defalut= 50 hPa : max distance (hPa) the air parcel is allowed to go up looking for the LFC
    integer :: ICUMULUS_GF(p_maxiens)
-   !! -- plume to be activated (1 true, 0 false): deep, shallow, congestus
+   !! define each plume will be activated (1 true, 0 false): deep, shallow, congestus
    integer :: CLOSURE_CHOICE(p_maxiens)
-   !! deep, shallow, congestus
    !! -- choice for the closures:
    !! --  deep   : 0 ensemble (all)          , 1 GR, 4 ll omega, 7 moist conv, 10 PB
    !! --  shallow: 0 ensemble (all)          , 1 Wstar, 4 heat-engine, 7 BLQE, 10 TKE-based
@@ -520,7 +519,7 @@ contains
       !!
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'modConvParGFDriver' ! Nome da subrotina
+      character(len=*), parameter :: procedureName = 'modConvParGFDriver' ! Subroutine name
    
       !Variables (input, output, inout)
             !------------------------------------------------------------------------
@@ -847,11 +846,6 @@ contains
                !- moisture  excess
                zqexec(i) = max(0., -1.5*pqhfl/(zrho*zws(i)))        !kg kg-1
             end if   ! zws > 0
-            !if(ztexec(i) > 1.) print*,"T",ztexec(i),h_sfc_flux(i)
-            !if(zqexec(i)*1000 > 0.5) then
-            ! print*,"Q",1000*zqexec(i),le_sfc_flux(i),(ztexec(i)*cp+xlv*zqexec(i))/1000.
-            !endif
-
             !
             !- zws for shallow convection closure (Grant 2001)
             !- depth of the pbl
@@ -1304,7 +1298,7 @@ contains
    end subroutine modConvParGFDriver
 
    ! ---------------------------------------------------------------------------------------------------
-   subroutine cupGf(its, ite, kts, kte, itf, ktf, mtp, nmp, fscav &
+   subroutine cupGF(its, ite, kts, kte, itf, ktf, mtp, nmp, fscav &
                      , cumulus &
                      , ichoice &
                      , entr_rate_input &
@@ -1425,7 +1419,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'cupGf' ! Nome da subrotina
+      character(len=*), parameter :: procedureName = 'cupGf' ! Subroutine name
       logical, parameter:: p_use_inv_layers = .true.
    
       !Variables (input, output, inout)
@@ -4137,7 +4131,7 @@ contains
    
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'intCupGF' 
+      character(len=*), parameter :: p_procedure_name = 'intCupGF' 
       !! subroutine name
    
       !Variables (input, output, inout)
@@ -4366,7 +4360,7 @@ contains
       !!
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'genRandom' ! Nome da subrotina
+      character(len=*), parameter :: p_procedure_name = 'genRandom' ! Subroutine Name
    
       !Variables (input, output, inout)
       integer, intent(in)  :: its
@@ -4422,7 +4416,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'cupDdEdt' ! Nome da subrotina
+      character(len=*), parameter :: p_procedure_name = 'cupDdEdt' ! Subroutine name
 
       real, parameter :: p_alpha3 = 1.9, p_beta3 = -1.13
    
@@ -4555,7 +4549,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'cupDdMoisture' ! Nome da subrotina
+      character(len=*), parameter :: p_procedure_name = 'cupDdMoisture' ! Subroutine Name
    
       !Variables (input, output, inout)
       integer, intent(in) :: itf, ktf, its, ite, kts, kte   
@@ -4716,7 +4710,7 @@ contains
    ! ------------------------------------------------------------------------------------
    subroutine cupEnv(z_heights, qes, he, hes, temp_env, mixratio_env, press_env, z1, psur, ierr, itest, itf, ktf &
                    , its, ite, kts, kte)
-      !! ## ???
+      !! ## Determine the thermodynamical variables at full levels
       !!
       !! Author: Saulo Freitas [SRF] e Georg Grell [GAG]
       !!
@@ -4729,17 +4723,22 @@ contains
       !! ---
       !! **Full description**:
       !!
-      !! ???
+      !! Determine the thermodynamical variables at full levels:
+      !! HE   moist static energy (J/kg)
+      !! HES  saturated moist static energy (J/kg)
+      !! QES  saturated water vapor mixing ratio (kg/kg)
+      !! TV   virtual temperature (K)
       !!
       !! ** History**:
-      !!
+      !! SATUR_CALC = 0 applies the original formulation from Grell (1993)
+      !! SATUR_CALC = 1 applies the optional (now default) formulation from Tiedtke et al. (1988)
       !! - 
       !! ---
       !! <img src="https://www.gnu.org/graphics/gplv3-127x51.png" width="63">
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'cupEnv' ! Nome da subrotina
+      character(len=*), parameter :: p_procedure_name = 'cupEnv' ! Subroutine Name
    
       !Variables (input, output, inout)
       integer, intent(in) :: itf, ktf, its, ite, kts, kte, itest
@@ -4767,13 +4766,9 @@ contains
 
       !Local variables
       integer :: i, k, iph
-      !real, dimension (1:2) :: ae,be,ht
-
       real, dimension(its:ite, kts:kte) :: tv
       !! environmental virtual temp
       real :: e, tvbar, pqsat
-      !      real, external :: satvap
-      !      real :: satvap
    
       !Code:
       he = 0.0
@@ -4783,7 +4778,7 @@ contains
       if (SATUR_CALC == 0) then
          do k = kts, ktf
             do i = its, itf
-               if (ierr(i) .eq. 0) then
+               if (ierr(i) /= 0) cycle
 
                   e = SatVap(temp_env(i, k))
                   qes(i, k) = 0.622*e/max(1.e-8, (press_env(i, k) - e))
@@ -4800,55 +4795,55 @@ contains
          !--- better formulation for the mixed phase regime
          do k = kts, ktf
             do i = its, itf
-               if (ierr(i) .eq. 0) then
-                  pqsat = SaturSpecHum(temp_env(i, k), press_env(i, k))
-                  qes(i, k) = pqsat
-                  !print*,"qes=",k,p(i,k),1000*qes(i,k),1000*pqsat
+                 if (ierr(i) /= 0) cycle
+
+                  qes(i, k) = SaturSpecHum(temp_env(i, k), press_env(i, k))
                   qes(i, k) = min(c_max_qsat, max(1.e-08, qes(i, k)))
                   qes(i, k) = max(qes(i, k), mixratio_env(i, k))
-                  tv(i, k) = temp_env(i, k) + .608*mixratio_env(i, k)*temp_env(i, k)
-               end if
+                  tv (i, k) = temp_env(i, k) + .608*mixratio_env(i, k)*temp_env(i, k)
             end do
          end do
       end if
 
-      !--- z's are calculated with changed h's and q's and t's
-      !--- if itest=2
-      if (itest .eq. 1 .or. itest .eq. 0) then
-         do i = its, itf
-            if (ierr(i) .eq. 0) then
-               z_heights(i, 1) = max(0., z1(i)) - (Alog(press_env(i, 1)) - Alog(psur(i)))*287.*tv(i, 1)/c_grav
-            end if
-         end do
-         ! --- calculate heights
-         do k = kts + 1, ktf
-            do i = its, itf
-               if (ierr(i) .eq. 0) then
-                  tvbar = .5*tv(i, k) + .5*tv(i, k - 1)
-                  z_heights(i, k) = z_heights(i, k - 1) - (Alog(press_env(i, k)) - Alog(press_env(i, k - 1)))*287.*tvbar/c_grav
-               end if
-            end do
-         end do
-      else if (itest .eq. 2) then
-         do k = kts, ktf
-            do i = its, itf
-               if (ierr(i) .eq. 0) then
-                  z_heights(i, k) = (he(i, k) - 1004.*temp_env(i, k) - 2.5e6*mixratio_env(i, k))/c_grav
-                  z_heights(i, k) = max(1.e-3, z_heights(i, k))
-               end if
-            end do
-         end do
-      else if (itest .eq. -1) then
-      end if
+      ! !--- z's are calculated with changed h's and q's and t's
+      ! !--- if itest=2
+      ! if (itest .eq. 1 .or. itest .eq. 0) then
+      !    do i = its, itf
+      !       if (ierr(i) .eq. 0) then
+      !          z_heights(i, 1) = max(0., z1(i)) - (Alog(press_env(i, 1)) - Alog(psur(i)))*287.*tv(i, 1)/c_grav
+      !       end if
+      !    end do
+      !    ! --- calculate heights
+      !    do k = kts + 1, ktf
+      !       do i = its, itf
+      !          if (ierr(i) .eq. 0) then
+      !             tvbar = .5*tv(i, k) + .5*tv(i, k - 1)
+      !             z_heights(i, k) = z_heights(i, k - 1) - (Alog(press_env(i, k)) - Alog(press_env(i, k - 1)))*287.*tvbar/c_grav
+      !          end if
+      !       end do
+      !    end do
+      ! else if (itest .eq. 2) then
+      !    do k = kts, ktf
+      !       do i = its, itf
+      !          if (ierr(i) .eq. 0) then
+      !             z_heights(i, k) = (he(i, k) - 1004.*temp_env(i, k) - 2.5e6*mixratio_env(i, k))/c_grav
+      !             z_heights(i, k) = max(1.e-3, z_heights(i, k))
+      !          end if
+      !       end do
+      !    end do
+      ! else if (itest .eq. -1) then
+      ! end if
 
       !--- calculate moist static energy - HE
       !    saturated moist static energy - HES
       do k = kts, ktf
          do i = its, itf
             if (ierr(i) /= 0) cycle
-            if (itest .le. 0) he(i, k) = c_grav*z_heights(i, k) + real(c_cp)*temp_env(i, k) + real(c_alvl)*mixratio_env(i, k)
+
+            he (i, k) = c_grav*z_heights(i, k) + real(c_cp)*temp_env(i, k) + real(c_alvl)*mixratio_env(i, k)
             hes(i, k) = c_grav*z_heights(i, k) + real(c_cp)*temp_env(i, k) + real(c_alvl)*qes(i, k)
-            if (he(i, k) .ge. hes(i, k)) he(i, k) = hes(i, k)
+            he (i, k) = min(hes(i, k), he(i, k))
+
          end do
       end do
 
@@ -4857,7 +4852,7 @@ contains
    ! ------------------------------------------------------------------------------------
    subroutine cupEnvCLev(temp_env, qes, q, he, hes, z_heights, pres_env, qes_cup, q_cup, he_cup, us, vs, u_cup, v_cup &
                       ,  hes_cup, z_cup, p_cup, gamma_cup, t_cup, psur, tsur, ierr, z1, itf, ktf, its, ite, kts, kte)
-      !! ## ???
+      !! ## Determine the thermodynamical variables at half levels
       !!
       !! Author: Saulo Freitas [SRF] e Georg Grell [GAG]
       !!
@@ -4870,17 +4865,20 @@ contains
       !! ---
       !! **Full description**:
       !!
-      !! ???
+      !! Determine the thermodynamical variables at half levels. 
+      !! The name becomes XXXX_cup
       !!
       !! ** History**:
-      !!
+      !! CLEV_GRID == 0 : optional formulation using weighted mean 
+      !! CLEV_GRID == 1 : applies the optional (now default) formulation from Tiedtke et al. (1988)
+      !! CLEV_GRID == 2 : original formulation from Grell 1993
       !! - 
       !! ---
       !! <img src="https://www.gnu.org/graphics/gplv3-127x51.png" width="63">
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'cupEnvCLev' ! Nome da subrotina
+      character(len=*), parameter :: p_procedure_name = 'cupEnvCLev' ! Subroutine Name
    
       !Variables (input, output, inout)
       integer, intent(in) :: itf, ktf, its, ite, kts, kte
@@ -5124,7 +5122,7 @@ contains
    subroutine cupForcingEns3dMid(aa0, aa1, xaa0, mbdt, dtime, ierr, po_cup, ktop, k22, kbcon, kpbl, ichoice &
                                , maxens, maxens3, itf, ktf, its, ite, kts, kte, tau_ecmwf, aa1_bl, xf_dicycle &
                                , dhdt, xff_mid, zws, hc, hco, he_cup, heo_cup, wlpool, xf_coldpool)
-      !! ## ???
+      !! ## Determine the mass flux at cloud base for the congestus mode using a set of
       !!
       !! Author: Saulo Freitas [SRF] e Georg Grell [GAG]
       !!
@@ -5137,7 +5135,11 @@ contains
       !! ---
       !! **Full description**:
       !!
-      !! ???
+      !! Determine the mass flux at cloud base for the congestus mode using a set of
+      !! closures
+      !! a) W* closure (Grant,2001)
+      !! b) Boundary layer quasi-equilibrium (Raymond 1995)
+      !! c) stability removal with a timescale (tau_ecmwf,  Bechtold et al 2008)
       !!
       !! ** History**:
       !!
@@ -5147,7 +5149,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'cupForcingEns3dMid' ! Nome da subrotina
+      character(len=*), parameter :: p_procedure_name = 'cupForcingEns3dMid' ! Subroutine Name
    
       !Variables (input, output, inout)
       integer, intent(in) :: itf, ktf, its, ite, kts, kte, maxens, maxens3
@@ -5201,10 +5203,6 @@ contains
 
          if (ierr(i) /= 0) cycle
 
-         !- Think about this:
-         !xff0= (AA1(I)-AA0(I))/DTIME
-         !if(xff0.lt.0.) xff_dicycle = 0.
-
          xk(1) = (xaa0(i) - (aa1(i)))/mbdt(i)
 
          if (xk(1) .le. 0 .and. xk(1) .gt. -0.1*mbdt(i)) xk(1) = -0.1*mbdt(i)
@@ -5220,10 +5218,8 @@ contains
          if (k22(i) .lt. kpbl(i) + 1) then
             blqe = 0.
             do k = kts, kbcon(i) !- orig formulation
-               !do k=kts,kpbl(i)
                blqe = blqe + 100.*dhdt(i, k)*(po_cup(i, k) - po_cup(i, k + 1))/c_grav
             end do
-            !trash = max((hc (i,kbcon(i))-he_cup (i,kbcon(i))),1.e1)!- orig formulation
             trash = max((hco(i, kbcon(i)) - heo_cup(i, kbcon(i))), 1.e1)
             xff_mid(i, 2) = max(0., blqe/trash)
          end if
@@ -5259,7 +5255,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'cupMinimi' ! Nome da subrotina
+      character(len=*), parameter :: p_procedure_name = 'cupMinimi' ! Subroutine name
    
       !Variables (input, output, inout)
       integer, intent(in) :: itf, ktf, its, ite, kts, kte
@@ -5299,7 +5295,7 @@ contains
    ! ------------------------------------------------------------------------------------
    subroutine cupUpAa0(aa0, z_cup, zu, dby, gamma_cup, t_cup,k22, klcl, kbcon, ktop, ierr , itf, ktf, its, ite, kts, kte &
                      , integ_interval)
-      !! ## ???
+      !! ## Determine the cloud work function (J/kg) from cloud base to cloud top
       !!
       !! Author: Saulo Freitas [SRF] e Georg Grell [GAG]
       !!
@@ -5312,7 +5308,10 @@ contains
       !! ---
       !! **Full description**:
       !!
-      !! ???
+      !! Determine the cloud work function (J/kg) from cloud base to cloud top
+      !! It also may be used to calculate two additional CWF
+      !! a) the inhibition energy barrier  (from surface to cloud base)
+      !! b) in the boundary layer (from surface to cloud base  height)
       !!
       !! ** History**:
       !!
@@ -5322,7 +5321,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'cupUpAa0' ! Nome da subrotina
+      character(len=*), parameter :: p_procedure_name = 'cupUpAa0' ! Subroutine name
    
       !Variables (input, output, inout)
       integer, intent(in) :: itf, ktf, its, ite, kts, kte
@@ -5361,7 +5360,7 @@ contains
             kbeg(:) = kts
             kend(:) = kbcon(:) - 1
          elseif(trim(integ_interval) == 'CIN') then
-            kbeg(:) = KTS  ! k22(:) !klcl (:) ! kts
+            kbeg(:) = kts
             kend(:) = kbcon(:) ! kbcon(:)-1
          else
             stop "unknown range in cup_up_aa0"
@@ -5390,7 +5389,7 @@ contains
                            ,po, p_cup, kbcon, ktop, cd, dby, clw_all, t_cup, q_env, gamma_cup, zu, qes_cup, k22, qe_cup &
                            ,zqexec, use_excess, ccn, rho, up_massentr, up_massdetr, psum, psumh, c1d, x_add_buoy &
                            ,vvel2d, vvel1d, zws, entr_rate_2d, itest, itf, ktf, ipr, jpr, its, ite, kts, kte)
-      !! ## ???
+      !! ## Resolve the 1-d cloud model for the updraft
       !!
       !! Author: Saulo Freitas [SRF] e Georg Grell [GAG]
       !!
@@ -5403,7 +5402,7 @@ contains
       !! ---
       !! **Full description**:
       !!
-      !! ???
+      !! Resolve the 1-d cloud model for the updraft
       !!
       !! ** History**:
       !!
@@ -5413,7 +5412,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'cupUpMoisture' ! Nome da subrotina
+      character(len=*), parameter :: p_procedure_name = 'cupUpMoisture' ! Subroutine name
 
       real, parameter :: p_bdispm = 0.366       
       !! berry--size dispersion (maritime)
@@ -5421,10 +5420,11 @@ contains
       !! berry--size dispersion (continental)
       real, parameter :: p_t_bf = 268.16, p_t_ice_bf = 235.16
       real, parameter :: p_rk = 3 
-      !! or 2
+      !! Runge-Kutta order: 2 or 3
       real, parameter :: p_xexp = 2.
       !
-   
+      real, parameter :: p_frac = 1.
+      !
       !Variables (input, output, inout)
       integer, intent(in) :: use_excess, itest, itf, ktf, its, ite, ipr, jpr, kts, kte
 
@@ -5472,6 +5472,7 @@ contains
       !! ierr error value, maybe modified in this routine
 
       character(len=128), intent(inout) :: ierrc(:)
+      !! ierr text message
       
       real, intent(out) :: qc(:, :)
       !! cloud q (including liquid water) after entrainment
@@ -5494,35 +5495,23 @@ contains
       real :: qrch
       !! saturation q in cloud
 
-      !--- no precip for small clouds
-      !if(name.eq.'shallow')  c0 = C0_SHAL
-      !if(name.eq.'mid'    )  c0 = C0_MID
-      !if(name.eq.'deep'   )  c0 = C0_DEEP
-      do i = its, itf
-         pwav(i) = 0.
-         psum(i) = 0.
-         psumh(i) = 0.
-      end do
-      do k = kts, ktf
-         do i = its, itf
-            pw(i, k) = 0.
-            clw_all(i, k) = 0.
-            tempc(i, k) = t_cup(i, k)
-            qrc(i, k) = 0.          !--- liq/ice water
-            qc(i, k) = qe_cup(i, k) !--- total water: liq/ice = vapor water
-            !qc2     (i,k)=qe_cup(i,k) !--- total water: liq/ice = vapor water
-         end do
-      end do
+
+      !--- initialization
+      pwav    = 0.
+      psum    = 0.
+      psumh   = 0.
+      pw      = 0.
+      clw_all = 0.
+      tempc   = t_cup
+      qrc     = 0.     !--- liq/ice water
+      qc      = qe_cup !--- total water: liq/ice = vapor water
 
       !--- get boundary condition for qc
       do i = its, itf
          if (ierr(i) /= 0) cycle
          call getCloudBc(name, kts, kte, ktf, xland(i), po(i, kts:kte), qe_cup(i, kts:kte), qaver, k22(i))
-         qc(i, kts:start_level(i)) = qaver + zqexec(i) + 1.*x_add_buoy(i)/real(c_alvl)
-         !qc  (i,kts:start_level(i)) = qaver + zqexec(i) +     0.67* x_add_buoy(i)/xlv
+         qc (i, kts:start_level(i)) = qaver + zqexec(i) + p_frac*x_add_buoy(i)/real(c_alvl)
          qrc(i, kts:start_level(i)) = 0.
-         !qc  (i,kts:start_level(i)) = qaver + zqexec(i) + 0.5*x_add_buoy(i)/xlv
-         !qc2 (i,kts:start_level(i)) = qaver + zqexec(i) + 0.5*x_add_buoy(i)/xlv
       end do
 
       !--- option to produce linear fluxes in the sub-cloud layer.
@@ -5537,32 +5526,30 @@ contains
 
          do k = start_level(i) + 1, ktop(i) + 1
 
-            DZ = Z_cup(i, K) - Z_cup(i, K - 1)
+            dz = z_cup(i, k) - z_cup(i, k - 1)
             !
             !--- saturation  in cloud, this is what is allowed to be in it
             !
-            qrch = qes_cup(I, K) + (1./real(c_alvl))*(gamma_cup(i, k)/(1.+gamma_cup(i, k)))*dby(I, K)
+            qrch = qes_cup(I, K) + (1./real(c_alvl))*(gamma_cup(i, k)/(1.+gamma_cup(i, k)))*dby(i, k)
 
             !-    1. steady state plume equation, for what could
             !-       be in cloud without condensation
-            denom = (zu(i, k - 1) - .5*up_massdetr(i, k - 1) + up_massentr(i, k - 1))
-            if (denom > 0.) then
+            denom = (zu(i, k - 1) - .5*up_massdetr(i, k - 1) + up_massentr(i, k - 1)) + 1.e-12
+            !if (denom > 0.) then
 
-               qc(i, k) = (qc(i, k - 1)*zu(i, k - 1) - .5*up_massdetr(i, k - 1)*qc(i, k - 1) + up_massentr(i, k - 1) &
-                        * q_env(i, k - 1))/denom
+            qc(i, k) = (qc(i, k - 1)*zu(i, k - 1) - .5*up_massdetr(i, k - 1)*qc(i, k - 1) + up_massentr(i, k - 1) &
+                       * q_env(i, k - 1))/denom
 
-               if (k == start_level(i) + 1) qc(i, k) = qc(i, k) + (zqexec(i) + 0.5*x_add_buoy(i)/real(c_alvl)) &
-                  * up_massentr(i, k - 1)/denom
-               !--- assuming no liq/ice water in the environment
-               qrc(i, k) = (qrc(i, k - 1)*zu(i, k - 1) - .5*up_massdetr(i, k - 1)*qrc(i, k - 1))/denom
-            else
-               qc(i, k) = qc(i, k - 1)
-               qrc(i, k) = qrc(i, k - 1)
-            end if
-
-            !            qc2(i,k)= ( (1.-0.5*entr_rate_2d(i,k-1)*dz)*qc2(i,k-1)     &
-            !                              + entr_rate_2d(i,k-1)*dz *q  (i,k-1) ) / &
-            !                        (1.+0.5*entr_rate_2d(i,k-1)*dz)
+            if (k == start_level(i) + 1) &
+            qc(i, k) = qc(i, k) + (zqexec(i) + p_frac*x_add_buoy(i)/real(c_alvl)) * up_massentr(i, k - 1)/denom
+            
+            !--- assuming no liq/ice water in the environment
+            qrc(i, k) = (qrc(i, k - 1)*zu(i, k - 1) - .5*up_massdetr(i, k - 1)*qrc(i, k - 1))/denom
+            
+            !else
+            !   qc(i, k) = qc(i, k - 1)
+            !   qrc(i, k) = qrc(i, k - 1)
+            !end if
 
             !-- updraft temp
             tempc(i, k) = (1./real(c_cp))*(hc(i, k) - c_grav*z_cup(i, k) - real(c_alvl)*qrch)
@@ -5766,7 +5753,7 @@ contains
                                , kbcon, ktop, cd, dby, clw_all, t_cup, q_env, gamma_cup, zu,  qes_cup, k22, qe_cup, zqexec &
                                , use_excess, rho,  up_massentr, up_massdetr, psum, psumh, c1d, x_add_buoy,  itest, itf, ktf, ipr &
                                , jpr, its, ite, kts, kte)
-      !! ## ???
+      !! ## Resolve the 1-d cloud model for the updraft, 1st guess for autoconv=4
       !!
       !! Author: Saulo Freitas [SRF] e Georg Grell [GAG]
       !!
@@ -5779,7 +5766,7 @@ contains
       !! ---
       !! **Full description**:
       !!
-      !! ???
+      !! Resolve the 1-d cloud model for the updraft, 1st guess for autoconv=4
       !!
       !! ** History**:
       !!
@@ -5789,8 +5776,9 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'cupUpMoistureLight' ! Nome da subrotina
-   
+      character(len=*), parameter :: p_procedure_name = 'cupUpMoistureLight' ! Subroutine name
+      real, parameter :: p_frac = 1.
+      !
       !Variables (input, output, inout)
       integer, intent(in) ::  use_excess, itest, itf, ktf, its, ite, ipr, jpr, kts, kte
 
@@ -5855,30 +5843,21 @@ contains
       real :: qrch
       !! saturation q in cloud
       
-      !! --- no precip for small clouds
-      !if(name.eq.'shallow')  c0 = C0_SHAL
-      !if(name.eq.'mid'    )  c0 = C0_MID
-      !if(name.eq.'deep'   )  c0 = C0_DEEP
-      do i = its, itf
-         pwav(i) = 0.
-         psum(i) = 0.
-         psumh(i) = 0.
-      end do
-      do k = kts, ktf
-         do i = its, itf
-            pw(i, k) = 0.
-            qrc(i, k) = 0.
-            clw_all(i, k) = 0.
-            tempc(i, k) = t_cup(i, k)
-            qc(i, k) = qe_cup(i, k)
-         end do
-      end do
+      !--- initialization
+      pwav    = 0.
+      psum    = 0.
+      psumh   = 0.
+      pw      = 0.
+      clw_all = 0.
+      tempc   = t_cup
+      qrc     = 0.     !--- liq/ice water
+      qc      = qe_cup !--- total water: liq/ice = vapor water
 
       !--- get boundary condition for qc
       do i = its, itf
          if (ierr(i) /= 0) cycle
          call getCloudBc(name, kts, kte, ktf, xland(i), po(i, kts:kte), qe_cup(i, kts:kte), qaver, k22(i))
-         qc(i, kts:start_level(i)) = qaver + zqexec(i) + 0.5*x_add_buoy(i)/real(c_alvl)
+         qc(i, kts:start_level(i)) = qaver + zqexec(i) + p_frac*x_add_buoy(i)/real(c_alvl)
       end do
 
       do i = its, itf
@@ -5894,15 +5873,18 @@ contains
 
             !-    1. steady state plume equation, for what could
             !-       be in cloud without condensation
-            denom = (zu(i, k - 1) - .5*up_massdetr(i, k - 1) + up_massentr(i, k - 1))
-            if (denom > 0.) then
-               qc(i, k) = (qc(i, k - 1)*zu(i, k - 1) - .5*up_massdetr(i, k - 1)*qc(i, k - 1) + up_massentr(i, k - 1) &
+            denom = (zu(i, k - 1) - .5*up_massdetr(i, k - 1) + up_massentr(i, k - 1)) + 1.e-12
+            !if (denom > 0.) then
+            
+            qc(i, k) = (qc(i, k - 1)*zu(i, k - 1) - .5*up_massdetr(i, k - 1)*qc(i, k - 1) + up_massentr(i, k - 1) &
                         * q_env(i, k - 1))/denom
-               if (k == start_level(i) + 1) qc(i, k) = qc(i, k) + (zqexec(i) + 0.5*x_add_buoy(i)/real(c_alvl)) &
-                                                     * up_massentr(i, k - 1)/denom
-            else
-               qc(i, k) = qc(i, k - 1)
-            end if
+
+            if (k == start_level(i) + 1) &
+            qc(i, k) = qc(i, k) + (zqexec(i) + p_frac*x_add_buoy(i)/real(c_alvl)) * up_massentr(i, k - 1)/denom
+            
+            !else
+            !   qc(i, k) = qc(i, k - 1)
+            !end if
 
             !--- total condensed water before rainout
             clw_all(i, k) = max(0., qc(i, k) - qrch)
@@ -5941,7 +5923,7 @@ contains
 
    ! ------------------------------------------------------------------------------------
    function SatVap(temp2) result(r_sat_vap)
-      !! ## ???
+      !! ## Determine the saturation water vapor mixing ratio
       !!
       !! Author: Saulo Freitas [SRF] e Georg Grell [GAG]
       !!
@@ -5954,7 +5936,7 @@ contains
       !! —
       !! **Full description**:
       !!
-      !! ???
+      !! Determine the saturation water vapor mixing ratio
       !!
       !! ** History**:
       !!
@@ -5964,7 +5946,7 @@ contains
       !!
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'SatVap' ! Nome da função
+      character(len=*), parameter :: p_procedure_name = 'SatVap' ! Function Name
    
       !Variables (input):
       real, intent(in) :: temp2
@@ -5999,7 +5981,7 @@ contains
    subroutine cupUpAa1Bl(version, aa1_bl, aa1_fa, aa1, t, tn, q, qo, dtime, po_cup, z_cup, zu, dby, gamma_cup, t_cup, rho, klcl &
                        , kpbl, kbcon, ktop, ierr, itf, ktf, its, ite, kts, kte, xland, ztexec, xlons, xlats, h_sfc_flux &
                        , le_sfc_flux , tau_bl, tau_ecmwf, t_star, cumulus, tn_bl, qo_bl)
-      !! ## ???
+      !! ## Determine the Pcape parameter from Bechtold et al (2014)
       !!
       !! Author: Saulo Freitas [SRF] e Georg Grell [GAG]
       !!
@@ -6012,7 +5994,8 @@ contains
       !! ---
       !! **Full description**:
       !!
-      !! ???
+      !! Determine the Pcape parameter from Bechtold et al (2014) and adapted for cloud work function
+      !! formulation be Freitas et al (2021)
       !!
       !! ** History**:
       !!
@@ -6022,7 +6005,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'cupUpAa1Bl' ! Nome da subrotina
+      character(len=*), parameter :: p_procedure_name = 'cupUpAa1Bl' ! Subroutine name
    
       !Variables (input, output, inout)
       integer, intent(in) :: itf, ktf, its, ite, kts, kte, version
@@ -6145,7 +6128,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'getLateralMassFlux' ! Nome da subrotina
+      character(len=*), parameter :: p_procedure_name = 'getLateralMassFlux' ! Subroutine name
 
       integer, parameter :: p_mass_u_option = 1
       integer, parameter :: p_smooth_depth = 2 
@@ -6382,7 +6365,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'getLateralMassFluxDown' ! Nome da subrotina
+      character(len=*), parameter :: p_procedure_name = 'getLateralMassFluxDown' ! Subroutine name
    
       !Variables (input, output, inout)
       integer, intent(in) :: itf, ktf, its, ite, kts, kte
@@ -6512,7 +6495,7 @@ contains
       !! 
      implicit none
      !Parameters:
-     character(len=*), parameter :: procedureName = 'getZuZdPdf'
+     character(len=*), parameter :: p_procedure_name = 'getZuZdPdf'
 
       real, parameter :: p_px = 45./120. 
       !! px sets the pressure level of max zu. its range is from 1 to 120.
@@ -6963,7 +6946,7 @@ contains
    ! ------------------------------------------------------------------------------------
    subroutine cupUpCape(aa0, z, zu, dby, gamma_cup, t_cup, k22, kbcon, ktop, ierr, tempco, qco, qrco, qo_cup &
                      ,  itf, ktf, its, ite, kts, kte)
-      !! ## ???
+      !! ## Calculate the CAPE for updraft
       !!
       !! Author: Saulo Freitas [SRF] e Georg Grell [GAG]
       !!
@@ -6976,7 +6959,7 @@ contains
       !! ---
       !! **Full description**:
       !!
-      !! ???
+      !! Calculate the CAPE for updraft
       !!
       !! ** History**:
       !!
@@ -6986,7 +6969,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'cupUpCape' ! Nome da subrotina
+      character(len=*), parameter :: p_procedure_name = 'cupUpCape' ! Subroutine name
    
       !Variables (input, output, inout)
       integer, intent(in) :: itf, ktf, its, ite, kts, kte
@@ -7041,7 +7024,7 @@ contains
 
    ! ------------------------------------------------------------------------------------
    subroutine getCloudBc(cumulus, kts, kte, ktf, xland, po, array, x_aver, k22, add, tpert)
-      !! ## ???
+      !! ## Determine the various boundary conditions
       !!
       !! Author: Saulo Freitas [SRF] e Georg Grell [GAG]
       !!
@@ -7054,17 +7037,19 @@ contains
       !! ---
       !! **Full description**:
       !!
-      !! ???
+      !! General routine to determine the various boundary conditions for the 
+      !! updraft of any plume (deep, shallow, congestus)
       !!
       !! ** History**:
-      !!
+      !! BC_METH == 0 use an arithmetic mean
+      !! BC_METH == 1 use a weighted mean (this is the default method)
       !! - 
       !! ---
       !! <img src="https://www.gnu.org/graphics/gplv3-127x51.png" width="63">
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'getCloudBc' ! Nome da subrotina
+      character(len=*), parameter :: p_procedure_name = 'getCloudBc' ! Subroutine name
 
       real, parameter :: p_frac_ave_layer_ocean = 0.3
    
@@ -7141,7 +7126,7 @@ contains
          !print*,"xaver1=",real(x_aver,4),real(dp_layer,4)
 
          !-- this perturbation is included only for MSE
-         if (present(tpert)) x_aver = x_aver + real(c_cp)*maxval(tpert(i_beg:ic))  ! version 2 - maxval in the layer
+         if (present(tpert)) x_aver = x_aver + real(c_cp)*maxval(tpert(i_beg:ic)) 
 
       end if
       if (present(add)) x_aver = x_aver + add
@@ -7150,7 +7135,7 @@ contains
 
    !------------------------------------------------------------------------------------
    subroutine getLcl(t0, pp0, r0, tlcl, plcl, dzlcl)
-      !! ## ???
+      !! ## Determine the lift of condensation level (LCL) for air parcel
       !!
       !! Author: Saulo Freitas [SRF] e Georg Grell [GAG]
       !!
@@ -7163,7 +7148,7 @@ contains
       !! ---
       !! **Full description**:
       !!
-      !! ???
+      !! Determine the lift of condensation level (LCL) for air parcels 
       !!
       !! ** History**:
       !!
@@ -7173,7 +7158,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'getLcl' ! Nome da subrotina
+      character(len=*), parameter :: p_procedure_name = 'getLcl' ! Subroutine name
    
       !Variables (input, output, inout)
       real, intent(in) :: t0
@@ -7244,7 +7229,7 @@ contains
 
    !------------------------------------------------------------------------------------
    function Td(ppp, rs) result(r_td)
-      !! ## ???
+      !! ## Determine the dew-point temperature (K)
       !!
       !! Author: Saulo Freitas [SRF] e Georg Grell [GAG]
       !!
@@ -7257,7 +7242,7 @@ contains
       !! —
       !! **Full description**:
       !!
-      !! ???
+      !! Determine the dew-point temperature (K)
       !!
       !! ** History**:
       !!
@@ -7267,7 +7252,7 @@ contains
       !!
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'Td' ! Nome da função
+      character(len=*), parameter :: p_procedure_name = 'Td' ! Function name
    
       !Variables (input):
       real, intent(in) :: ppp
@@ -7309,7 +7294,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'getInversionLayers' ! Nome da subrotina
+      character(len=*), parameter :: p_procedure_name = 'getInversionLayers' ! subroutine name
 
       integer, parameter :: p_extralayer = 0 
       !! makes plume top higher
@@ -7488,7 +7473,7 @@ contains
          !!     
          implicit none
          !Parameters:
-         character(len=*), parameter :: procedureName = 'Deriv3' ! Nome da função
+         character(len=*), parameter :: p_procedure_name = 'Deriv3' ! Function name
 
          integer, parameter :: p_n = 3
       
@@ -7592,7 +7577,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'setGradsVar' ! Nome da subrotina
+      character(len=*), parameter :: p_procedure_name = 'setGradsVar' ! Subroutine name
    
       !Variables (input, output, inout)
       integer, intent(in)    :: i_in, k_in
@@ -7639,7 +7624,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'wrtBinCtl' ! Nome da subrotina
+      character(len=*), parameter :: p_procedure_name = 'wrtBinCtl' ! subroutine name
 
       real, parameter :: p_undef = -9.99e33
    
@@ -7758,7 +7743,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'cupCloudLimits' ! Nome da subrotina
+      character(len=*), parameter :: p_procedure_name = 'cupCloudLimits' ! subroutine name
 
       real, parameter :: p_frh_crit_O = 0.7
       real, parameter :: p_frh_crit_L = 0.7  !--- test 0.5
@@ -7830,7 +7815,6 @@ contains
       end do
 
       !--- determine the level of convective cloud base  - kbcon
-   !--- DETERMINE THE LEVEL OF CONVECTIVE CLOUD BASE  - KBCON
       !
       loop0: do i=its,itf
          !-default value
@@ -7965,7 +7949,7 @@ contains
 
    ! ------------------------------------------------------------------------------------
    subroutine getBuoyancy(itf, ktf, its, ite, kts, kte, ierr, klcl, kbcon, ktop, hc, he_cup, hes_cup, dby, z_cup)
-      !! ## ???
+      !! ## Detertime the buoyancy of updraft air parcels
       !!
       !! Author: Saulo Freitas [SRF] e Georg Grell [GAG]
       !!
@@ -7978,7 +7962,7 @@ contains
       !! ---
       !! **Full description**:
       !!
-      !! ???
+      !! Detertime the buoyancy of updraft air parcels
       !!
       !! ** History**:
       !!
@@ -7988,7 +7972,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'getBuoyancy' ! Nome da subrotina
+      character(len=*), parameter :: p_procedure_name = 'getBuoyancy' ! Nome da subrotina
    
       !Variables (input, output, inout)
       integer, intent(in) :: itf, ktf, its, ite, kts, kte
@@ -8046,7 +8030,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'cupUpVVel'
+      character(len=*), parameter :: p_procedure_name = 'cupUpVVel'
 
       integer, parameter :: p_n_smooth = 1
       real, parameter :: p_ctea = 1./3.
@@ -8218,7 +8202,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'cupOutputEns3d' ! Nome da subrotina
+      character(len=*), parameter :: p_procedure_name = 'cupOutputEns3d' ! Subroutine name
    
       !Variables (input, output, inout)
       integer, intent(in) :: ichoice, ipr, jpr, itf, ktf, its, ite, kts, kte
@@ -8291,21 +8275,16 @@ contains
       real, dimension(8) :: tend1d
       real, dimension(its:ite, 8) :: check_cons_I, check_cons_F
       !
-      do k = kts, ktf
-         do i = its, itf
-            outtem(i, k) = 0.
-            outq(i, k) = 0.
-            outqc(i, k) = 0.
-            outu(i, k) = 0.
-            outv(i, k) = 0.
-            outbuoy(i, k) = 0.
-         end do
-      end do
-      do i = its, itf
-         pre(i) = 0.
-         xmb(i) = 0.
-         xmb_ave(i) = 0.
-      end do
+      !-- initialization
+      pre     = 0.
+      xmb     = 0.
+      xmb_ave = 0.
+      outtem  = 0.
+      outq    = 0.
+      outqc   = 0.
+      outu    = 0.
+      outv    = 0.
+      outbuoy = 0.
 
       do i = its, itf
          if (ierr(i) .eq. 0) then
@@ -8332,7 +8311,7 @@ contains
             end if
          end do
 
-         !- mid (congestus type) convection
+      !--- mid (congestus type) convection
       elseif (trim(cumulus) == 'mid') then
          if (ichoice .le. 3) then
             do i = its, itf
@@ -8347,7 +8326,7 @@ contains
             stop 'For mid ichoice must be 0,1,2,3'
          end if
 
-         !- shallow  convection
+      !--- shallow  convection
       elseif (trim(cumulus) == 'shallow') then
          do i = its, itf
             if (ierr(i) /= 0) cycle
@@ -8385,7 +8364,7 @@ contains
 !  enddo
 !endif
 
-      !- set the updraft mass flux, do not allow negative values and apply the diurnal cycle closure
+      !- determine the updraft mass flux, do not allow negative values and apply the diurnal cycle closure
       do i = its, itf
          if (ierr(i) /= 0) cycle
          !- mass flux of updradt at cloud base
@@ -8422,23 +8401,24 @@ contains
          xmb(i) = min(xmb(i), xmbmax(i))
       end do
 
-      !--- check outtem and and outq for high values
-      !--- criteria: if abs (dT/dt or dQ/dt) > 100 K/day => fix xmb
-      if (MAX_TQ_TEND < -1.e-6) then
-         do i = its, itf
-            if (ierr(i) /= 0) cycle
-            fixouts = xmb(i)*86400.*max(maxval(abs(dellat(i, kts:ktop(i)))), (real(c_alvl)/real(c_cp))*maxval(abs &
-                    ( dellaq(i, kts:ktop(i)))))
+      !--- check outtem and and outq for unrealistic values
+      !
+      !--- criteria: if abs (dT/dt or dQ/dt) > MAX_TQ_TEND K/day => fix xmb
+      ! if (MAX_TQ_TEND < -1.e-2) then
+      !    do i = its, itf
+      !       if (ierr(i) /= 0) cycle
+      !       fixouts = xmb(i)*86400.*max(maxval(abs(dellat(i, kts:ktop(i)))), (real(c_alvl)/real(c_cp))*maxval(abs &
+      !               ( dellaq(i, kts:ktop(i)))))
 
-            if (fixouts > abs(MAX_TQ_TEND)) then ! K/day
-               fixouts = abs(MAX_TQ_TEND)/(fixouts)
-               xmb(i) = xmb(i)*fixouts
-               xf_ens(i, :) = xf_ens(i, :)*fixouts
-            end if
-         end do
-      end if
+      !       if (fixouts > abs(MAX_TQ_TEND)) then ! K/day
+      !          fixouts = abs(MAX_TQ_TEND)/(fixouts)
+      !          xmb(i) = xmb(i)*fixouts
+      !          xf_ens(i, :) = xf_ens(i, :)*fixouts
+      !       end if
+      !    end do
+      ! end if
       !--- criteria: if abs (dT/dt or dQ/dt) > 100 K/day => fix dT/dt, dQ/dt and xmb
-      if (MAX_TQ_TEND > 1.e-6) then
+      if (MAX_TQ_TEND > 1.e-2) then
          do i = its, itf
 
             if (ierr(i) /= 0) cycle
@@ -8527,7 +8507,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'cupForcingEns3d' ! Nome da subrotina
+      character(len=*), parameter :: p_procedure_name = 'cupForcingEns3d' ! subroutine name
    
       !Variables (input, output, inout)
       integer, intent(in) :: itf, ktf, its, ite, kts, kte, ens4, ensdim, maxens, maxens2, maxens3
@@ -8837,7 +8817,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'getPartitionLiqIce' ! Nome da subrotina
+      character(len=*), parameter :: p_procedure_name = 'getPartitionLiqIce' ! subroutine name
 
       real, parameter ::  p_t1 = 276.16, p_z_meltlayer1 = 4000.
       real, parameter ::  p_z_meltlayer2 = 6000., p_delt = 3.   
@@ -8968,7 +8948,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'getMeltingProfile' ! Nome da subrotina
+      character(len=*), parameter :: p_procedure_name = 'getMeltingProfile' ! subroutine name
    
       !Variables (input, output, inout)
       integer, intent(in) :: itf, ktf, its, ite, kts, kte
@@ -9076,7 +9056,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'keToHeating' ! Nome da subrotina
+      character(len=*), parameter :: p_procedure_name = 'keToHeating' ! subroutine name
    
       !Variables (input, output, inout)
       integer, intent(in) :: itf, ktf, its, ite, kts, kte
@@ -9147,7 +9127,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'getInCloudScChemUp' ! Nome da subrotina
+      character(len=*), parameter :: p_procedure_name = 'getInCloudScChemUp' ! subroutine name
    
       real, parameter :: p_scav_eff = 0.6  
       !! for smoke : Chuang et al. (1992) J. Atmos. Sci.
@@ -9367,7 +9347,7 @@ contains
       !!  
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'henry' ! Nome da função
+      character(len=*), parameter :: p_procedure_name = 'henry' ! function name
    
       !Variables (input):
       integer, intent(in) :: ispc
@@ -9427,7 +9407,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'getInCloudScChemDd' ! Nome da subrotina
+      character(len=*), parameter :: p_procedure_name = 'getInCloudScChemDd' ! subroutine name
    
       !Variables (input, output, inout)
       integer, intent(in)  :: itf, ktf, its, ite, kts, kte, mtp
@@ -9579,7 +9559,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'fct1d3' ! Nome da subrotina
+      character(len=*), parameter :: p_procedure_name = 'fct1d3' ! subroutine name
       
       logical, parameter :: p_hi_order = .false.
       real, parameter :: p_epsil = 1.e-22
@@ -9780,7 +9760,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'tridiag' ! Nome da subrotina
+      character(len=*), parameter :: p_procedure_name = 'tridiag' ! subroutine name
    
       !Variables (input, output, inout)
       integer, intent(in) :: m_size
@@ -9835,7 +9815,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'cupEnvClevChem' ! Nome da subrotina
+      character(len=*), parameter :: p_procedure_name = 'cupEnvClevChem' ! subroutine name
 
       integer, parameter ::  p_clev_option = 2 
       !! use option 2
@@ -9901,7 +9881,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'rainEvapBelowCloudBase' ! Nome da subrotina
+      character(len=*), parameter :: p_procedure_name = 'rainEvapBelowCloudBase' ! subroutine name
 
       real, parameter :: p_alpha1 = 5.44e-4 
       !! 1/sec
@@ -10067,7 +10047,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'getPrecipFluxes' ! Nome da subrotina
+      character(len=*), parameter :: p_procedure_name = 'getPrecipFluxes' ! subroutine name
    
       !Variables (input, output, inout)
       integer, intent(in) :: itf, ktf, its, ite, kts, kte
@@ -10156,7 +10136,7 @@ contains
       !!
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'SaturSpecHum' ! Nome da função
+      character(len=*), parameter :: p_procedure_name = 'SaturSpecHum' ! function name
    
       !Variables (input):
       real, intent(in) :: pt
@@ -10209,8 +10189,9 @@ contains
       !! <img src="https://www.gnu.org/graphics/gplv3-127x51.png" width="63">
       !! 
       implicit none
+      
       !Parameters:
-      character(len=*), parameter :: procedureName = 'getJmin' ! Nome da subrotina
+      character(len=*), parameter :: p_procedure_name = 'getJmin' ! subroutine name
    
       !Variables (input, output, inout)
       integer, intent(in) :: itf, ktf, its, ite, kts, kte
@@ -10323,7 +10304,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'precipCwvFactor' ! Nome da subrotina
+      character(len=*), parameter :: p_procedure_name = 'precipCwvFactor' ! subroutine name
 
       real, parameter :: p_fpkup = 0.8  
       !! 90% of precip occurs above 80% of critical w
@@ -10408,7 +10389,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'getWetbulb' ! Nome da subrotina
+      character(len=*), parameter :: p_procedure_name = 'getWetbulb' ! subroutine name
    
       !Variables (input, output, inout)
       integer, intent(in) :: jmin
@@ -10532,7 +10513,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'cupForcingEns3dShal' ! Nome da subrotina
+      character(len=*), parameter :: p_procedure_name = 'cupForcingEns3dShal' ! subroutine name
 
       real, parameter :: p_k1 = 1.2
       !! tuning numbers for the TKE-based closure for shallow convection
@@ -10686,8 +10667,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'cupUpLightning' ! Nome da subrotina
-
+      character(len=*), parameter :: p_procedure_name = 'cupUpLightning' ! subroutine name
       real, parameter :: p_v_graup = 3.0  
       !! m/s
       real, parameter :: p_v_snow = 0.5  
@@ -10796,8 +10776,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'getInterp' ! Nome da subrotina
-   
+      character(len=*), parameter :: p_procedure_name = 'getInterp' ! subroutine name
       !Variables (input, output, inout)
       real, intent(in) :: po_cup 
       !! original
@@ -10892,7 +10871,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'sound' ! Nome da subrotina
+      character(len=*), parameter :: p_procedure_name = 'sound' ! subroutine name
       real, parameter :: p_latsnd = -10., p_lonsnd = 301., p_deltx = 0.2
       !      real, parameter :: LATSND= -8.72, LONSND= 186.6, DELTX=0.2
    
@@ -11126,7 +11105,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'cloudDissipation' ! Nome da subrotina
+      character(len=*), parameter :: p_procedure_name = 'cloudDissipation' ! subroutine name
 
       real, parameter :: p_cloud_lifetime = 1800.
       integer, parameter :: p_versionx = 2
@@ -11248,7 +11227,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'gfConparInit' ! Nome da subrotina
+      character(len=*), parameter :: p_procedure_name = 'gfConparInit' ! subroutine name
    
       !Variables (input, output, inout)
       integer, intent(in) :: mynum
@@ -11409,7 +11388,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'getLiqIceNumberConc' ! Nome da subrotina
+      character(len=*), parameter :: p_procedure_name = 'getLiqIceNumberConc' ! subroutine name
    
       !Variables (input, output, inout)
       integer, intent(in) :: itf, ktf, its, ite, kts, kte
@@ -11495,7 +11474,7 @@ contains
       !!  
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'MakeIceNumber' ! Nome da função
+      character(len=*), parameter :: p_procedure_name = 'MakeIceNumber' ! function name
 
       real, parameter:: c_ice_density = 890.0
    
@@ -11600,7 +11579,7 @@ contains
       !!
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'MakeDropletNumber' ! Nome da função
+      character(len=*), parameter :: p_procedure_name = 'MakeDropletNumber' ! function name
    
       real, parameter:: c_am_r = c_pi*1000./6.
       real, dimension(15), parameter:: c_g_ratio = (/24, 60, 120, 210, 336, 504, 720, 990, 1320, 1716, 2184, 2730, 3360, 4080 &
@@ -11658,7 +11637,7 @@ contains
       !!
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'IntFuncGamma' ! Nome da função
+      character(len=*), parameter :: p_procedure_name = 'IntFuncGamma' ! function name
    
       !Variables (input):
       real, intent(in) :: x
@@ -11697,7 +11676,7 @@ contains
       !!
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'GammaBrams' ! Nome da função
+      character(len=*), parameter :: p_procedure_name = 'GammaBrams' ! funtion name
 
       real, parameter :: p_small = 1.0e-4
       integer, parameter :: p_points = 100000
@@ -11780,7 +11759,7 @@ contains
       !!  
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'Ran1' ! Nome da função
+      character(len=*), parameter :: p_procedure_name = 'Ran1' ! function name
 
       integer(kind = kind_ib), parameter:: p_ntab = 32
       integer(kind = kind_ib), parameter:: p_iq = 127773
@@ -11854,7 +11833,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'getDelmix' ! Nome da subrotina
+      character(len=*), parameter :: p_procedure_name = 'getDelmix' ! subroutine namea
    
       !Variables (input, output, inout)
       integer, intent(in) :: kts, kte, ktf, subcl_level
@@ -11911,7 +11890,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'getQadv' ! Nome da subrotina
+      character(len=*), parameter :: p_procedure_name = 'getQadv' ! subroutine name
 
       real, parameter :: p_ptop = 60.
    
@@ -12022,7 +12001,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'rhControls' ! Nome da subrotina
+      character(len=*), parameter :: p_procedure_name = 'rhControls' ! subroutine name
 
       real, parameter :: p_ref_local_time = 8., p_ftun3 = 0.25
       logical, parameter :: p_free_troposphere = .true.
@@ -12139,7 +12118,7 @@ contains
       !!
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'ColdPoolStart' ! Nome da função
+      character(len=*), parameter :: p_procedure_name = 'ColdPoolStart' ! function name
 
       real, parameter   :: p_width = 100. 
       !! orig 100
@@ -12184,7 +12163,7 @@ contains
       !!
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'FractLiqF' ! Nome da função
+      character(len=*), parameter :: p_procedure_name = 'FractLiqF' ! function name
 
       real, parameter :: p_max_temp = 46. 
       !! Celsius
@@ -12239,7 +12218,7 @@ contains
       !!
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'initModConvParGF' ! Nome da função
+      character(len=*), parameter :: p_procedure_name = 'initModConvParGF' ! function name
    
       !Local variables:
       integer :: is_init
@@ -12399,7 +12378,7 @@ contains
 
       implicit none
       ! Parameters:
-      character(len=*), parameter :: procedureName = 'initDriver' 
+      character(len=*), parameter :: p_procedure_name = 'initDriver' 
       !! subroutine name
 
       ! Variables (input, output, inout)
@@ -12522,7 +12501,7 @@ contains
 
    end subroutine initDriverJ
 
-   subroutine initDriverK(its, itf, kts, ktf, kte, mtp, dt, rtgt, topt, zt, press, temp, rvap, curr_rvap, u_wind, v_wind &   
+   subroutine InitDriverK(its, itf, kts, ktf, kte, mtp, dt, rtgt, topt, zt, press, temp, rvap, curr_rvap, u_wind, v_wind &   
                         , w_wind, dm, buoy_exc, rth_advten, rqvften, flip, mp_ice, mp_liq, mp_cf, tracer, zo, po, temp_old  &  
                         , qv_old, qv_curr, rhoi, tkeg, rcpg, us, vs, dm2d, buoy_exc2d, temp_new_adv, qv_new_adv &
                         , mpqi, mpql, mpcf, se_chem, omeg)
@@ -12550,7 +12529,7 @@ contains
    
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'initDriverK' 
+      character(len=*), parameter :: p_procedure_name = 'initDriverK' 
       !! subroutine name
    
       !Variables (input, output, inout)
