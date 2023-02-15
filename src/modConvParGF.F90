@@ -93,6 +93,8 @@ module modConvParGF
    !=================================================
    ! module parameters
    !=================================================
+   character(len=*), parameter :: p_source_name = "modCobvParGF.F90"
+   !! Name of source file
    integer, parameter :: p_maxiens = 3
    !! plume spectral size
    integer, parameter :: p_deep = 1
@@ -4779,13 +4781,12 @@ contains
          do k = kts, ktf
             do i = its, itf
                if (ierr(i) /= 0) cycle
-               e = SatVap(temp_env(i, k))
-               qes(i, k) = 0.622*e/max(1.e-8, (press_env(i, k) - e))
-               if (qes(i, k) .le. 1.e-08) qes(i, k) = 1.e-08
-               if (qes(i, k) .gt. c_max_qsat) qes(i, k) = c_max_qsat
-               if (qes(i, k) .lt. mixratio_env(i, k)) qes(i, k) = mixratio_env(i, k)
-               !       IF(Q(I,K).GT.QES(I,K))Q(I,K)=QES(I,K)
-               tv(i, k) = temp_env(i, k) + .608*mixratio_env(i, k)*temp_env(i, k)
+
+                  e = SatVap(temp_env(i, k))
+                  qes(i, k) = max(1.e-8, 0.622*e/max(1.e-8, (press_env(i, k) - e)))
+                  qes(i, k) = min(qes(i,k),c_max_qsat)
+                  qes(i, k) = max(qes(i,k),mixratio_env(i, k))
+                  tv(i, k) = temp_env(i, k) + .608*mixratio_env(i, k)*temp_env(i, k)
             end do
          end do
       else
@@ -5213,7 +5214,7 @@ contains
          !- Boundary layer quasi-equilibrium (Raymond 1995)
          if (k22(i) .lt. kpbl(i) + 1) then
             blqe = 0.
-            do k = kts, kbcon(i) !- orig formulation
+            do k = kts, kbcon(i)
                blqe = blqe + 100.*dhdt(i, k)*(po_cup(i, k) - po_cup(i, k + 1))/c_grav
             end do
             trash = max((hco(i, kbcon(i)) - heo_cup(i, kbcon(i))), 1.e1)
