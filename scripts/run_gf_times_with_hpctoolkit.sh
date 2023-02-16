@@ -50,6 +50,8 @@
 # parameters
 times_to_execute=2
 
+source env_hpctoolkit.sh
+
 # code
 ln -fs ../gf.inp
 ln -fs ../GF_ConvPar_nml
@@ -66,21 +68,29 @@ for counter in $(seq 1 $times_to_execute); do
   mkdir -p ${dir_exec}
 
   echo -e "\n\n\nExecution of profiler on gf.x # $counter"
-  
-  # for HPCtoolkit =======================
+
+  # for HPCtoolkit on nodes  =======================
+  sbatch -W submit_hpctoolkit_from_script_run_gf_times.sbatch
+  mv $hpct_measure $hpct_structf ${hpct_db} slurm*.out ${dir_exec}
+    
+  # for HPCtoolkit local  =======================
   # hpcrun -t ../bin/gf.x 
   # hpcstruct ../bin/gf.x 
   # hpcprof -I . -S ${hpct_struct} ${hpct_measure}
-  #mv $hpct_measure $hpct_structf ${hpct_db} ${dir_exec}
+  # mv $hpct_measure $hpct_structf ${hpct_db} ${dir_exec}
 
-  # for gprof =============================
-  ../bin/gf.x
-  gprof --graph ../bin/gf.x > gprof.out  # --exec-times --graph --brief --flat-profile
-  mv ./gmon.out ./gprof.out ${dir_exec}
+  # for gprof local =============================
+  # ../bin/gf.x
+  # gprof --graph ../bin/gf.x > gprof.out  # --exec-times --graph --brief --flat-profile
+  # mv ./gmon.out ./gprof.out ${dir_exec}
 
+  # for all
   mv ref_g.* ${dir_exec}
 
 done
 
 
-echo -e "\n\n\nFinished!!! \nCheck generated databases in executions folder\n\ne.g:\nhpcviewer ${dir_exec}/hpctoolkit-gf.x-database\n\n"
+echo -e "\n\n\nFinished!!! \nCheck generated databases in executions folder"
+echo -e "\n\nHPCToolkit: hpcviewer ${dir_exec}/hpctoolkit-gf.x-database"
+echo -e "\n\nGprof:      more ${dir_exec}/gprof.out"
+	echo -e "\n\n"
