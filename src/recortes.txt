@@ -1,0 +1,76 @@
+stop 'CR:1d-gf-test.f90 : depois da subrotina modConvParGFDriver'
+   !  
+   !
+   !-- output
+   print*,"writing grads control file:',trim(runname)//'.ctl"
+   !
+   !number of variables to be written
+   nvartotal=0
+   do nvar=0,p_nvar_grads
+     if(cupout(nvar)%varn(1) .ne. "xxxx") nvartotal=nvartotal+1
+     if(cupout(nvar)%varn(3)  ==  "3d"  ) klevgrads(nvar)=KLEV_LOCAL-1
+     if(cupout(nvar)%varn(3)  ==  "2d"  ) klevgrads(nvar)=1
+   enddo
+  !- binary file 
+   inquire (iolength=int_byte_size) real_byte_size  ! inquire by output list
+   print*, 'opening grads file:',trim(runname)//'.gra'
+   open(19,file= trim(runname)//'.gra',form='unformatted',&
+           access='direct',status='replace', recl=int_byte_size*(klon_LOCAL))
+   nrec=0
+   do nvar=0,p_nvar_grads
+       if(cupout(nvar)%varn(1) .ne. "xxxx") then
+        do jk=1,klevgrads(nvar)
+          nrec=nrec+1
+          write(19,REC=nrec) real((cupout(nvar)%varp(:,jk)),4)
+        enddo
+       endif
+   enddo
+
+   close (19)
+
+   !-setting vertical dimension '0' for 2d var
+   where(klevgrads==1)klevgrads=0
+   !- ctl file
+   open(20,file=trim(runname)//'.ctl',status='unknown')
+   write(20,2001) '^'//trim(runname)//'.gra'
+   write(20,2002) 'undef -9.99e33'
+   write(20,2002) 'options'!byteswapped' ! zrev'
+   write(20,2002) 'title '//trim(runlabel)
+   write(20,2003) 1,0.,1. ! units m/km
+   write(20,2004) klon_LOCAL,1.,1.
+
+   IF(trim(RUNDATA) == "GATE.dat") THEN
+     write(20,2005) KLEV_LOCAL-1,(ppres(1,jk),jk=1,KLEV_LOCAL-1)
+   ELSE
+    n1 = KLEV_LOCAL/3
+    write(20,2005) KLEV_LOCAL-1,(cupout(0)%varp(1,jk),jk=1,n1)
+    n2 = n1 + KLEV_LOCAL/3
+    write(20,2009)            (cupout(0)%varp(1,jk),jk=n1+1,n2)
+    write(20,2009)            (cupout(0)%varp(1,jk),jk=n2+1,KLEV_LOCAL-1)
+   ENDIF
+   
+   write(20,2006) 1,'00:00Z01JAN2000','1mn'
+   write(20,2007) nvartotal
+   do nvar=0,p_nvar_grads
+    if(cupout(nvar)%varn(1) .ne. "xxxx") then
+     write(20,2008) cupout(nvar)%varn(1)(1:len_trim(cupout(nvar)%varn(1)))&
+                   ,klevgrads(nvar),cupout(nvar)%varn(2)(1:len_trim(cupout(nvar)%varn(2)))
+    endif
+   enddo
+  
+   write(20,2002) 'endvars'
+   close(20)
+ 
+  2001 format('dset ',a)
+  2002 format(a)
+  2003 format('xdef ',i4,' linear ',2f15.3)
+  2004 format('ydef ',i4,' linear ',2f15.3)
+
+  2005 format('zdef ',i4,' levels ',200f10.2)
+  2009 format(200f10.2)
+
+  2006 format('tdef ',i4,' linear ',2a15)
+  2007 format('vars ',i4)
+  2008 format(a10,i4,' 99 ',a40)!'[',a8,']')
+  2055 format(60f7.0)
+   133 format (1x,F7.0)

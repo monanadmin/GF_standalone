@@ -698,9 +698,12 @@ contains
       if (abs(C1) > 0.) use_c1d = .true.
 
       !-- big loop over j dimension
+
+
       do j = jts, jtf
          jcol = J
 
+         print*, 'CR:    |- ', procedureName, j, 'chamando initDriverJ'
          ! Initialize the variables for each J
          call initDriverJ(its, itf, aot500(:,j), xland(:,j), sfc_press(:,j), temp2m(:,j), topt(:,j), kpbl(:,j) &
                        , lons(:,j), lats(:,j), rtgt(:,j), ztexec, zqexec, last_ierr, fixout_qv, conprr(:,j) &
@@ -708,6 +711,7 @@ contains
                        , Tpert_2d, temp_tendqv, outt, outu, outv, outq, outqc, outnice, outnliq, outbuoy, outmpqi &
                        , outmpql, outmpcf, omeg, out_chem, ccn, xlandi, psur, tsur, ter11, kpbli, xlons, xlats)
 
+         print*, 'CR:    |- ', procedureName, j, 'chamando initDriverK'
          ! Initialize the variables for each J for all k
          call initDriverK(its, itf, kts, ktf, kte, mtp, dt, rtgt(:,j), topt(:,j), zt(:,:,j), press(:,:,j), temp(:,:,j) &
                         , rvap(:,:,j), curr_rvap(:,:,j), u_wind(:,:,j), v_wind(:,:,j), w_wind(:,:,j), dm(:,:,j) &
@@ -719,6 +723,7 @@ contains
          !- kpbli(i) = index of zo(i,k)
          !call get_zi_gf(j,its,ite,kts,kte,its,itf,ktf,ierrs,kpbli,pbl,&
          !             tkeg,rcpg,zo,ter11,tkmin)
+         print*, 'CR:    |- ', procedureName, j, ' do pbl(i), i=', its, itf
          do i = its, itf
             pbl(i) = zo(i, kpbli(i)) - topt(i, j)
             !print*,"PBL=",kpbli(i),zo(i,kpbli(i)),topt(i,j),pbl  (i)
@@ -728,6 +733,7 @@ contains
          !- this section is intended for model developments only and must
          !- not be used for normal runs.
          if (p_use_gate) then
+            print*, 'CR:    |- ', procedureName, j, ' if(p_use_gate), calcula uma pa de vars'
             if (CLEV_GRID == 0) stop "use_gate requires CLEV_GRID 1 or 2"
             if (USE_TRACER_TRANSP == 1) then
                ispc_co = 1
@@ -816,7 +822,9 @@ contains
          end if !- end:   for GATE soundings-------------------------------------------
          !
          !- get execess T and Q for source air parcels
+         
          do i = its, itf
+            print*, 'CR:    |- ', procedureName, j, ' do i=', its, itf
             pten = temp_old(i, 1)
             pqen = qv_old(i, 1)
             paph = 100.*psur(i)
@@ -865,7 +873,7 @@ contains
          !
 
          do ii_plume = 1, p_maxiens
-
+            print*, 'CR:    |- ', procedureName, j, ' do ii_plume= 1', p_maxiens
             if (ii_plume == 1) then
                plume = p_shal
                c0 = C0_SHAL
@@ -1018,7 +1026,7 @@ contains
                end if
             end if
             !
-
+            print*, 'CR:    |- ', procedureName, j, ' call cupGF'
             call cupGf(its, ite, kts, kte, itf, ktf, mtp, nmp, fscav &
                         , p_cumulus_type(plume) &
                         , CLOSURE_CHOICE(plume) &
@@ -1739,6 +1747,7 @@ contains
          end if
       end if
 
+      print*, 'CR:    |   |- ', procedureName, ' call initCupGF'
       call initCupGF(its, itf, ite, ktf, max_edt_ocean, max_edt_land, xland, zo, cumulus, random, depth_min, zkbmax, z_detr &
                   ,  zcutdown, kstabm, kbmax, ierr2 , ierr3, lambau_dp, lambau_dn, edtmin, edtmax, xland1, cap_max &
                   ,  aa0, aa1, aa2, aa3, aa1_bl, aa1_fa, aa0_bl, q_adv, aa1_radpbl, aa1_adv, alpha_adv, cin1, xk_x &
@@ -1748,11 +1757,14 @@ contains
 
       ! --- environmental conditions, FIRST HEIGHTS
       ! --- calculate moist static energy, heights, qes
+      print*, 'CR:    |   |- ', procedureName, ' 1a call cupEnv'
       call cupEnv(z, qes, he, hes, t, q, po, z1, psur, ierr, -1, itf, ktf, its, ite, kts, kte)
+      print*, 'CR:    |   |- ', procedureName, ' 2a call cupEnv'
       call cupEnv(zo, qeso, heo, heso, tn, qo, po, z1, psur, ierr, -1, itf, ktf, its, ite, kts, kte)
 
       ! --- outputs a model sounding for the stand-alone code (part 1)
       if (output_sound == 1) then
+         print*, 'CR:    |   |- ', procedureName, ' call sound'
          call sound(1, cumulus, int_time, dtime, p_ens4, itf, ktf, its, ite, kts, kte, xlats, xlons, jcol, whoami_all &
                     , z, qes, he, hes, t, q, po, z1, psur, zo, qeso, heo, heso, tn, qo, us, vs, omeg, xz &
                     , h_sfc_flux, le_sfc_flux, tsur, dx, stochastic_sig, zws, ztexec, zqexec, xland &
@@ -1761,13 +1773,16 @@ contains
       end if
 
       ! --- environmental values on cloud levels
+      print*, 'CR:    |   |- ', procedureName, ' 1a call cupEnvCLev'
       call cupEnvCLev(t, qes, q, he, hes, z, po, qes_cup, q_cup, he_cup, us, vs, u_cup, v_cup, hes_cup, z_cup, p_cup &
                     , gamma_cup, t_cup, psur, tsur, ierr, z1, itf, ktf, its, ite, kts, kte)
 
+      print*, 'CR:    |   |- ', procedureName, ' 2a call cupEnvCLev'
       call cupEnvCLev(tn, qeso, qo, heo, heso, zo, po, qeso_cup, qo_cup, heo_cup, us, vs, u_cup, v_cup, heso_cup, zo_cup &
                     , po_cup, gammao_cup, tn_cup, psur, tsur, ierr, z1, itf, ktf, its, ite, kts, kte)
 
       ! --- get air density at full layer (model levels) by hydrostatic balance (kg/m3)
+      print*, 'CR:    |   |- ', procedureName, ' do i= ', its, itf, ' verif. otimiz. esparsa'
       do i = its, itf
          rho_hydr(i, :) = 0.0
          if (ierr(i) /= 0) cycle
@@ -1778,8 +1793,10 @@ contains
       end do
 
       ! --- partition between liq/ice cloud contents
+      print*, 'CR:    |   |- ', procedureName, ' call getPartitionLiqIce'
       call getPartitionLiqIce(ierr, tn, z1, zo_cup, po_cup, p_liq_ice, melting_layer, itf, ktf, its, ite, kts, kte, cumulus)
 
+      print*, 'CR:    |   |- ', procedureName, ' do i= ', its, itf, ' verif. otimiz. esparsa'
       do i = its, itf
          if (ierr(i) /= 0) cycle
          do k = kts, ktf
@@ -1804,6 +1821,7 @@ contains
          start_k22 = 2
       end if
       k22(:) = kts
+      print*, 'CR:    |   |- ', procedureName, ' do i= ', its, itf, ' verif. otimiz. esparsa'
       do i = its, itf
          if (ierr(i) /= 0) cycle
          k22(i) = maxloc(heo_cup(i, start_k22:kbmax(i) + 1), 1) + start_k22 - 1
@@ -1826,6 +1844,7 @@ contains
       end do
 
       !-- get the pickup of ensemble ave prec, following Neelin et al 2009.
+      print*, 'CR:    |   |- ', procedureName, ' call precipCwvFactor'
       call precipCwvFactor(itf, ktf, its, ite, kts, kte, ierr, tn, po, qo, po_cup, cumulus, p_cwv_ave)
 
       !------- determine LCL for the air parcels around K22
@@ -1858,6 +1877,7 @@ contains
 
       !-- check if LCL height is below PBL height to allow shallow convection
       if (LCL_TRIGGER > 0 .and. trim(cumulus) == 'shallow') then
+         print*, 'CR:    |   |- ', procedureName, ' do i= ', its, itf, ' verif. otimiz. esparsa'
          do i = its, itf
             if (ierr(i) /= 0) cycle
             if (klcl(i) > max(1, kpbl(i) - LCL_TRIGGER)) then
@@ -1876,6 +1896,7 @@ contains
       !-- cold pool parameterization and convective memory
       if (CONVECTION_TRACER == 1 .and. trim(cumulus) == 'deep') then
          if (USE_MEMORY >= 0) then
+            print*, 'CR:    |   |- ', procedureName, ' do i= ', its, itf, ' verif. otimiz. esparsa'
             do i = its, itf
                if (ierr(i) /= 0) cycle
                !x_add_buoy(i) = min(mx_buoy2, maxval(buoy_exc(i,kts:klcl(i))))
@@ -4211,6 +4232,7 @@ contains
    
       random = 0.0
 
+      print*, 'CR:    |   |   |- ', procedureName, ' inicializa uma pa de vars'
       if (trim(cumulus) == 'deep') then
          !--- maximum depth (mb) of capping inversion (larger cap = no convection)
          if (MOIST_TRIGGER == 0) then
@@ -4779,7 +4801,7 @@ contains
       he = 0.0
       hes = 0.0
       qes = 0.0
-
+      print*, 'CR:    |   |   |- ', procedureName, ' varios dos, calculos'
       if (SATUR_CALC == 0) then
          do k = kts, ktf
             do i = its, itf
@@ -4947,6 +4969,7 @@ contains
       u_cup = 0.
       v_cup = 0.
 
+      print*, 'CR:    |   |- ', procedureName, ' do k=', kts+1, ktf, ' verif. otimiz. esparsa'
       if (CLEV_GRID == 2) then
          !--original formulation
          do k = kts + 1, ktf
@@ -4966,6 +4989,7 @@ contains
 
             end do
          end do
+         print*, 'CR:    |   |- ', procedureName, ' outro do i=', its, itf, ' verif. otimiz. esparsa'
          do i = its, itf
             if (ierr(i) /= 0) cycle
             qes_cup(i, 1) = qes(i, 1)
@@ -4990,6 +5014,7 @@ contains
          !enddo
       elseif (CLEV_GRID == 0) then
          !--- weigthed mean
+         print*, 'CR:    |   |- ', procedureName, ' outro do i=', its, itf, ' verif. otimiz. esparsa'
          do i = its, itf
             if (ierr(i) /= 0) cycle
             p_cup(i, 1) = psur(i)
@@ -5048,6 +5073,7 @@ contains
          end do
       elseif (CLEV_GRID == 1) then
          !--- based on Tiedke (1989)
+         print*, 'CR:    |   |- ', procedureName, ' outro do i=', its, itf, ' verif. otimiz. esparsa'
          do i = its, itf
             if (ierr(i) /= 0) cycle
             do k = ktf, kts + 1, -1
@@ -5100,6 +5126,7 @@ contains
       return
       !IF( MAPL_AM_I_ROOT() .and. irun == 0) then
       irun = 1
+      print*, 'CR:    |   |- ', procedureName, ' outro do i=', its, itf, ' verif. otimiz. esparsa'
       do i = its, itf
          if (ierr(i) == 0) then
             do k = kts, kte - 1
@@ -8862,6 +8889,9 @@ contains
       real :: dp, height
       real, dimension(its:ite) :: norm
    
+      print*, 'CR:    |   |   |- ', procedureName, ' varios calculos, alguns dos'
+      
+
       p_liq_ice(:, :) = 1.
       melting_layer(:, :) = 0.
       !-- get function of T for partition of total condensate into liq and ice phases.
@@ -10351,6 +10381,7 @@ contains
       if (trim(cumulus) /= 'deep') return
 
       !-- get the pickup of ensemble ave prec, following Neelin et al 2009.
+      print*, 'CR:    |   |   |- ', procedureName, ' do i= ', its, itf, ' verif. otimiz. esparsa'
       do i = its, itf
          w_col(i) = 0.
          w_ccrit(i) = 0.
@@ -12458,6 +12489,7 @@ contains
 
       !-- initialization
       do i_cnt = its, itf
+         print*, 'CR:    |  |- ', procedureName, ' do inicializacao de vars', i_cnt
          rtgt     (i_cnt) = 1.0
          ztexec   (i_cnt) = 0.0
          zqexec   (i_cnt) = 0.0
@@ -12603,7 +12635,9 @@ contains
       integer :: k_cnt, i_cnt, kr, ispc
    
       do k_cnt = kts, ktf
+                     print*, 'CR:    |  |- ', procedureName, ' do inicializacao de vars', k_cnt
          do i_cnt = its, itf
+
             kr = k_cnt   !+1   !<<<< only kr=k (the input was already converted to the BRAMS vertical grid,
             !                see cup_grell3.f90 routine)
             !- heigths, current pressure, temp and water vapor mix ratio

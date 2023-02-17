@@ -26,6 +26,8 @@ program GF_1d_driver
 
   integer,parameter :: mzp=200 ,mxp=1   ,myp=1
 
+  character(len=*), parameter :: procedureName = '1d-gf-test' 
+
   integer,parameter :: &
        ngrid=1 ,ngrids_cp=1     & 
      ,iens  =1   , mynum=1 ,npatch=1        &
@@ -180,6 +182,10 @@ program GF_1d_driver
    integer :: nrec,nvx,nvar,nvartotal,klevgrads(0:300),int_byte_size,n1,n2,n3
    real    :: real_byte_size
    logical :: init_stat
+   
+   
+!C: Carlos Renato testes: 
+   integer :: icr, icrf
 
 !Informa que não houve inicialização do GF5
 modConvParGF_initialized = .false.
@@ -409,222 +415,155 @@ init_stat = initModConvParGF()
 
 
 !- big loop on the gate soundings
+
+   icrf=1
+   do icr=1, icrf     !CR: loop para dar volume de execucao no codigo
+      print*, 'CR: ', procedureName, ' loop-bombando:', icr
       
-   do jl=1,klon_LOCAL !klon=number of soundings
-  !do jl=1,1 !klon=number of soundings
+      !do jl=1,klon_LOCAL !klon=number of soundings
+         do jl=1,1 !klon=number of soundings
 
-     TIME=TIME+DTLT
-     !IF(TIME/86400. > 2.) CYCLE
 
-     write(0,*) "############ Sounding:",jl!,TIME/86400.
-     !grid_length= float(jl)*1000.
+         TIME=TIME+DTLT
+         !IF(TIME/86400. > 2.) CYCLE
+
+         !CR:     write(0,*) "############ Sounding:",jl!,TIME/86400.
+         !grid_length= float(jl)*1000.
      
      
  
-  !-initialization 
-    ierr4d         =0               
-    jmin4d         =0 
-    klcl4d         =0
+         !-initialization 
+         ierr4d         =0               
+         jmin4d         =0 
+         klcl4d         =0
 
-    k224d          =0 
-    kbcon4d        =0 
-    ktop4d         =0 
-    kstabi4d       =0 
-    kstabm4d       =0   
-    xmb4d          =0. 
-    cprr4d         =0. 
-    edt4d          =0. 
-    pwav4d         =0. 
-    sigma4d        =0.
-    pcup5d         =0. 
-    up_massentr5d  =0.        
-    up_massdetr5d  =0.
-    dd_massentr5d  =0.
-    dd_massdetr5d  =0.
-    zup5d          =0.
-    zdn5d          =0. 
-    prup5d         =0. 
-    prdn5d         =0. 
-    clwup5d        =0. 
-    tup5d          =0.  
-    conv_cld_fr5d  =0.                		      
-    REVSU_GF       =0.
+         k224d          =0 
+         kbcon4d        =0 
+         ktop4d         =0 
+         kstabi4d       =0 
+         kstabm4d       =0   
+         xmb4d          =0. 
+         cprr4d         =0. 
+         edt4d          =0. 
+         pwav4d         =0. 
+         sigma4d        =0.
+         pcup5d         =0. 
+         up_massentr5d  =0.        
+         up_massdetr5d  =0.
+         dd_massentr5d  =0.
+         dd_massdetr5d  =0.
+         zup5d          =0.
+         zdn5d          =0. 
+         prup5d         =0. 
+         prdn5d         =0. 
+         clwup5d        =0. 
+         tup5d          =0.  
+         conv_cld_fr5d  =0.                		      
+         REVSU_GF       =0.
 
-       !if(JL .ne. 40) cycle
-       print*," ====================================================================="
-       print*,"Sounding =",jl
-               
-       CALL modConvParGFDriver(mxp,myp,KLEV_LOCAL,n_aer,p_nmp, time, itime1 &
-              ,ims,ime, jms,jme, kms,kme                        & 
-              ,its,ite, jts,jte, kts,kte                        & 
-	          ,flip        &
-              , FSCAV      &
-              ,mynum       &
-              ,dtlt        &
-              ,grid_length & 
-	          ,stochastic_sig &
-	          ,zm3d	       & !zmn(:,ngrid) 
-	          ,zt3d        & !ztn(:,ngrid) 
-	          ,dm3d        &
-              ,lons        &
-	          ,lats        &
+         !if(JL .ne. 40) cycle
+         !CR:       print*," ====================================================================="
+         !CR:       print*,"Sounding =",jl
 
-              ,aot500      & ! aot at 500nm
-	          ,temp2m      & ! 2m-temp
-  	          ,sflux_r     & !turb_g(ngrid)%sflux_r  
-              ,sflux_t     & !turb_g(ngrid)%sflux_t
-              ,qexp        &
-              ,hexcp       & 
-              ,wlpool      &
-	          ,topt	       & !grid_g(ngrid)%topt 
-	          ,xland       & ! land fc
-	          ,sfc_press   &
-              ,KPBL        &  
-              ,tke_pbl     &
-!
-              ,col_sat     &
-              ,up	   & !basic_g(ngrid)%up      
-              ,vp	   & !basic_g(ngrid)%vp      
-              ,wp	   & !basic_g(ngrid)%wp      
-              ,theta   & !basic_g(ngrid)%theta   
-              ,pp	   & !basic_g(ngrid)%pp      
-	          ,rv	   & !basic_g(ngrid)%rv      
-	          ,ls_ice	   &
-	          ,ls_liq	   &
-              ,ls_clfrac   &
-	          ,rv2	       & !basic_g(ngrid)%rv      
-	          ,SC_CHEM     &
-	          ,buoy_exc    &
-              ,lsfth       & ! forcing for theta deep    cuforc_g(ngrid)% lsfth  
-	          ,lsfrt 	   & ! forcing for rv deep       cuforc_g(ngrid)% lsfrt  
-              ,advf_t      &
-	          ,lsfth_sh    & ! forcing for theta shallow cuforc_sh_g(ngrid)%lsfth
-	          ,lsfrt_sh    & ! forcing for rv shallow    cuforc_sh_g(ngrid)%lsfrt
-!
-	          ,CONPRR      & !cupout_g(ngrid)%CONPRR 
-              ,LIGHTN_DENS &
-              ,rh_dicy_fct &
-              ,THSRC	   & ! temp tendency		   g3d_g(ngrid)%THSRC	   
-              ,RTSRC	   & ! rv tendency		   g3d_g(ngrid)%RTSRC	   
-              ,CLSRC	   & ! cloud/ice tendency	   g3d_g(ngrid)%CLSRC	   
-              ,NLSRC       &
-              ,NISRC       &
-              ,USRC	       & ! U tendency		   g3d_g(ngrid)%USRC	   
-              ,VSRC	       & ! V tendency		   g3d_g(ngrid)%VSRC	   
-              ,SUB_QILS    & 
-              ,SUB_QLLS    & 
-              ,SUB_CFLS	   &   
-              ,SRC_BUOY    &
-	          ,SRC_CHEM    &
-              ,REVSU_GF    & 
-	          ,PFIL_GF     & 
-	          ,do_this_column&
-              ,ierr4d	    &
-              ,jmin4d	    &
-              ,klcl4d	    &
-              ,k224d	    &
-              ,kbcon4d      &
-              ,ktop4d	    &
-              ,kstabi4d     &
-              ,kstabm4d     &
-              ,cprr4d	    &
-              ,xmb4d	    &
-              ,edt4d	    &
-              ,pwav4d	    &
-	          ,sigma4d      &
-              ,pcup5d	    &
-              ,up_massentr5d&
-              ,up_massdetr5d&
-              ,dd_massentr5d&
-              ,dd_massdetr5d&
-              ,zup5d	    &
-              ,zdn5d	    & 
-              ,prup5d	    & 
-              ,prdn5d	    & 
-              ,clwup5d      & 
-              ,tup5d	    & 
-              ,conv_cld_fr5d&				       
-	      !-- for debug/diagnostic
-             ,AA0,AA1,AA1_ADV,AA1_RADPBL,AA1_BL,AA2,AA3,AA1_CIN,TAU_BL,TAU_EC  &
-             ,VAR2d,VAR3d_aGF,VAR3d_bGF,VAR3d_cGF,VAR3d_dGF&
-              )
-				     
-   enddo ! loop over gate soundings				     
-   !  
-   !
-   !-- output
-   print*,"writing grads control file:',trim(runname)//'.ctl"
-   !
-   !number of variables to be written
-   nvartotal=0
-   do nvar=0,p_nvar_grads
-     if(cupout(nvar)%varn(1) .ne. "xxxx") nvartotal=nvartotal+1
-     if(cupout(nvar)%varn(3)  ==  "3d"  ) klevgrads(nvar)=KLEV_LOCAL-1
-     if(cupout(nvar)%varn(3)  ==  "2d"  ) klevgrads(nvar)=1
-   enddo
-  !- binary file 
-   inquire (iolength=int_byte_size) real_byte_size  ! inquire by output list
-   print*, 'opening grads file:',trim(runname)//'.gra'
-   open(19,file= trim(runname)//'.gra',form='unformatted',&
-           access='direct',status='replace', recl=int_byte_size*(klon_LOCAL))
-   nrec=0
-   do nvar=0,p_nvar_grads
-       if(cupout(nvar)%varn(1) .ne. "xxxx") then
-        do jk=1,klevgrads(nvar)
-          nrec=nrec+1
-          write(19,REC=nrec) real((cupout(nvar)%varp(:,jk)),4)
-        enddo
-       endif
-   enddo
-
-   close (19)
-
-   !-setting vertical dimension '0' for 2d var
-   where(klevgrads==1)klevgrads=0
-   !- ctl file
-   open(20,file=trim(runname)//'.ctl',status='unknown')
-   write(20,2001) '^'//trim(runname)//'.gra'
-   write(20,2002) 'undef -9.99e33'
-   write(20,2002) 'options'!byteswapped' ! zrev'
-   write(20,2002) 'title '//trim(runlabel)
-   write(20,2003) 1,0.,1. ! units m/km
-   write(20,2004) klon_LOCAL,1.,1.
-
-   IF(trim(RUNDATA) == "GATE.dat") THEN
-     write(20,2005) KLEV_LOCAL-1,(ppres(1,jk),jk=1,KLEV_LOCAL-1)
-   ELSE
-    n1 = KLEV_LOCAL/3
-    write(20,2005) KLEV_LOCAL-1,(cupout(0)%varp(1,jk),jk=1,n1)
-    n2 = n1 + KLEV_LOCAL/3
-    write(20,2009)            (cupout(0)%varp(1,jk),jk=n1+1,n2)
-    write(20,2009)            (cupout(0)%varp(1,jk),jk=n2+1,KLEV_LOCAL-1)
-   ENDIF
    
-   write(20,2006) 1,'00:00Z01JAN2000','1mn'
-   write(20,2007) nvartotal
-   do nvar=0,p_nvar_grads
-    if(cupout(nvar)%varn(1) .ne. "xxxx") then
-     write(20,2008) cupout(nvar)%varn(1)(1:len_trim(cupout(nvar)%varn(1)))&
-                   ,klevgrads(nvar),cupout(nvar)%varn(2)(1:len_trim(cupout(nvar)%varn(2)))
-    endif
-   enddo
-  
-   write(20,2002) 'endvars'
-   close(20)
- 
-  2001 format('dset ',a)
-  2002 format(a)
-  2003 format('xdef ',i4,' linear ',2f15.3)
-  2004 format('ydef ',i4,' linear ',2f15.3)
+         !CR:   print*, 'CR: 1d-gf-test.f90: chamando modConvParGFDriver', icr
+         print*, 'CR: ', procedureName, ' chamando modConvParGFDriver', jl
+         CALL modConvParGFDriver(mxp,myp,KLEV_LOCAL,n_aer,p_nmp, time, itime1 &
+            ,ims,ime, jms,jme, kms,kme                        & 
+            ,its,ite, jts,jte, kts,kte                        & 
+	         ,flip        &
+            , FSCAV      &
+            ,mynum       &
+            ,dtlt        &
+            ,grid_length & 
+	         ,stochastic_sig &
+	         ,zm3d	       & !zmn(:,ngrid) 
+	         ,zt3d        & !ztn(:,ngrid) 
+	         ,dm3d        &
+            ,lons        &
+	         ,lats        &
+            ,aot500      & ! aot at 500nm
+	         ,temp2m      & ! 2m-temp
+  	         ,sflux_r     & !turb_g(ngrid)%sflux_r  
+            ,sflux_t     & !turb_g(ngrid)%sflux_t
+            ,qexp        &
+            ,hexcp       & 
+            ,wlpool      &
+	         ,topt	       & !grid_g(ngrid)%topt 
+	         ,xland       & ! land fc
+	         ,sfc_press   &
+            ,KPBL        &  
+            ,tke_pbl     &
+            ,col_sat     &
+            ,up	   & !basic_g(ngrid)%up      
+            ,vp	   & !basic_g(ngrid)%vp      
+            ,wp	   & !basic_g(ngrid)%wp      
+            ,theta   & !basic_g(ngrid)%theta   
+            ,pp	   & !basic_g(ngrid)%pp      
+	         ,rv	   & !basic_g(ngrid)%rv      
+	         ,ls_ice	   &
+	         ,ls_liq	   &
+            ,ls_clfrac   &
+	         ,rv2	       & !basic_g(ngrid)%rv      
+	         ,SC_CHEM     &
+	         ,buoy_exc    &
+            ,lsfth       & ! forcing for theta deep    cuforc_g(ngrid)% lsfth  
+	         ,lsfrt 	   & ! forcing for rv deep       cuforc_g(ngrid)% lsfrt  
+            ,advf_t      &
+	         ,lsfth_sh    & ! forcing for theta shallow cuforc_sh_g(ngrid)%lsfth
+	         ,lsfrt_sh    & ! forcing for rv shallow    cuforc_sh_g(ngrid)%lsfrt
+	         ,CONPRR      & !cupout_g(ngrid)%CONPRR 
+            ,LIGHTN_DENS &
+            ,rh_dicy_fct &
+            ,THSRC	   & ! temp tendency		   g3d_g(ngrid)%THSRC	   
+            ,RTSRC	   & ! rv tendency		   g3d_g(ngrid)%RTSRC	   
+            ,CLSRC	   & ! cloud/ice tendency	   g3d_g(ngrid)%CLSRC	   
+            ,NLSRC       &
+            ,NISRC       &
+            ,USRC	       & ! U tendency		   g3d_g(ngrid)%USRC	   
+            ,VSRC	       & ! V tendency		   g3d_g(ngrid)%VSRC	   
+            ,SUB_QILS    & 
+            ,SUB_QLLS    & 
+            ,SUB_CFLS	   &   
+            ,SRC_BUOY    &
+	         ,SRC_CHEM    &
+            ,REVSU_GF    & 
+	         ,PFIL_GF     & 
+	         ,do_this_column&
+            ,ierr4d	    &
+            ,jmin4d	    &
+            ,klcl4d	    &
+            ,k224d	    &
+            ,kbcon4d      &
+            ,ktop4d	    &
+            ,kstabi4d     &
+            ,kstabm4d     &
+            ,cprr4d	    &
+            ,xmb4d	    &
+            ,edt4d	    &
+            ,pwav4d	    &
+	         ,sigma4d      &
+            ,pcup5d	    &
+            ,up_massentr5d&
+            ,up_massdetr5d&
+            ,dd_massentr5d&
+            ,dd_massdetr5d&
+            ,zup5d	    &
+            ,zdn5d	    & 
+            ,prup5d	    & 
+            ,prdn5d	    & 
+            ,clwup5d      & 
+            ,tup5d	    & 
+            ,conv_cld_fr5d&				       
+	         !-- for debug/diagnostic
+            ,AA0,AA1,AA1_ADV,AA1_RADPBL,AA1_BL,AA2,AA3,AA1_CIN,TAU_BL,TAU_EC  &
+            ,VAR2d,VAR3d_aGF,VAR3d_bGF,VAR3d_cGF,VAR3d_dGF&
+         )
 
-  2005 format('zdef ',i4,' levels ',200f10.2)
-  2009 format(200f10.2)
 
-  2006 format('tdef ',i4,' linear ',2a15)
-  2007 format('vars ',i4)
-  2008 format(a10,i4,' 99 ',a40)!'[',a8,']')
-  2055 format(60f7.0)
-   133 format (1x,F7.0)
+
+      enddo ! loop over gate soundings		 !klon=number of soundings		     
+   enddo    !CR: loop bomba
 
 END PROGRAM GF_1d_driver
 
