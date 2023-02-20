@@ -62,7 +62,7 @@ module modConvParGF
                         ,  p_xmbmaxshal, p_mintracer, c_smaller_qv, c_t01, c_t100, c_temp0i &
                         ,  c_rgas_atm, c_hplus, c_r2es, c_r3les, c_r4ies, c_r4les, c_retv &
                         ,  c_rticecu, c_rtwat_rticecu_r, c_r3ies, c_r5alscp, c_r5alvcp, c_ralsdcp &
-                        ,  c_ralvdcp, c_rtice, c_rtwat_rtice_r, kind_ib, kind_rb
+                        ,  c_ralvdcp, c_rtice, c_rtwat_rtice_r, i8, r8
 
    implicit none
 
@@ -4549,7 +4549,7 @@ contains
       !Local variables:
       real :: random(its:ite)
       integer   :: i
-      integer(8) :: iran, ranseed = 0   
+      integer(kind=i8) :: iran, ranseed = 0   
       
       !Code:
       call system_clock(ranseed)
@@ -11954,27 +11954,27 @@ contains
       !Parameters:
       character(len=*), parameter :: procedureName = 'Ran1' ! Nome da função
 
-      integer(kind = kind_ib), parameter:: p_ntab = 32
-      integer(kind = kind_ib), parameter:: p_iq = 127773
-      integer(kind = kind_ib), parameter:: p_ia = 16807
-      integer(kind = kind_ib), parameter:: p_ir = 2836
-      integer(kind = kind_ib), parameter:: p_im = 2147483647
-      integer(kind = kind_ib), parameter:: p_ndiv = 1 + (p_im - 1)/p_ntab
-      real(kind = kind_rb), parameter:: p_am = 1.0/p_im
-      real(kind = kind_rb), parameter:: p_eps = 1.2e-7
-      real(kind = kind_rb), parameter:: p_rnmx = 1.0 - p_eps
+      integer(kind = i8), parameter:: p_ntab = 32_i8
+      integer(kind = i8), parameter:: p_iq = 127773_i8
+      integer(kind = i8), parameter:: p_ia = 16807_i8
+      integer(kind = i8), parameter:: p_ir = 2836_i8
+      integer(kind = i8), parameter:: p_im = 2147483647_i8
+      integer(kind = i8), parameter:: p_ndiv = 1_i8 + (p_im - 1_i8)/p_ntab
+      real(kind = r8), parameter:: p_am = 1.0_r8/p_im
+      real(kind = r8), parameter:: p_eps = 1.2e-7_r8
+      real(kind = r8), parameter:: p_rnmx = 1.0_r8 - p_eps
    
       !Variables (input):
-      integer(kind = kind_ib), intent(inout):: idum
+      integer(kind = i8), intent(inout):: idum
    
       !Local variables:
-      real(kind = kind_rb) :: random_number !output
+      real(kind = r8) :: random_number !output
 
-      integer(kind = kind_ib):: iy
-      integer(kind = kind_ib), dimension(p_ntab):: iv
+      integer(kind = i8):: iy
+      integer(kind = i8), dimension(p_ntab):: iv
       !save iv,iy
       data iv/p_ntab*0/, iy/0/
-      integer(kind = kind_ib):: j, k
+      integer(kind = i8):: j, k
 
       if (idum .le. 0 .or. iy .eq. 0) then
          ! initialize
