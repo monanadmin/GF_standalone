@@ -817,7 +817,8 @@ contains
                      mpqi(:, i, po_ind(k)) = 3.*pqen*(1.-pten)
                      mpcf(:, i, po_ind(k)) = (mpqi(:, i, po_ind(k)) + mpql(:, i, po_ind(k)))*100.
                   end do
-
+                  deallocate(po_ind)
+                  
                   do k = kts, kte
                      zo(i, k) = 0.5*(phil(i, k) + phil(i, min(kte, k + 1)))/c_grav    !meters
                   end do
