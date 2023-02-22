@@ -416,12 +416,12 @@ init_stat = initModConvParGF()
 
 !- big loop on the gate soundings
 
-   icrf=1
+   icrf=100
    do icr=1, icrf     !CR: loop para dar volume de execucao no codigo
-      print*, 'CR: ', procedureName, ' loop-bombando:', icr
+      !print*, 'CR: ', procedureName, ' loop-bombando:', icr
       
-      !do jl=1,klon_LOCAL !klon=number of soundings
-         do jl=1,1 !klon=number of soundings
+      do jl=1,klon_LOCAL !klon=number of soundings
+      !   do jl=1,1 !klon=number of soundings
 
 
          TIME=TIME+DTLT
@@ -466,8 +466,8 @@ init_stat = initModConvParGF()
          !CR:       print*,"Sounding =",jl
 
    
-         !CR:   print*, 'CR: 1d-gf-test.f90: chamando modConvParGFDriver', icr
-         print*, 'CR: ', procedureName, ' chamando modConvParGFDriver', jl
+         !CR:   !print*, 'CR: 1d-gf-test.f90: chamando modConvParGFDriver', icr
+         !print*, 'CR: ', procedureName, ' chamando modConvParGFDriver', jl
          CALL modConvParGFDriver(mxp,myp,KLEV_LOCAL,n_aer,p_nmp, time, itime1 &
             ,ims,ime, jms,jme, kms,kme                        & 
             ,its,ite, jts,jte, kts,kte                        & 

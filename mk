@@ -1,4 +1,5 @@
 #!/bin/sh
+rm -f gf.x
 cd bin
 #make clean
 #/bin/cp Makefile_r4 Makefile
