@@ -1,7 +1,7 @@
 program GF_1d_driver
 
   USE modGate
-  use modConvParGF  , only: modConvParGFDriver,icumulus_gf, closure_choice, p_deep, p_shal, p_mid &
+  use modConvParGF  , only: icumulus_gf, closure_choice, p_deep, p_shal, p_mid &
       ,use_scale_dep,dicycle,tau_deep,tau_mid,hcts                       &
       ,use_tracer_transp, use_tracer_scaven,use_memory,convection_tracer &
       ,use_flux_form,use_tracer_evap,downdraft,use_fct                   &
@@ -19,8 +19,8 @@ program GF_1d_driver
       ,use_linear_subcl_mf,cap_maxs,liq_ice_number_conc,alpha_adv_tuning &
       ,sig_factor,lcl_trigger, rh_dicycle, add_coldpool_prop,cum_t_star  &
       ,add_coldpool_clos,mx_buoy1, mx_buoy2, cum_t_star,cum_zuform       &
-      ,add_coldpool_diff, modConvParGF_initialized, initModConvParGF
-
+      ,add_coldpool_diff, modConvParGF_initialized, initModConvParGF &
+      ,convParGFDriver
 
   implicit none
 
@@ -454,8 +454,7 @@ init_stat = initModConvParGF()
        print*," ====================================================================="
        print*,"Sounding =",jl
                
-       CALL modConvParGFDriver(mxp,myp,KLEV_LOCAL,n_aer,p_nmp, time, itime1 &
-              ,ims,ime, jms,jme, kms,kme                        & 
+       CALL convParGFDriver(mxp,myp,KLEV_LOCAL,n_aer,p_nmp, time, itime1 &
               ,its,ite, jts,jte, kts,kte                        & 
 	          ,flip        &
               , FSCAV      &
@@ -463,7 +462,6 @@ init_stat = initModConvParGF()
               ,dtlt        &
               ,grid_length & 
 	          ,stochastic_sig &
-	          ,zm3d	       & !zmn(:,ngrid) 
 	          ,zt3d        & !ztn(:,ngrid) 
 	          ,dm3d        &
               ,lons        &
@@ -481,8 +479,6 @@ init_stat = initModConvParGF()
 	          ,sfc_press   &
               ,KPBL        &  
               ,tke_pbl     &
-!
-              ,col_sat     &
               ,up	   & !basic_g(ngrid)%up      
               ,vp	   & !basic_g(ngrid)%vp      
               ,wp	   & !basic_g(ngrid)%wp      
@@ -545,7 +541,7 @@ init_stat = initModConvParGF()
               ,tup5d	    & 
               ,conv_cld_fr5d&				       
 	      !-- for debug/diagnostic
-             ,AA0,AA1,AA1_ADV,AA1_RADPBL,AA1_BL,AA2,AA3,AA1_CIN,TAU_BL,TAU_EC  &
+             ,AA0,AA1,AA1_ADV,AA1_RADPBL,AA1_BL,AA2,AA3,TAU_BL,TAU_EC  &
              ,VAR2d,VAR3d_aGF,VAR3d_bGF,VAR3d_cGF,VAR3d_dGF&
               )
 				     
