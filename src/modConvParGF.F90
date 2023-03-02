@@ -5348,7 +5348,7 @@ contains
       !Local variables:
       integer:: nvartotal, klevgrads(200), jk, int_byte_size, nvar, maxklevgrads
       real   :: real_byte_size
-      integer :: nrec, rec_size
+      integer :: nrec, rec_size, l_unit
 
       nrec = 0
       maxklevgrads = min(60, mzp)
@@ -5372,10 +5372,10 @@ contains
       print *, 'opening grads file:', trim(runname)//'.gra'
       rec_size = size(cupout(nvar)%varp, 1)*real_byte_size
       if (ntimes == 1) then
-         open (19, file=trim(runname)//'.gra', form='unformatted', &
+         open (newunit = l_unit, file=trim(runname)//'.gra', form='unformatted', &
                access='direct', status='replace', recl=rec_size)
       else
-         open (19, file=trim(runname)//'.gra', form='unformatted', &
+         open (newunit = l_unit, file=trim(runname)//'.gra', form='unformatted', &
                access='direct', status='old', recl=rec_size)
       end if
 
@@ -5384,33 +5384,33 @@ contains
             do jk = 1, klevgrads(nvar)
                nrec = nrec + 1
                !write(19)          real((cupout(nvar)%varp(:,jk)),4)
-               write (19, rec=nrec) real((cupout(nvar)%varp(:, jk)), 4)
+               write (l_unit, rec=nrec) real((cupout(nvar)%varp(:, jk)), 4)
             end do
          end if
       end do
-      close (19)
+      close (l_unit)
       !-setting vertical dimension '0' for 2d var
       where (klevgrads == 1) klevgrads = 0
       !- ctl file
-      open (20, file=trim(runname)//'.ctl', status='unknown')
-      write (20, 2001) '^'//trim(runname)//'.gra'
-      write (20, 2002) 'undef -9.99e33'
-      write (20, 2002) 'options sequential byteswapped' ! zrev'
-      write (20, 2002) 'title '//trim(runlabel)
-      write (20, 2003) 1, 0., 1. ! units m/km
-      write (20, 2004) n, 1., 1.
-      write (20, 2005) maxklevgrads, (p2d(jk), jk=1, maxklevgrads)
-      write (20, 2006) ntimes, '00:00Z24JAN1999', '10mn'
-      write (20, 2007) nvartotal
+      open (newunit = l_unit, file=trim(runname)//'.ctl', status='unknown')
+      write (l_unit, 2001) '^'//trim(runname)//'.gra'
+      write (l_unit, 2002) 'undef -9.99e33'
+      write (l_unit, 2002) 'options sequential byteswapped' ! zrev'
+      write (l_unit, 2002) 'title '//trim(runlabel)
+      write (l_unit, 2003) 1, 0., 1. ! units m/km
+      write (l_unit, 2004) n, 1., 1.
+      write (l_unit, 2005) maxklevgrads, (p2d(jk), jk=1, maxklevgrads)
+      write (l_unit, 2006) ntimes, '00:00Z24JAN1999', '10mn'
+      write (l_unit, 2007) nvartotal
       do nvar = 1, p_nvar_grads
          if (cupout(nvar)%varn(1) .ne. "xxxx") then
             !
-            write (20, 2008) cupout(nvar)%varn(1) (1:len_trim(cupout(nvar)%varn(1))), klevgrads(nvar) &
+            write (l_unit, 2008) cupout(nvar)%varn(1) (1:len_trim(cupout(nvar)%varn(1))), klevgrads(nvar) &
                , cupout(nvar)%varn(2) (1:len_trim(cupout(nvar)%varn(2)))
          end if
       end do
-      write (20, 2002) 'endvars'
-      close (20)
+      write (l_unit, 2002) 'endvars'
+      close (l_unit)
 
 2001  format('dset ', a)
 2002  format(a)
@@ -8579,13 +8579,14 @@ contains
       integer :: i, k, x_kte, x_i, x_jcol, x_k
       real :: x_time
       real, dimension(its:ite) :: x_stochastic_sig, x_xland
+      integer :: l_unit
       
       character(len=200) :: lixo
 
 
       if (trim(rundata) == "NONE") then
          if (mod(int_time, 3600.) < dtime) then
-            open (15, file="dataLXXX.dat_"//trim(cumulus), status='unknown', position="APPEND")
+            open (newunit = l_unit, file="dataLXXX.dat_"//trim(cumulus), status='unknown', position="APPEND")
             if (part == 1) then
                do i = its, itf
                   if (xlats(i) > p_latsnd - p_deltx .and. xlats(i) < p_latsnd + p_deltx) then
@@ -8595,22 +8596,22 @@ contains
                         print *, "00>", i, jcol, xlats(i), xlons(i), whoami_all, int_time/3600.
                         call flush (6)
 
-                        write (15, *) "====begin====="
-                        write (15, *) "i,jcol,xlats(i),xlons(i),int_time/3600."
-                        write (15, *) i, jcol, xlats(i), xlons(i), int_time/3600.
+                        write (l_unit, *) "====begin====="
+                        write (l_unit, *) "i,jcol,xlats(i),xlons(i),int_time/3600."
+                        write (l_unit, *) i, jcol, xlats(i), xlons(i), int_time/3600.
 
-                        write (15, *) "kte,z1(i),psur(i),tsur(i),xland(i)"
-                        write (15, *) kte, z1(i), psur(i), tsur(i), xland(i)
+                        write (l_unit, *) "kte,z1(i),psur(i),tsur(i),xland(i)"
+                        write (l_unit, *) kte, z1(i), psur(i), tsur(i), xland(i)
 
-                        write (15, *) "h_sfc_flux(i),le_sfc_flux(i),ztexec(i),zqexec(i)"
-                        write (15, *) h_sfc_flux(i), le_sfc_flux(i), ztexec(i), zqexec(i)
+                        write (l_unit, *) "h_sfc_flux(i),le_sfc_flux(i),ztexec(i),zqexec(i)"
+                        write (l_unit, *) h_sfc_flux(i), le_sfc_flux(i), ztexec(i), zqexec(i)
 
-                        write (15, *) "stochastic_sig(i), dx(i),zws(i),kpbl(i)"
-                        write (15, *) stochastic_sig(i), dx(i), zws(i), kpbl(i)
+                        write (l_unit, *) "stochastic_sig(i), dx(i),zws(i),kpbl(i)"
+                        write (l_unit, *) stochastic_sig(i), dx(i), zws(i), kpbl(i)
 
-                        write (15, *) "=>k zo po t tn-t q qo-q us vs qes he hes qeso-qes heo-he heso-hes dhdt omeg"
+                        write (l_unit, *) "=>k zo po t tn-t q qo-q us vs qes he hes qeso-qes heo-he heso-hes dhdt omeg"
                         do k = kts, kte
-                           write (15, 100) k, zo(i, k), po(i, k), t(i, k) &
+                           write (l_unit, 100) k, zo(i, k), po(i, k), t(i, k) &
                                          , tn(i, k) - t(i, k), q(i, k), qo(i, k) - q(i, k) &
                                          , us(i, k), vs(i, k), qes(i, k), he(i, k) &
                                          , hes(i, k), qeso(i, k) - qes(i, k) &
@@ -8626,54 +8627,54 @@ contains
                   if (xlats(i) > p_latsnd - p_deltx .and. xlats(i) < p_latsnd + p_deltx) then
                      if (xlons(i) > p_lonsnd - p_deltx .and. xlons(i) < p_lonsnd + p_deltx) then
 
-                        write (15, *) "====outputs======="
-                        write (15, *) "L=", i, jcol, xlats(i), xlons(i), whoami_all
-                        write (15, *) "A=", aa0(i), aa1(i), xaa0(i), sig(i)
-                        write (15, *) "K=", k22(i), klcl(i), kpbl(i), kbcon(i), ktop(i)
-                        write (15, *) "Z=", zo_cup(i, k22(i)) - z1(i), zo_cup(i, klcl(i)) - z1(i), zo_cup(i, kpbl(i)) - z1(i) &
+                        write (l_unit, *) "====outputs======="
+                        write (l_unit, *) "L=", i, jcol, xlats(i), xlons(i), whoami_all
+                        write (l_unit, *) "A=", aa0(i), aa1(i), xaa0(i), sig(i)
+                        write (l_unit, *) "K=", k22(i), klcl(i), kpbl(i), kbcon(i), ktop(i)
+                        write (l_unit, *) "Z=", zo_cup(i, k22(i)) - z1(i), zo_cup(i, klcl(i)) - z1(i), zo_cup(i, kpbl(i)) - z1(i) &
                            , zo_cup(i, kbcon(i)) - z1(i), zo_cup(i, ktop(i)) - z1(i)
-                        write (15, *) "H=", hkb(i)/real(c_cp), edto(i)
-                        write (15, *) "T=", maxval(outt(i, 1:ktop(i)))*86400., maxval(outq(i, 1:ktop(i)))*86400.*1000., &
+                        write (l_unit, *) "H=", hkb(i)/real(c_cp), edto(i)
+                        write (l_unit, *) "T=", maxval(outt(i, 1:ktop(i)))*86400., maxval(outq(i, 1:ktop(i)))*86400.*1000., &
                            minval(outt(i, 1:ktop(i)))*86400., minval(outq(i, 1:ktop(i)))*86400.*1000.
-                        write (15, *) "P=", xmb(i)*1000., 'g/m2/s', 3600*pre(i), 'mm/h'
+                        write (l_unit, *) "P=", xmb(i)*1000., 'g/m2/s', 3600*pre(i), 'mm/h'
                         if (xmb(i) > 0.0) then
-                           write (15, *) "=> k zo po zuo,zdo,up_massentro,up_massdetro,outt, outq,outqc,outu,outv"
+                           write (l_unit, *) "=> k zo po zuo,zdo,up_massentro,up_massdetro,outt, outq,outqc,outu,outv"
                            do k = kts, kte
-                              write (15, 101) k, zo(i, k), po(i, k), zuo(i, k), zdo(i, k), up_massentro(i, k), up_massdetro(i, k) &
+                              write (l_unit, 101) k, zo(i, k), po(i, k), zuo(i, k), zdo(i, k), up_massentro(i, k), up_massdetro(i, k) &
                                             , outt(i, k)*86400., outq(i, k)*86400.*1000., outqc(i, k)*86400.*1000., outu(i, k) &
                                             *86400., outv(i, k)*86400.
 
                            end do
                         end if
-                        write (15, *) "=====end=========="
+                        write (l_unit, *) "=====end=========="
                      end if
                   end if
                end do
             end if
-            close (15)
+            close (l_unit)
          end if
       else
          if (part == 1) then
-            open (15, file=trim(rundata), status='old')
+            open (newunit = l_unit, file=trim(rundata), status='old')
             i = 1
-            read (15, *) lixo
-            read (15, *) lixo
-            read (15, *) x_i, x_jcol, xlats(i), xlons(i), x_time
-            read (15, *) lixo
-            read (15, *) x_kte, z1(i), psur(i), tsur(i), x_xland(i)
+            read (l_unit, *) lixo
+            read (l_unit, *) lixo
+            read (l_unit, *) x_i, x_jcol, xlats(i), xlons(i), x_time
+            read (l_unit, *) lixo
+            read (l_unit, *) x_kte, z1(i), psur(i), tsur(i), x_xland(i)
             !-- check
             if (x_kte .ne. kte) l_ierr = StopExecution(message = " X_kte .ne. kte ", source = p_source_name &
                                                    , proced = p_procedureName)
-            read (15, *) lixo
-            read (15, *) h_sfc_flux(i), le_sfc_flux(i), ztexec(i), zqexec(i)
-            read (15, *) lixo
-            read (15, *) x_stochastic_sig(i), dx(i), zws(i), kpbl(i)
-            read (15, *) lixo
+            read (l_unit, *) lixo
+            read (l_unit, *) h_sfc_flux(i), le_sfc_flux(i), ztexec(i), zqexec(i)
+            read (l_unit, *) lixo
+            read (l_unit, *) x_stochastic_sig(i), dx(i), zws(i), kpbl(i)
+            read (l_unit, *) lixo
             do k = kts, kte
-               read (15, 100) x_k, zo(i, k), po(i, k), t(i, k), tn(i, k), q(i, k), qo(i, k), us(i, k), vs(i, k) , qes(i, k) &
+               read (l_unit, 100) x_k, zo(i, k), po(i, k), t(i, k), tn(i, k), q(i, k), qo(i, k), us(i, k), vs(i, k) , qes(i, k) &
                             , he(i, k), hes(i, k), qeso(i, k), heo(i, k), heso(i, k), dhdt(i, k), omeg(i, k, 1:ens4)
             end do
-            close (15)
+            close (l_unit)
             !---settings
             tn(i, :) = t(i, :) + tn(i, :) ! input is delta(T)
             qo(i, :) = q(i, :) + qo(i, :) ! input is delta(Q)
