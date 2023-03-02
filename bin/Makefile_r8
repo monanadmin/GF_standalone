@@ -10,7 +10,8 @@ F_COMP=gfortran
 
 #F_OPTS= -O0 -g -pg -fbacktrace -ffree-line-length-200 -fdefault-real-8 
 #CR:
-F_OPTS= -O0 -fbacktrace -ffree-line-length-none -fdefault-real-8 
+#F_OPTS= -O0        -fbacktrace -ffree-line-length-none -fdefault-real-8 
+F_OPTS= -O0 -g -pg -fbacktrace -ffree-line-length-none -fdefault-real-8 
 
 
 #F_OPTS=  -O0 -fpe2 -ftrapuv -check bounds -traceback -init=snan,arrays  -check uninit  # -ftz  -check uninit -check all -g #-r8 
