@@ -5337,7 +5337,15 @@ contains
       character(len=*), parameter :: p_procedureName = 'wrtBinCtl' ! Subroutine Name
 
       real, parameter :: p_undef = -9.99e33
-   
+      character(len=*), parameter :: fmt21 = "('dset ', a)"
+      character(len=*), parameter :: fmt22 = "(a)"
+      character(len=*), parameter :: fmt23 = "('xdef ', i4, ' linear ', 2f15.3)"
+      character(len=*), parameter :: fmt24 = "('ydef ', i4, ' linear ', 2f15.3)"
+      character(len=*), parameter :: fmt25 = "('zdef ', i4, ' levels ', 60f8.3)"
+      character(len=*), parameter :: fmt26 = "('tdef ', i4, ' linear ', 2a15)"
+      character(len=*), parameter :: fmt27 = "('vars ', i4)"
+      character(len=*), parameter :: fmt28 = "(a10, i4, ' 99 ', a40)!'[',a8,']')"
+
       !Variables (input, output, inout)
       integer, intent(in):: n, mzp
 
@@ -5393,35 +5401,24 @@ contains
       where (klevgrads == 1) klevgrads = 0
       !- ctl file
       open (newunit = l_unit, file=trim(runname)//'.ctl', status='unknown')
-      write (l_unit, 2001) '^'//trim(runname)//'.gra'
-      write (l_unit, 2002) 'undef -9.99e33'
-      write (l_unit, 2002) 'options sequential byteswapped' ! zrev'
-      write (l_unit, 2002) 'title '//trim(runlabel)
-      write (l_unit, 2003) 1, 0., 1. ! units m/km
-      write (l_unit, 2004) n, 1., 1.
-      write (l_unit, 2005) maxklevgrads, (p2d(jk), jk=1, maxklevgrads)
-      write (l_unit, 2006) ntimes, '00:00Z24JAN1999', '10mn'
-      write (l_unit, 2007) nvartotal
+      write (l_unit, fmt = fmt21) '^'//trim(runname)//'.gra'
+      write (l_unit, fmt = fmt22) 'undef -9.99e33'
+      write (l_unit, fmt = fmt22) 'options sequential byteswapped' ! zrev'
+      write (l_unit, fmt = fmt22) 'title '//trim(runlabel)
+      write (l_unit, fmt = fmt23) 1, 0., 1. ! units m/km
+      write (l_unit, fmt = fmt24) n, 1., 1.
+      write (l_unit, fmt = fmt25) maxklevgrads, (p2d(jk), jk=1, maxklevgrads)
+      write (l_unit, fmt = fmt26) ntimes, '00:00Z24JAN1999', '10mn'
+      write (l_unit, fmt = fmt27) nvartotal
       do nvar = 1, p_nvar_grads
          if (cupout(nvar)%varn(1) .ne. "xxxx") then
             !
-            write (l_unit, 2008) cupout(nvar)%varn(1) (1:len_trim(cupout(nvar)%varn(1))), klevgrads(nvar) &
+            write (l_unit, fmt = fmt28) cupout(nvar)%varn(1) (1:len_trim(cupout(nvar)%varn(1))), klevgrads(nvar) &
                , cupout(nvar)%varn(2) (1:len_trim(cupout(nvar)%varn(2)))
          end if
       end do
-      write (l_unit, 2002) 'endvars'
+      write (l_unit, fmt = fmt22) 'endvars'
       close (l_unit)
-
-2001  format('dset ', a)
-2002  format(a)
-2003  format('xdef ', i4, ' linear ', 2f15.3)
-2004  format('ydef ', i4, ' linear ', 2f15.3)
-2005  format('zdef ', i4, ' levels ', 60f8.3)
-2006  format('tdef ', i4, ' linear ', 2a15)
-2007  format('vars ', i4)
-2008  format(a10, i4, ' 99 ', a40)!'[',a8,']')
-!2055  format(60f7.0)
-!133   format(1x, F7.0)
 
    end subroutine wrtBinCtl
 
