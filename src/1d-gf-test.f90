@@ -195,7 +195,7 @@ init_stat = initModConvParGF()
 !
 !- reads namelists
 !- namelist 1 
-   open(15,file='gf.inp',status='old',form='formatted')	  
+   open(15,file='../datain/gf.inp',status='old',form='formatted')	  
     read(15,nml=run)
    close(15)
 
@@ -288,7 +288,7 @@ init_stat = initModConvParGF()
 !- reads gate soundings                
    IF(trim(RUNDATA) == "GATE.dat") THEN
    print*,"reading GATE soundings"
-   open(7,file="GATE.dat",form="formatted",STATUS="OLD")
+   open(7,file="../datain/GATE.dat",form="formatted",STATUS="OLD")
      read(7,*)
      do jl=1,p_klon
      	read(7,*)
