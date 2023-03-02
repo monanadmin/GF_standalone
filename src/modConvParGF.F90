@@ -62,7 +62,8 @@ module modConvParGF
                         ,  p_xmbmaxshal, p_mintracer, c_smaller_qv, c_t01, c_t100, c_temp0i &
                         ,  c_rgas_atm, c_hplus, c_r2es, c_r3les, c_r4ies, c_r4les, c_retv &
                         ,  c_rticecu, c_rtwat_rticecu_r, c_r3ies, c_r5alscp, c_r5alvcp, c_ralsdcp &
-                        ,  c_ralvdcp, c_rtice, c_rtwat_rtice_r, i8, r8
+                        ,  c_ralvdcp, c_rtice, c_rtwat_rtice_r, i8, r8, l_ierr
+   use modUtils, only: StopExecution
 
    implicit none
 
@@ -404,6 +405,7 @@ module modConvParGF
    type(t_hcts_vars), allocatable :: hcts(:)
    !!
    logical :: modConvParGF_initialized
+   character(len=*), parameter :: p_source_name = "modConvParGF.F90"
    !=================================================
    ! End of module internal variables  -
    !=================================================
@@ -434,7 +436,7 @@ contains
       !!
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'initModConvParGF' ! Function Name
+      character(len=*), parameter :: p_procedureName = 'initModConvParGF' ! Function Name
    
       !Local variables:
       integer :: is_init
@@ -683,7 +685,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'cupGf' ! Subroutine Name
+      character(len=*), parameter :: p_procedureName = 'cupGf' ! Subroutine Name
       logical, parameter:: p_use_inv_layers = .true.
 
       integer, parameter :: p_iloop = 1
@@ -2118,7 +2120,7 @@ contains
       !!
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'genRandom' ! Subroutine Name
+      character(len=*), parameter :: p_procedureName = 'genRandom' ! Subroutine Name
    
       !Variables (input, output, inout)
       integer, intent(in)  :: its
@@ -2146,7 +2148,8 @@ contains
          !print*,"ran=",i,random(i)
       end do
 
-      if (maxval(abs(random)) > urn) stop "random > use_random_num"
+      if (maxval(abs(random)) > urn) l_ierr = StopExecution(message = "random > use_random_num", source = p_source_name &
+                                                   , proced = p_procedureName)
    
    end function genRandom  
 
@@ -2176,7 +2179,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'cupDdEdt' ! Subroutine Name
+      character(len=*), parameter :: p_procedureName = 'cupDdEdt' ! Subroutine Name
 
       real, parameter :: p_alpha3 = 1.9, p_beta3 = -1.13
    
@@ -2307,7 +2310,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'cupDdMoisture' ! Subroutine Name
+      character(len=*), parameter :: p_procedureName = 'cupDdMoisture' ! Subroutine Name
    
       !Variables (input, output, inout)
       integer, intent(in) :: itf, its, ite, kts
@@ -2494,7 +2497,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'cupEnv' ! Subroutine Name
+      character(len=*), parameter :: p_procedureName = 'cupEnv' ! Subroutine Name
    
       !Variables (input, output, inout)
       integer, intent(in) :: itf, ktf, its, ite, kts, kte, itest
@@ -2638,7 +2641,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'cupEnvCLev' ! Subroutine Name
+      character(len=*), parameter :: p_procedureName = 'cupEnvCLev' ! Subroutine Name
    
       !Variables (input, output, inout)
       integer, intent(in) :: itf, ktf, its, kts
@@ -2849,7 +2852,8 @@ contains
             end do
          end do
       else
-         stop "cup_env_clev"
+         l_ierr = StopExecution(message = "unexpectd CLEV_GRID", source = p_source_name &
+                                                   , proced = p_procedureName)
       end if
 
 !       !IF( MAPL_AM_I_ROOT() .and. irun == 0) then
@@ -2905,7 +2909,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'cupForcingEns3dMid' ! Subroutine Name
+      character(len=*), parameter :: p_procedureName = 'cupForcingEns3dMid' ! Subroutine Name
    
       !Variables (input, output, inout)
       integer, intent(in) :: itf, its, kts, maxens
@@ -3005,7 +3009,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'cupMinimi' ! Subroutine Name
+      character(len=*), parameter :: p_procedureName = 'cupMinimi' ! Subroutine Name
    
       !Variables (input, output, inout)
       integer, intent(in) :: itf, its, ite
@@ -3070,7 +3074,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'cupUpAa0' ! Subroutine Name
+      character(len=*), parameter :: p_procedureName = 'cupUpAa0' ! Subroutine Name
    
       !Variables (input, output, inout)
       integer, intent(in) :: itf, its, ite, kts  
@@ -3110,7 +3114,8 @@ contains
             kbeg(:) = KTS  ! k22(:) !klcl (:) ! kts
             kend(:) = kbcon(:) ! kbcon(:)-1
          else
-            stop "unknown range in cup_up_aa0"
+            l_ierr = StopExecution(message = "unknown range in cup_up_aa0", source = p_source_name &
+                                                   , proced = p_procedureName)
          end if
       else
          kbeg(:) = kbcon(:)
@@ -3159,7 +3164,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'cupUpMoisture' ! Subroutine Name
+      character(len=*), parameter :: p_procedureName = 'cupUpMoisture' ! Subroutine Name
 
       real, parameter :: p_bdispm = 0.366       
       !! berry--size dispersion (maritime)
@@ -3525,7 +3530,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'cupUpMoistureLight' ! Subroutine Name
+      character(len=*), parameter :: p_procedureName = 'cupUpMoistureLight' ! Subroutine Name
    
       !Variables (input, output, inout)
       integer, intent(in) ::  itf, ktf, its, kts, kte
@@ -3691,7 +3696,7 @@ contains
       !!
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'SatVap' ! Function Name
+      character(len=*), parameter :: p_procedureName = 'SatVap' ! Function Name
    
       !Variables (input):
       real, intent(in) :: temp2
@@ -3749,7 +3754,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'cupUpAa1Bl' ! Subroutine Name
+      character(len=*), parameter :: p_procedureName = 'cupUpAa1Bl' ! Subroutine Name
    
       !Variables (input, output, inout)
       integer, intent(in) :: itf, its, kts, version
@@ -3807,7 +3812,8 @@ contains
             end do
          end do
       else
-         stop "unknown version option in routine: cup_up_aa1bl"
+         l_ierr = StopExecution(message = "unknown version option in routine: cup_up_aa1bl", source = p_source_name &
+                                                   , proced = p_procedureName)
       end if
 
       return
@@ -3855,7 +3861,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'getLateralMassFlux' ! Subroutine Name
+      character(len=*), parameter :: p_procedureName = 'getLateralMassFlux' ! Subroutine Name
 
       integer, parameter :: p_mass_u_option = 1
       integer, parameter :: p_smooth_depth = 2 
@@ -4089,7 +4095,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'getLateralMassFluxDown' ! Subroutine Name
+      character(len=*), parameter :: p_procedureName = 'getLateralMassFluxDown' ! Subroutine Name
    
       !Variables (input, output, inout)
       integer, intent(in) :: itf, its, kts
@@ -4218,7 +4224,7 @@ contains
       !! 
      implicit none
      !Parameters:
-     character(len=*), parameter :: procedureName = 'getZuZdPdf'
+     character(len=*), parameter :: p_procedureName = 'getZuZdPdf'
 
       real, parameter :: p_px = 45./120. 
       !! px sets the pressure level of max zu. its range is from 1 to 120.
@@ -4293,7 +4299,8 @@ contains
          lev_start = min(.9, .1 + csum*.013)
          kb_adj = max(kb, 2)
          kb_adj = min(kb_adj, kt - 1)
-         if (kb_adj == kt) stop "kb_adj==kt"
+         if (kb_adj == kt) l_ierr = StopExecution(message = "kb_adj==kt", source = p_source_name &
+                                                   , proced = p_procedureName)
 
          tunning = 0.30
          alpha2 = (tunning*(p_beta_deep - 2.) + 1.)/(1.-tunning)
@@ -4688,7 +4695,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'cupUpCape' ! Subroutine Name
+      character(len=*), parameter :: p_procedureName = 'cupUpCape' ! Subroutine Name
    
       !Variables (input, output, inout)
       integer, intent(in) :: itf, its
@@ -4759,7 +4766,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'getCloudBc' ! Subroutine Name
+      character(len=*), parameter :: p_procedureName = 'getCloudBc' ! Subroutine Name
 
       real, parameter :: p_frac_ave_layer_ocean = 0.3
    
@@ -4866,7 +4873,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'getLcl' ! Subroutine Name
+      character(len=*), parameter :: p_procedureName = 'getLcl' ! Subroutine Name
    
       !Variables (input, output, inout)
       real, intent(in) :: t0
@@ -4954,7 +4961,7 @@ contains
       !!
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'Td' ! Function Name
+      character(len=*), parameter :: p_procedureName = 'Td' ! Function Name
    
       !Variables (input):
       real, intent(in) :: ppp
@@ -4996,7 +5003,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'getInversionLayers' ! Subroutine Name
+      character(len=*), parameter :: p_procedureName = 'getInversionLayers' ! Subroutine Name
 
       integer, parameter :: p_extralayer = 0 
       !! makes plume top higher
@@ -5175,7 +5182,7 @@ contains
    !       !!     
    !       implicit none
    !       !Parameters:
-   !       character(len=*), parameter :: procedureName = 'Deriv3' ! Function Name
+   !       character(len=*), parameter :: p_procedureName = 'Deriv3' ! Function Name
 
    !       integer, parameter :: p_n = 3
       
@@ -5279,7 +5286,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'setGradsVar' ! Subroutine Name
+      character(len=*), parameter :: p_procedureName = 'setGradsVar' ! Subroutine Name
    
       !Variables (input, output, inout)
       integer, intent(in)    :: i_in, k_in
@@ -5297,7 +5304,8 @@ contains
       cupout(nvar)%varn(2) = name2
       cupout(nvar)%varn(3) = name3
       nvar = nvar + 1
-      if (nvar > p_nvar_grads) stop 'nvar>nvar_grads'
+      if (nvar > p_nvar_grads) l_ierr = StopExecution(message = 'nvar>nvar_grads', source = p_source_name &
+                                                   , proced = p_procedureName)
 
    end subroutine setGradsVar
 
@@ -5326,7 +5334,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'wrtBinCtl' ! Subroutine Name
+      character(len=*), parameter :: p_procedureName = 'wrtBinCtl' ! Subroutine Name
 
       real, parameter :: p_undef = -9.99e33
    
@@ -5445,7 +5453,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'cupCloudLimits' ! Subroutine Name
+      character(len=*), parameter :: p_procedureName = 'cupCloudLimits' ! Subroutine Name
 
       real, parameter :: p_frh_crit_O = 0.7
       real, parameter :: p_frh_crit_L = 0.7  !--- test 0.5
@@ -5669,7 +5677,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'getBuoyancy' ! Subroutine Name
+      character(len=*), parameter :: p_procedureName = 'getBuoyancy' ! Subroutine Name
    
       !Variables (input, output, inout)
       integer, intent(in) :: itf, its, kts
@@ -5725,7 +5733,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'cupUpVVel'
+      character(len=*), parameter :: p_procedureName = 'cupUpVVel'
 
       integer, parameter :: p_n_smooth = 1
       real, parameter :: p_ctea = 1./3.
@@ -5892,7 +5900,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'cupOutputEns3d' ! Subroutine Name
+      character(len=*), parameter :: p_procedureName = 'cupOutputEns3d' ! Subroutine Name
    
       !Variables (input, output, inout)
       integer, intent(in) :: ichoice, itf, ktf, its, ite, kts, maxens3 
@@ -6008,7 +6016,8 @@ contains
                end if
             end do
          else
-            stop 'For mid ichoice must be 0,1,2,3'
+            l_ierr = StopExecution(message = 'For mid ichoice must be 0,1,2,3', source = p_source_name &
+                                                   , proced = p_procedureName)
          end if
 
          !- shallow  convection
@@ -6190,7 +6199,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'cupForcingEns3d' ! Subroutine Name
+      character(len=*), parameter :: p_procedureName = 'cupForcingEns3d' ! Subroutine Name
    
       !Variables (input, output, inout)
       integer, intent(in) :: itf, its, ite, kts, maxens3
@@ -6486,7 +6495,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'getPartitionLiqIce' ! Subroutine Name
+      character(len=*), parameter :: p_procedureName = 'getPartitionLiqIce' ! Subroutine Name
 
       real, parameter ::  p_t1 = 276.16, p_z_meltlayer1 = 4000.
       real, parameter ::  p_z_meltlayer2 = 6000., p_delt = 3.   
@@ -6615,7 +6624,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'getMeltingProfile' ! Subroutine Name
+      character(len=*), parameter :: p_procedureName = 'getMeltingProfile' ! Subroutine Name
    
       !Variables (input, output, inout)
       integer, intent(in) :: itf, ktf, its, ite, kts, kte
@@ -6719,7 +6728,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'keToHeating' ! Subroutine Name
+      character(len=*), parameter :: p_procedureName = 'keToHeating' ! Subroutine Name
    
       !Variables (input, output, inout)
       integer, intent(in) :: itf, its, kts
@@ -6790,7 +6799,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'getInCloudScChemUp' ! Subroutine Name
+      character(len=*), parameter :: p_procedureName = 'getInCloudScChemUp' ! Subroutine Name
    
       real, parameter :: p_scav_eff = 0.6  
       !! for smoke : Chuang et al. (1992) J. Atmos. Sci.
@@ -7006,7 +7015,7 @@ contains
       !!  
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'henry' ! Function Name
+      character(len=*), parameter :: p_procedureName = 'henry' ! Function Name
    
       !Variables (input):
       integer, intent(in) :: ispc
@@ -7065,7 +7074,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'getInCloudScChemDd' ! Subroutine Name
+      character(len=*), parameter :: p_procedureName = 'getInCloudScChemDd' ! Subroutine Name
    
       !Variables (input, output, inout)
       integer, intent(in)  :: itf, its, kts, mtp
@@ -7207,7 +7216,7 @@ contains
    
       implicit none
       ! Parameters:
-      character(len=*), parameter :: p_procedure_ame = 'Fct1D3' 
+      character(len=*), parameter :: p_procedure_name = 'Fct1D3' 
 
       logical, parameter :: p_hi_order = .false.
       real, parameter :: p_epsil = 1.e-22
@@ -7377,7 +7386,8 @@ contains
                'final', tracr(k) - (trflx_out(k + 1) - trflx_out(k))*dtovdz(k)
 99          format('(trc1d)   k =', i4/(3(a13, '=', es13.6)))
          end do
-         if (error) stop '(fct1d error)'
+         if (error) l_ierr = StopExecution(message = '(fct1d error)', source = p_source_name &
+                                                   , proced = p_procedure_Name)
       end if
 
    
@@ -7409,7 +7419,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'tridiag' ! Subroutine Name
+      character(len=*), parameter :: p_procedureName = 'tridiag' ! Subroutine Name
    
       !Variables (input, output, inout)
       integer, intent(in) :: m_size
@@ -7464,7 +7474,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'cupEnvClevChem' ! Subroutine Name
+      character(len=*), parameter :: p_procedureName = 'cupEnvClevChem' ! Subroutine Name
 
       integer, parameter ::  p_clev_option = 2 
       !! use option 2
@@ -7530,7 +7540,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'rainEvapBelowCloudBase' ! Subroutine Name
+      character(len=*), parameter :: p_procedureName = 'rainEvapBelowCloudBase' ! Subroutine Name
 
       real, parameter :: p_alpha1 = 5.44e-4 
       !! 1/sec
@@ -7691,7 +7701,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'getPrecipFluxes' ! Subroutine Name
+      character(len=*), parameter :: p_procedureName = 'getPrecipFluxes' ! Subroutine Name
    
       !Variables (input, output, inout)
       integer, intent(in) :: itf, its, kts
@@ -7769,7 +7779,7 @@ contains
       !!
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'SaturSpecHum' ! Function Name
+      character(len=*), parameter :: p_procedureName = 'SaturSpecHum' ! Function Name
    
       !Variables (input):
       real, intent(in) :: pt
@@ -7823,7 +7833,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'getJmin' ! Subroutine Name
+      character(len=*), parameter :: p_procedureName = 'getJmin' ! Subroutine Name
    
       !Variables (input, output, inout)
       integer, intent(in) :: itf, its, ite, kts, kte
@@ -7936,7 +7946,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'precipCwvFactor' ! Subroutine Name
+      character(len=*), parameter :: p_procedureName = 'precipCwvFactor' ! Subroutine Name
 
       real, parameter :: p_fpkup = 0.8  
       !! 90% of precip occurs above 80% of critical w
@@ -8021,7 +8031,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'getWetbulb' ! Subroutine Name
+      character(len=*), parameter :: p_procedureName = 'getWetbulb' ! Subroutine Name
    
       !Variables (input, output, inout)
       real, intent(in) :: qo_cup
@@ -8143,7 +8153,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'cupForcingEns3dShal' ! Subroutine Name
+      character(len=*), parameter :: p_procedureName = 'cupForcingEns3dShal' ! Subroutine Name
 
       real, parameter :: p_k1 = 1.2
       !! tuning numbers for the TKE-based closure for shallow convection
@@ -8291,7 +8301,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'cupUpLightning' ! Subroutine Name
+      character(len=*), parameter :: p_procedureName = 'cupUpLightning' ! Subroutine Name
 
       real, parameter :: p_v_graup = 3.0  
       !! m/s
@@ -8398,7 +8408,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'getInterp' ! Subroutine Name
+      character(len=*), parameter :: p_procedureName = 'getInterp' ! Subroutine Name
    
       !Variables (input, output, inout)
       real, intent(in) :: po_cup 
@@ -8494,7 +8504,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'sound' ! Subroutine Name
+      character(len=*), parameter :: p_procedureName = 'sound' ! Subroutine Name
       real, parameter :: p_latsnd = -10., p_lonsnd = 301., p_deltx = 0.2
       !      real, parameter :: LATSND= -8.72, LONSND= 186.6, DELTX=0.2
    
@@ -8652,7 +8662,8 @@ contains
             read (15, *) lixo
             read (15, *) x_kte, z1(i), psur(i), tsur(i), x_xland(i)
             !-- check
-            if (x_kte .ne. kte) stop " X_kte .ne. kte "
+            if (x_kte .ne. kte) l_ierr = StopExecution(message = " X_kte .ne. kte ", source = p_source_name &
+                                                   , proced = p_procedureName)
             read (15, *) lixo
             read (15, *) h_sfc_flux(i), le_sfc_flux(i), ztexec(i), zqexec(i)
             read (15, *) lixo
@@ -8731,7 +8742,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'cloudDissipation' ! Subroutine Name
+      character(len=*), parameter :: p_procedureName = 'cloudDissipation' ! Subroutine Name
 
       real, parameter :: p_cloud_lifetime = 1800.
       integer, parameter :: p_versionx = 2
@@ -8847,7 +8858,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'gfConparInit' ! Subroutine Name
+      character(len=*), parameter :: p_procedureName = 'gfConparInit' ! Subroutine Name
    
       !Variables (input, output, inout)
       integer, intent(in) :: mynum
@@ -8882,7 +8893,8 @@ contains
       inquire (file=trim(fn_nml), exist=exists)
       if (.not. exists) then
          write (6, *) 'GF_convpar_nml :: namelist file: ', trim(fn_nml), ' does not exist'
-         stop 31415
+         l_ierr = StopExecution(message = 'Namelist not found', source = p_source_name &
+                                                   , proced = p_procedureName)
       else
          open (nlunit, file=fn_nml, status='old', form='formatted')
          read (nlunit, nml=GF_NML)
@@ -9010,7 +9022,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'getLiqIceNumberConc' ! Subroutine Name
+      character(len=*), parameter :: p_procedureName = 'getLiqIceNumberConc' ! Subroutine Name
    
       !Variables (input, output, inout)
       integer, intent(in) :: itf, its, ite, kts, kte
@@ -9096,7 +9108,7 @@ contains
       !!  
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'MakeIceNumber' ! Function Name
+      character(len=*), parameter :: p_procedureName = 'MakeIceNumber' ! Function Name
 
       real, parameter:: c_ice_density = 890.0
    
@@ -9201,7 +9213,7 @@ contains
       !!
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'MakeDropletNumber' ! Function Name
+      character(len=*), parameter :: p_procedureName = 'MakeDropletNumber' ! Function Name
    
       real, parameter:: c_am_r = real(c_pi)*1000./6.
       real, dimension(15), parameter:: c_g_ratio = (/24, 60, 120, 210, 336, 504, 720, 990, 1320, 1716, 2184, 2730, 3360, 4080 &
@@ -9259,7 +9271,7 @@ contains
       !!
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'IntFuncGamma' ! Function Name
+      character(len=*), parameter :: p_procedureName = 'IntFuncGamma' ! Function Name
    
       !Variables (input):
       real, intent(in) :: x_in
@@ -9298,7 +9310,7 @@ contains
       !!
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'GammaBrams' ! Function Name
+      character(len=*), parameter :: p_procedureName = 'GammaBrams' ! Function Name
 
       real, parameter :: p_small = 1.0e-4
       integer, parameter :: p_points = 100000
@@ -9381,7 +9393,7 @@ contains
       !!  
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'Ran1' ! Function Name
+      character(len=*), parameter :: p_procedureName = 'Ran1' ! Function Name
 
       integer(kind = i8), parameter:: p_ntab = 32
       integer(kind = i8), parameter:: p_iq = 127773
@@ -9455,7 +9467,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'getDelmix' ! Subroutine Name
+      character(len=*), parameter :: p_procedureName = 'getDelmix' ! Subroutine Name
    
       !Variables (input, output, inout)
       integer, intent(in) :: kts, subcl_level
@@ -9509,7 +9521,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'getQadv' ! Subroutine Name
+      character(len=*), parameter :: p_procedureName = 'getQadv' ! Subroutine Name
 
       real, parameter :: p_ptop = 60.
    
@@ -9617,7 +9629,7 @@ contains
       !! 
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'rhControls' ! Subroutine Name
+      character(len=*), parameter :: p_procedureName = 'rhControls' ! Subroutine Name
 
       real, parameter :: p_ref_local_time = 8., p_ftun3 = 0.25
       logical, parameter :: p_free_troposphere = .true.
@@ -9730,7 +9742,7 @@ contains
       !!
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'ColdPoolStart' ! Function Name
+      character(len=*), parameter :: p_procedureName = 'ColdPoolStart' ! Function Name
 
       real, parameter   :: p_width = 100. 
       !! orig 100
@@ -9775,7 +9787,7 @@ contains
       !!
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'FractLiqF' ! Function Name
+      character(len=*), parameter :: p_procedureName = 'FractLiqF' ! Function Name
 
       real, parameter :: p_max_temp = 46. 
       !! Celsius
@@ -12511,7 +12523,7 @@ contains
       !!
       implicit none
       !Parameters:
-      character(len=*), parameter :: procedureName = 'convParGFDriver' ! Subroutine Name
+      character(len=*), parameter :: p_procedureName = 'convParGFDriver' ! Subroutine Name
    
       !Variables (input, output, inout)
             !------------------------------------------------------------------------
@@ -12819,7 +12831,8 @@ contains
          !- this section is intended for model developments only and must
          !- not be used for normal runs.
          if (p_use_gate) then
-            if (CLEV_GRID == 0) stop "use_gate requires CLEV_GRID 1 or 2"
+            if (CLEV_GRID == 0) l_ierr = StopExecution(message = "use_gate requires CLEV_GRID 1 or 2", source = p_source_name &
+                                                   , proced = p_procedureName)
             if (USE_TRACER_TRANSP == 1) then
                ispc_co = 1
                if (.not. allocated(hcts)) allocate (hcts(mtp))

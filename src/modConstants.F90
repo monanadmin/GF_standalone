@@ -267,6 +267,7 @@ module modConstants
 !#endif
    !# Number of file to log
    integer :: iErrNumber
+   logical :: l_ierr
    !# integer to use with dumps
 
    real(kind=r8), parameter :: c_adjust=0.01

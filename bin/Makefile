@@ -19,6 +19,7 @@ ARC=$(BASE).a
 
 # Define source.
 F_SRC=  $(DSRC2)/modConstants.F90 \
+	$(DSRC2)/modUtils.F90 \
 	$(DSRC2)/modHenrysLawCts.F90 \
 	$(DSRC2)/modGate.F90 \
 	$(DSRC2)/modConvParGF.F90 \
@@ -49,7 +50,9 @@ modGate.o : $(DSRC2)/modGate.F90 modConstants.o
 
 modHenrysLawCts.o : $(DSRC2)/modHenrysLawCts.F90 modConstants.o
 
-modConvParGF.o : $(DSRC2)/modConvParGF.F90 modConstants.o modGate.o modHenrysLawCts.o
+modUtils.o : $(DSRC2)/modUtils.F90
+
+modConvParGF.o : $(DSRC2)/modConvParGF.F90 modConstants.o modGate.o modHenrysLawCts.o modUtils.o
 
 1d-gf-test.o : $(DSRC2)/1d-gf-test.f90 modConstants.o modConvParGF.o
 
