@@ -1,4 +1,5 @@
 #!/bin/sh
+### oi
 cd bin
 make clean
 #/bin/cp Makefile_r4 Makefile
