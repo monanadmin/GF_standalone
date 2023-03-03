@@ -8860,16 +8860,14 @@ contains
          , RH_DICYCLE, CUM_T_STAR, CONVECTION_TRACER, TAU_OCEA_CP, TAU_LAND_CP &
          , USE_MEMORY, ADD_COLDPOOL_PROP, MX_BUOY1, MX_BUOY2, MAX_TQ_TEND, CUM_ZUFORM &
          , ADD_COLDPOOL_CLOS, ADD_COLDPOOL_DIFF
-
-      nlunit = 4
-
+         
       inquire (file=trim(fn_nml), exist=exists)
       if (.not. exists) then
          write (6, *) 'GF_convpar_nml :: namelist file: ', trim(fn_nml), ' does not exist'
          l_ierr = StopExecution(message = 'Namelist not found', source = p_source_name &
                                                    , proced = p_procedure_name)
       else
-         open (nlunit, file=fn_nml, status='old', form='formatted')
+         open (newunit=nlunit, file=fn_nml, status='old', form='formatted')
          read (nlunit, nml=GF_NML)
          close (nlunit)
       end if
