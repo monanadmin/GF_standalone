@@ -1,13 +1,20 @@
 #!/bin/csh
 
+DIRHOME=/mnt/beegfs/carlos.souza/GF_standalone_monan-178-c
+SCRIPTS=${DIRHOME}/scripts
+DATAOUT=${DIRHOME}/dataout
+DATAIN=${DIRHOME}/datain
+SRC=${DIRHOME}/src
+BIN=${DIRHOME}/bin
+
 #---------------------------create the executable
-rm -f gf.x
-mk_${1}
-
-rm -f ref_${1}.gra
-
+#rm -f gf.x
+#mk_${1}
+#
+#rm -f ref_${1}.gra
+#
 #---------------------------create gf.inp namelist
-cat << Eof1 > gf.inp
+cat << Eof1 > ${DATAIN}/gf.inp
 
  &run
   runname   = "ref_${1}",  
@@ -25,7 +32,7 @@ cat << Eof1 > gf.inp
 Eof1
 
 #---------------------------create GF namelist
-cat << Eof0 > GF_ConvPar_nml
+cat << Eof0 > ${DATAIN}/GF_ConvPar_nml
 &GF_NML  
 
   icumulus_gf      = 1,1,1, != trimodal plume (deep ,shallow ,congestus)
