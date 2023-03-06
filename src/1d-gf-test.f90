@@ -414,7 +414,7 @@ init_stat = initModConvParGF()
 
 !- big loop on the gate soundings
 
-   icrf=100
+   icrf=1
    do icr=1, icrf     !CR: loop para dar volume de execucao no codigo
       !print*, 'CR: ', procedureName, ' loop-bombando:', icr
       
