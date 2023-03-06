@@ -180,6 +180,10 @@ program GF_1d_driver
    integer :: nrec,nvx,nvar,nvartotal,klevgrads(0:300),int_byte_size,n1,n2,n3
    real    :: real_byte_size
    logical :: init_stat
+   
+   
+!C: Carlos Renato testes: 
+   integer :: icr, icrf
 
 !Informa que não houve inicialização do GF5
 modConvParGF_initialized = .false.
@@ -409,6 +413,10 @@ init_stat = initModConvParGF()
 
 
 !- big loop on the gate soundings
+
+   icrf=100
+   do icr=1, icrf     !CR: loop para dar volume de execucao no codigo
+      !print*, 'CR: ', procedureName, ' loop-bombando:', icr
       
    do jl=1,klon_LOCAL !klon=number of soundings
   !do jl=1,1 !klon=number of soundings
@@ -546,6 +554,8 @@ init_stat = initModConvParGF()
               )
 				     
    enddo ! loop over gate soundings				     
+   enddo    !CR: loop bomba
+
    !  
    !
    !-- output
