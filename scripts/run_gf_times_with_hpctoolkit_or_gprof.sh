@@ -26,6 +26,7 @@
 # History
 # =======
 # 2023/02/08 - Initial commit - deniseiras
+# 2023/02/16 - Inseridas opções para trabalhar com gprof e com Hpctoolkit no slurm
 #
 #
 # Licence
