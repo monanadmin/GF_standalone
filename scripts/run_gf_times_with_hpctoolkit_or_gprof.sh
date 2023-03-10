@@ -49,14 +49,14 @@
 #
 
 # parameters
-times_to_execute=2
+times_to_execute=1
 
 source env_hpctoolkit.sh
 
 # code
-ln -fs ../gf.inp
-ln -fs ../GF_ConvPar_nml
-ln -fs ../GATE.dat
+ln -fs ../datain/gf.inp
+ln -fs ../datain/GF_ConvPar_nml
+ln -fs ../datain/GATE.dat
 
 hpct_measure="hpctoolkit-gf.x-measurements"
 hpct_struct="gf.x.hpcstruct"
@@ -66,6 +66,7 @@ rm -rf executions
 
 for counter in $(seq 1 $times_to_execute); do 
   dir_exec="executions/exec_${counter}"
+  rm -rf ${dir_exec}
   mkdir -p ${dir_exec}
 
   echo -e "\n\n\nExecution of profiler on gf.x # $counter"
@@ -91,7 +92,7 @@ for counter in $(seq 1 $times_to_execute); do
 done
 
 
-echo -e "\n\n\nFinished!!! \nCheck generated databases in executions folder"
-echo -e "\n\nHPCToolkit: hpcviewer ${dir_exec}/hpctoolkit-gf.x-database"
-echo -e "\n\nGprof:      more ${dir_exec}/gprof.out"
-	echo -e "\n\n"
+echo -e "\n\n\nFinished!!! \nCheck results in executions folder, which could be databases of HPCToolkit and/or gprof.out, depending of code comented or not in the script"
+echo -e "\n\nView HPCToolkit results:\n\tsource env_hpctoolkit.sh\n\thpcviewer ${dir_exec}/hpctoolkit-gf.x-database"
+echo -e "\n\nView Gprof results     :\n\tmore ${dir_exec}/gprof.out"
+echo -e "\n\n"

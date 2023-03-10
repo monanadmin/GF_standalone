@@ -5,7 +5,7 @@
 #SBATCH --ntasks=1          #Numero total de tarefas MPI
 #SBATCH -p batch            #Fila (partition) a ser utilizada
 #SBATCH -J GFreitasCR       #Nome job
-#SBATCH --time=00:10:00     #Obrigatório
+#SBATCH --time=00:20:00     #Obrigatório
 #SBATCH --exclusive
 
 executable="../bin/gf.x"
