@@ -1,6 +1,6 @@
 module ModVector
 
-  use moddata
+  ! use moddata
   implicit none
 
   private
@@ -15,7 +15,7 @@ module ModVector
   public :: get
   public :: remove
   public :: print_all
-  
+  public :: data_t
 
   ! Vector data type
   type :: vector_t
@@ -24,6 +24,11 @@ module ModVector
     integer :: num_elements
     
   end type vector_t
+
+  ! Data is stored in data_t
+  type :: data_t
+     integer :: x
+  end type data_t
 
 contains
 
