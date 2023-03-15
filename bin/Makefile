@@ -1,7 +1,7 @@
 DSRC2=../src
 
 F_COMP=gfortran
-F_OPTS= -O0 -fcheck=bounds -fbacktrace -ffree-line-length-200 -Wall
+F_OPTS= -O0 -g -fcheck=bounds -fbacktrace -ffree-line-length-200 -Wall -fdefault-real-8
 
 LOADER=$(F_COMP)
 LOADER_OPTS=-v #-Bstatic -check_bounds -traceback #-Mlarge_arrays

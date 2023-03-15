@@ -180,6 +180,10 @@ program GF_1d_driver
    integer :: nrec,nvx,nvar,nvartotal,klevgrads(0:300),int_byte_size,n1,n2,n3
    real    :: real_byte_size
    logical :: init_stat
+   
+   
+!C: Carlos Renato testes: 
+   integer :: icr, icrf
 
 !Informa que não houve inicialização do GF5
 modConvParGF_initialized = .false.
@@ -273,15 +277,15 @@ init_stat = initModConvParGF()
    enddo
    print*,"USE_GATE=",p_use_gate
    if(.not. p_use_gate) then
-       print*,"====================================================================="
-       print*, "use_gate logical flag must be true to run in 1-d, model will stop"
-       print*,"====================================================================="
+       !print*,"====================================================================="
+       !print*, "use_gate logical flag must be true to run in 1-d, model will stop"
+       !print*,"====================================================================="
        stop "use_gate flag"
    endif
 !  
 !- reads gate soundings                
    IF(trim(RUNDATA) == "GATE.dat") THEN
-   print*,"reading GATE soundings"
+   !print*,"reading GATE soundings"
    open(7,file="GATE.dat",form="formatted",STATUS="OLD")
      read(7,*)
      do jl=1,p_klon
@@ -409,6 +413,10 @@ init_stat = initModConvParGF()
 
 
 !- big loop on the gate soundings
+
+   icrf=1
+   do icr=1, icrf     !CR: loop para dar volume de execucao no codigo
+      !print*, 'CR: ', procedureName, ' loop-bombando:', icr
       
    do jl=1,klon_LOCAL !klon=number of soundings
   !do jl=1,1 !klon=number of soundings
@@ -416,7 +424,7 @@ init_stat = initModConvParGF()
      TIME=TIME+DTLT
      !IF(TIME/86400. > 2.) CYCLE
 
-     write(0,*) "############ Sounding:",jl!,TIME/86400.
+     !write(0,*) "############ Sounding:",jl!,TIME/86400.
      !grid_length= float(jl)*1000.
      
      
@@ -451,8 +459,8 @@ init_stat = initModConvParGF()
     REVSU_GF       =0.
 
        !if(JL .ne. 40) cycle
-       print*," ====================================================================="
-       print*,"Sounding =",jl
+       !print*," ====================================================================="
+       !print*,"Sounding =",jl
                
        CALL convParGFDriver(mxp,myp,KLEV_LOCAL,n_aer,p_nmp, time, itime1 &
               ,its,ite, jts,jte, kts,kte                        & 
@@ -546,6 +554,8 @@ init_stat = initModConvParGF()
               )
 				     
    enddo ! loop over gate soundings				     
+   enddo    !CR: loop bomba
+
    !  
    !
    !-- output
@@ -561,7 +571,7 @@ init_stat = initModConvParGF()
   !- binary file 
    inquire (iolength=int_byte_size) real_byte_size  ! inquire by output list
    print*, 'opening grads file:',trim(runname)//'.gra'
-   open(19,file= trim(runname)//'.gra',form='unformatted',&
+   open(19,file= '../dataout/'//trim(runname)//'.gra',form='unformatted',&
            access='direct',status='replace', recl=int_byte_size*(klon_LOCAL))
    nrec=0
    do nvar=0,p_nvar_grads
@@ -578,7 +588,7 @@ init_stat = initModConvParGF()
    !-setting vertical dimension '0' for 2d var
    where(klevgrads==1)klevgrads=0
    !- ctl file
-   open(20,file=trim(runname)//'.ctl',status='unknown')
+   open(20,file='../dataout/'//trim(runname)//'.ctl',status='unknown')
    write(20,2001) '^'//trim(runname)//'.gra'
    write(20,2002) 'undef -9.99e33'
    write(20,2002) 'options'!byteswapped' ! zrev'
