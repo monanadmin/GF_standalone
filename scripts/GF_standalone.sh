@@ -11,7 +11,7 @@
 #fi
  
 
-DIRHOME=/mnt/beegfs/carlos.souza/GF_standalone_monan-178-c
+DIRHOME=$(pwd)/..
 SCRIPTS=${DIRHOME}/scripts
 DATAOUT=${DIRHOME}/dataout
 DATAIN=${DIRHOME}/datain
