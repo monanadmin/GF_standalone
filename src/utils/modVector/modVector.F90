@@ -16,7 +16,11 @@ module ModVector
   public :: remove
   public :: print_all
   public :: data_t
+  public :: insert_range
 
+      
+   character(len=*), parameter   :: p_source_name = 'modVector.F90'
+   
   ! Vector data type
   type :: vector_t
     private
@@ -31,6 +35,30 @@ module ModVector
   end type data_t
 
 contains
+
+   subroutine insert_range(self, start_val, end_val)
+      implicit none
+      
+      type(vector_t), intent(inout) :: self
+      integer, intent(in)           :: start_val
+      integer, intent(in)           :: end_val
+      integer                       :: i, vector_ind
+      character(len=*), parameter   :: p_procedure_name = 'insert_range' 
+      
+      if (end_val < start_val) then
+         print*, p_procedure_name, "Erro: end_val", end_val, " menor que start_val", start_val 
+      endif
+            
+      vector_ind=0      
+      do i = start_val, end_val
+         vector_ind=vector_ind+1
+         self%vector(vector_ind)%x=i
+      enddo
+      self%num_elements = vector_ind
+      
+  
+   end subroutine insert_range
+
 
 
   ! Initialize vector

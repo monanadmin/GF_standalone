@@ -63,6 +63,7 @@ module modConvParGF
                         ,  c_rgas_atm, c_hplus, c_r2es, c_r3les, c_r4ies, c_r4les, c_retv &
                         ,  c_rticecu, c_rtwat_rticecu_r, c_r3ies, c_r5alscp, c_r5alvcp, c_ralsdcp &
                         ,  c_ralvdcp, c_rtice, c_rtwat_rtice_r, i8, r8
+   use modVector, only: vector_t, data_t, init, insert_range, remove, free_memory, print_all
 
    implicit none
 
@@ -926,6 +927,10 @@ contains
             , dzlcl, zlll, trash2, ke_mx, min_deep_top, min_shall_top
 
       character(len=128) :: ierrc(its:ite)
+      
+      type(vector_t)    :: indexes_to_process
+      !! Vector_index controls var to decide which column will be processed
+      integer           :: vec_max_size
 
       !----------------------------------------------------------------------
       !--only for debug
@@ -941,6 +946,17 @@ contains
             !    mpcf (lsmp,:,:)= se_chem_update(3,:,:)
          end if
       end if
+ 
+      ! Init the vector with the all indexes to process
+      vec_max_size = ite - its + 1
+      call init(indexes_to_process, vec_max_size)
+      
+      ! Insert (initially) all the indexes to process in the vector 
+      call insert_range(indexes_to_process, its, ite)
+      
+      print*, "CR=============", its, ite
+      call print_all(indexes_to_process) 
+ 
  
       !--- maximum depth (mb) of capping inversion (larger cap = no convection)
       if (MOIST_TRIGGER == 0) then
@@ -2534,7 +2550,8 @@ contains
       he = 0.0
       hes = 0.0
       qes = 0.0
-
+      
+      !CR: Primeiro if-cycle encontrado no codico: alvo da monan-190-qi.
       if (SATUR_CALC == 0) then
          do k = kts, ktf
             do i = its, itf
