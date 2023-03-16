@@ -20,7 +20,7 @@ BIN=${DIRHOME}/bin
 
 
 cd ${BIN}
-
+rm -f ${BIN}/gf.x
 echo "Compilando"
 #make clean
 make 
