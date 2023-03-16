@@ -1108,8 +1108,8 @@ contains
 
       !--- environmental conditions, FIRST HEIGHTS
       !--- calculate moist static energy, heights, qes
-      call cupEnv(z, qes, he, hes, t, q, po, z1, psur, ierr, -1, itf, ktf, its, ite, kts, kte)
-      call cupEnv(zo, qeso, heo, heso, tn, qo, po, z1, psur, ierr, -1, itf, ktf, its, ite, kts, kte)
+      call cupEnv(z, qes, he, hes, t, q, po, z1, psur, ierr, -1, itf, ktf, its, ite, kts, kte, indexes_to_process)
+      call cupEnv(zo, qeso, heo, heso, tn, qo, po, z1, psur, ierr, -1, itf, ktf, its, ite, kts, kte, indexes_to_process)
 
       !--- outputs a model sounding for the stand-alone code (part 1)
       if (output_sound == 1) then
@@ -1777,7 +1777,7 @@ contains
                               , up_massentro, zuo, p_liq_ice, qrco, ierr, zo, po, z1, qeso_x &
                               , heo_x, heso_x, qeso_cup_x, qo_cup_x, heo_cup_x, u_cup_x, v_cup_x &
                               , heso_cup_x , zo_cup_x, po_cup_x, gammao_cup_x, tn_cup_x, hkbo_x, hco_x &
-                              , dbyo_x, aa1_radpbl, aa1_adv)
+                              , dbyo_x, aa1_radpbl, aa1_adv, indexes_to_process)
       end if
       !
       !--- calculate CIN for updrafts
@@ -1887,7 +1887,7 @@ contains
          call zhangClosure(its, itf, ite, kts, ktf, kte, ktop, kbcon, ierr, psur, us, vs, t_cup, q_cup, zdo, qcdo &
                         ,  tempco, tempcdo, edto, dd_massdetro, up_massdetro, zuo, t, tn_bl, tn, q, qo_bl, qo, dtime &
                         ,  zo, po, z1, qeso_x, heo_x, heso_x, qeso_cup_x, qo_cup_x, heo_cup_x, u_cup, v_cup, heso_cup_x &
-                        ,  zo_cup, po_cup, gammao_cup_x, tn_cup_x, xk_x, aa1_bl, xland, qco)
+                        ,  zo_cup, po_cup, gammao_cup_x, tn_cup_x, xk_x, aa1_bl, xland, qco, indexes_to_process)
       end if
 
       !--- Trigger function based on Xie et al (2019)
@@ -1895,7 +1895,7 @@ contains
          call triggerXie(its, ite, itf, kts, kte, ktf, k22, start_level, ktop, kbcon, klcl, t, q, tn_adv &
                      ,   qo_adv, zuo, xland, psur, us, vs, up_massentro, up_massdetro, dtime, ierr &
                      ,   zo, po, z1, ierrc, qeso_x, heo_x, heso_x, qeso_cup_x, qo_cup_x, heo_cup_x, u_cup_x, v_cup_x &
-                     ,   heso_cup_x, zo_cup_x, po_cup_x, gammao_cup_x, hkbo_x, dbyo_x, tn_cup_x, aaa0_)
+                     ,   heso_cup_x, zo_cup_x, po_cup_x, gammao_cup_x, hkbo_x, dbyo_x, tn_cup_x, aaa0_, indexes_to_process)
       end if
 
       !--- determine downdraft strength in terms of windshear
@@ -1912,7 +1912,7 @@ contains
                      , aa1, dhdt, mpcf, mpqi, mpql, omeg, xaa0, xf_coldpool , xf_dicycle, xk_x, xmb, xz , xzu , zws, ierrc &
                      , ierr2, ierr3, cape, dellabuoy, dellah, dellampcf, dellampqi, dellampql, dellaq, dellaqc, dellat, dellu &
                      , dellv, edt, edto, gamma_cup, pr_ens, pwo_eff, subten_h, subten_q, subten_t, trash, trash2, xf_ens &
-                     , xff_mid, xff_shal, zenv)
+                     , xff_mid, xff_shal, zenv, indexes_to_process)
       end do
 
       !--- Include kinetic energy dissipation converted to heating
@@ -2046,7 +2046,8 @@ contains
                            ,   start_level, dd_massdetro, dd_massentro, dtime, edto, fscav, po, po_cup, pw_up_chem &
                            ,   pwavo, pwevo, pwdo, pwo, qrco, sc_up_chem, tempco, tot_pw_up_chem &
                            ,   up_massdetro, up_massentro, vvel2d, xland, zdo, zo_cup, zuo, cumulus &
-                           ,   se_chem, massf, out_chem, pw_dn_chem, sc_dn_chem, se_cup_chem, tot_pw_dn_chem, zenv)
+                           ,   se_chem, massf, out_chem, pw_dn_chem, sc_dn_chem, se_cup_chem, tot_pw_dn_chem, zenv &
+                           ,   indexes_to_process)
       end if 
       !--------------------------------------------------------------------------------------------!
 
@@ -2480,7 +2481,7 @@ contains
 
    ! ------------------------------------------------------------------------------------
    subroutine cupEnv(z_heights, qes, he, hes, temp_env, mixratio_env, press_env, z1, psur, ierr, itest, itf, ktf &
-                   , its, ite, kts, kte)
+                   , its, ite, kts, kte, indexes_to_process)
       !! ## Determine the thermodynamical variables at full levels
       !!
       !! Author: Saulo Freitas [SRF] e Georg Grell [GAG]
@@ -2535,6 +2536,8 @@ contains
       !! environmental saturation moist static energy
       real, intent(out) :: qes(:, :)
       !! environmental saturation mixing ratio
+      type(vector_t)    :: indexes_to_process
+      !! Vector_index controls var to decide which column will be processed
 
       !Local variables
       integer :: i, k
@@ -9950,7 +9953,7 @@ contains
                               , up_massdetr, up_massdetro, up_massentr, up_massentro, zuo, p_liq_ice, qrco &
                               , ierr, zo, po, z1, qeso_x, heo_x, heso_x, qeso_cup_x, qo_cup_x, heo_cup_x, u_cup_x &
                               , v_cup_x, heso_cup_x , zo_cup_x, po_cup_x, gammao_cup_x, tn_cup_x, hkbo_x, hco_x, dbyo_x &
-                              , aa1_radpbl, aa1_adv)
+                              , aa1_radpbl, aa1_adv, indexes_to_process)
       !! ## Becker et Al closure
       !!
       !! Author: Saulo R Freitas [SRF]
@@ -10031,6 +10034,9 @@ contains
       real, intent(out) :: dbyo_x(:,:)
       real, intent(out) :: aa1_radpbl(:)
       real, intent(out) :: aa1_adv(:)
+      type(vector_t)    :: indexes_to_process
+      !! Vector_index controls var to decide which column will be processed
+
       ! Local variables:
       integer :: ki, i, k
       integer, dimension(its:ite) :: ierr_dummy
@@ -10051,7 +10057,7 @@ contains
             qo_x = qo_adv
          end if
          ierr_dummy = ierr
-         call cupEnv(zo, qeso_x, heo_x, heso_x, tn_x, qo_x, po, z1, psur, ierr_dummy, p_itest, itf, ktf, its, ite, kts, kte)
+         call cupEnv(zo, qeso_x, heo_x, heso_x, tn_x, qo_x, po, z1, psur, ierr_dummy, p_itest, itf, ktf, its, ite, kts, kte, indexes_to_process)
          call cupEnvCLev(tn_x, qeso_x, qo_x, heo_x, heso_x, zo, po, qeso_cup_x, qo_cup_x, heo_cup_x, us, vs &
                            , u_cup_x, v_cup_x, heso_cup_x, zo_cup_x, po_cup_x, gammao_cup_x, tn_cup_x, psur &
                            , ierr_dummy, z1, itf, ktf, its, kts)
@@ -10098,7 +10104,7 @@ contains
    subroutine zhangClosure(its, itf, ite, kts, ktf, kte, ktop, kbcon, ierr, psur, us, vs, t_cup, q_cup, zdo, qcdo &
                         ,  tempco, tempcdo, edto, dd_massdetro, up_massdetro, zuo, t_in, tn_bl, tn, q_in, qo_bl, qo, dtime &
                         ,  zo, po, z1, qeso_x, heo_x, heso_x, qeso_cup_x, qo_cup_x, heo_cup_x, u_cup, v_cup, heso_cup_x &
-                        ,  zo_cup, po_cup, gammao_cup_x, tn_cup_x, xk_x, aa1_bl, xland, qco) 
+                        ,  zo_cup, po_cup, gammao_cup_x, tn_cup_x, xk_x, aa1_bl, xland, qco, indexes_to_process) 
       !! ## Zhang (2002) Closure
       !!
       !! Author: Saulo R Freitas
@@ -10177,6 +10183,8 @@ contains
       real, intent(out) :: tn_cup_x(:,:)
       real, intent(out) :: xk_x(:)
       real, intent(out) :: aa1_bl(:)
+      type(vector_t)    :: indexes_to_process
+      !! Vector_index controls var to decide which column will be processed
    
 
       ! Local variables:
@@ -10192,7 +10200,7 @@ contains
          qo_x(i, kts:ktf) = qo(i, kts:ktf) - qo_bl(i, kts:ktf) + q_in(i, kts:ktf)
       end do
       !--- calculate moist static energy, heights, qes, ... only by free troposphere tendencies
-      call cupEnv(zo, qeso_x, heo_x, heso_x, tn_x, qo_x, po, z1, psur, ierr, p_itest, itf, ktf, its, ite, kts, kte)
+      call cupEnv(zo, qeso_x, heo_x, heso_x, tn_x, qo_x, po, z1, psur, ierr, p_itest, itf, ktf, its, ite, kts, kte, indexes_to_process)
       !--- environmental values on cloud levels only by FT tendencies
       call cupEnvCLev(tn_x, qeso_x, qo_x, heo_x, heso_x, zo, po, qeso_cup_x, qo_cup_x, heo_cup_x, us, vs, u_cup, v_cup, &
                         heso_cup_x, zo_cup, po_cup, gammao_cup_x, tn_cup_x, psur, ierr, z1, itf, ktf, its, kts)
@@ -10255,7 +10263,7 @@ contains
    subroutine triggerXie(its, ite, itf, kts, kte, ktf, k22, start_level, ktop, kbcon, klcl, t_in, q_in, tn_adv &
                      ,   qo_adv, zuo, xland, psur, us, vs, up_massentro, up_massdetro, dtime, ierr &
                      ,   zo, po, z1, ierrc, qeso_x, heo_x, heso_x, qeso_cup_x, qo_cup_x, heo_cup_x, u_cup_x, v_cup_x &
-                     ,   heso_cup_x, zo_cup_x, po_cup_x, gammao_cup_x, hkbo_x, dbyo_x, tn_cup_x, aaa0_) !1937
+                     ,   heso_cup_x, zo_cup_x, po_cup_x, gammao_cup_x, hkbo_x, dbyo_x, tn_cup_x, aaa0_, indexes_to_process) !1937
       !! ## Trigger function based on Xie et al (2019)
       !!
       !! Author: Saulo  R Freitas
@@ -10329,6 +10337,8 @@ contains
       real, intent(out) :: dbyo_x(:,:)
       real, intent(out) :: tn_cup_x(:,:)
       real, intent(out) :: aaa0_(:)
+       type(vector_t)    :: indexes_to_process
+      !! Vector_index controls var to decide which column will be processed
    
       ! Local variables:
       integer :: i, k, step
@@ -10347,7 +10357,7 @@ contains
             tn_x = tn_adv
             qo_x = qo_adv
          end if
-         call cupEnv(zo, qeso_x, heo_x, heso_x, tn_x, qo_x, po, z1, psur, ierr, p_itest, itf, ktf, its, ite, kts, kte)
+         call cupEnv(zo, qeso_x, heo_x, heso_x, tn_x, qo_x, po, z1, psur, ierr, p_itest, itf, ktf, its, ite, kts, kte, indexes_to_process)
          call cupEnvCLev(tn_x, qeso_x, qo_x, heo_x, heso_x, zo, po, qeso_cup_x, qo_cup_x, heo_cup_x, us, vs &
                            , u_cup_x, v_cup_x, heso_cup_x, zo_cup_x, po_cup_x, gammao_cup_x, tn_cup_x, psur &
                            , ierr, z1, itf, ktf, its, kts)
@@ -11212,7 +11222,7 @@ contains
                            ,   start_level, dd_massdetro, dd_massentro, dtime, edto, fscav, po, po_cup, pw_up_chem &
                            ,   pwavo, pwevo, pwdo, pwo, qrco, sc_up_chem, tempco, tot_pw_up_chem &
                            ,   up_massdetro, up_massentro, vvel2d, xland, zdo, zo_cup, zuo, cumulus &
-                           ,   se_chem, massf, out_chem, pw_dn_chem, sc_dn_chem, se_cup_chem, tot_pw_dn_chem, zenv) 
+                           ,   se_chem, massf, out_chem, pw_dn_chem, sc_dn_chem, se_cup_chem, tot_pw_dn_chem, zenv, indexes_to_process) 
       !! ## section for atmospheric composition
       !!
       !! Author: Rodrigues, L. F. [LFR]
@@ -11286,6 +11296,8 @@ contains
       real, intent(out) :: tot_pw_dn_chem(:,:)
       real, intent(out) :: tot_pw_up_chem(:,:)
       real, intent(out) :: zenv(:,:)
+      type(vector_t)    :: indexes_to_process
+      !! Vector_index controls var to decide which column will be processed
 
       ! Local variables:
       real :: se_chem_update(3, its:ite, kts:kte)
@@ -11676,7 +11688,7 @@ contains
                      , aa1, dhdt, mpcf, mpqi, mpql, omeg, xaa0, xf_coldpool , xf_dicycle, xk_x, xmb, xz , xzu , zws, ierrc &
                      , ierr2, ierr3, cape, dellabuoy, dellah, dellampcf, dellampqi, dellampql, dellaq, dellaqc, dellat, dellu &
                      , dellv, edt, edto, gamma_cup, pr_ens, pwo_eff, subten_h, subten_q, subten_t, trash, trash2, xf_ens &
-                     , xff_mid, xff_shal, zenv)
+                     , xff_mid, xff_shal, zenv, indexes_to_process)
       !! ## Loop in iedt
       !!
       !! Author: Rodrigues, L. F. [LFR]
@@ -11829,6 +11841,8 @@ contains
       real, intent(out) :: xq_cup(:,:)
       real, intent(out) :: xqes_cup(:,:)
       real, intent(out) :: zenv(:,:)
+      type(vector_t)    :: indexes_to_process
+      !! Vector_index controls var to decide which column will be processed
 
       ! Local variables:
       integer :: i, k, nens3, kk, nens
@@ -12001,7 +12015,7 @@ contains
       end do
 
       !--- calculate moist static energy, heights, qes
-      call cupEnv(xz, xqes, xhe, xhes, xt, xq, po, z1, psur, ierr, p_itest, itf, ktf, its, ite, kts, kte)
+      call cupEnv(xz, xqes, xhe, xhes, xt, xq, po, z1, psur, ierr, p_itest, itf, ktf, its, ite, kts, kte, indexes_to_process)
 
       !--- environmental values on cloud levels
       call cupEnvCLev(xt, xqes, xq, xhe, xhes, xz, po, xqes_cup, xq_cup, xhe_cup, us, vs, u_cup, v_cup, xhes_cup, xz_cup &
