@@ -954,8 +954,8 @@ contains
       ! Insert (initially) all the indexes to process in the vector 
       call insert_range(indexes_to_process, its, ite)
       
-      print*, "CR=============", its, ite
-      call print_all(indexes_to_process) 
+      !CR: print*, "CR=============", its, ite
+      !CR: call print_all(indexes_to_process) 
  
  
       !--- maximum depth (mb) of capping inversion (larger cap = no convection)
@@ -2540,7 +2540,7 @@ contains
       !! Vector_index controls var to decide which column will be processed
 
       !Local variables
-      integer :: i, k
+      integer :: i, k, vtp_index
       !real, dimension (1:2) :: ae,be,ht
 
       real, dimension(its:ite, kts:kte) :: tv
@@ -2555,37 +2555,86 @@ contains
       qes = 0.0
       
       !CR: Primeiro if-cycle encontrado no codico: alvo da monan-190-qi.
+      !CR: print*, "CR:1", ierr(:), indexes_to_process%vector(:)%x
+
+      ! loop antigo para comparacao >---------------------------------------------
+      ! if (SATUR_CALC == 0) then
+      !    do k = kts, ktf
+      !       do i = its, itf
+      !          if (ierr(i) .eq. 0) then
+      ! 
+      !             e_sat = SatVap(temp_env(i, k))
+      !             qes(i, k) = 0.622*e_sat/max(1.e-8, (press_env(i, k) - e_sat))
+      ! 
+      !             if (qes(i, k) .le. 1.e-08) qes(i, k) = 1.e-08
+      !             if (qes(i, k) .gt. c_max_qsat) qes(i, k) = c_max_qsat
+      !             if (qes(i, k) .lt. mixratio_env(i, k)) qes(i, k) = mixratio_env(i, k)
+      !             !       IF(Q(I,K).GT.QES(I,K))Q(I,K)=QES(I,K)
+      !             tv(i, k) = temp_env(i, k) + .608*mixratio_env(i, k)*temp_env(i, k)
+      !          end if
+      !       end do
+      !    end do
+      ! else
+      !    !--- better formulation for the mixed phase regime
+      !    do k = kts, ktf
+      !       do i = its, itf
+      !         if (ierr(i) .eq. 0) then
+      !             pqsat = SaturSpecHum(temp_env(i, k), press_env(i, k))
+      !             qes(i, k) = pqsat
+      !             !print*,"qes=",k,p(i,k),1000*qes(i,k),1000*pqsat
+      !             qes(i, k) = min(c_max_qsat, max(1.e-08, qes(i, k)))
+      !             qes(i, k) = max(qes(i, k), mixratio_env(i, k))
+      !             tv(i, k) = temp_env(i, k) + .608*mixratio_env(i, k)*temp_env(i, k)
+      !          end if
+      !       end do
+      !    end do
+      ! end if
+      ! <---------------------------------------------------------------------------
+      
+      
+      ! loop modificado com vetor de indices >--------------------------------------
+      !CR: print*, "CR:", SATUR_CALC 
+      !CR: SATUR_CALC sempre 1! Mas trecho true do if tbm foi modificado:
       if (SATUR_CALC == 0) then
          do k = kts, ktf
-            do i = its, itf
-               if (ierr(i) .eq. 0) then
-
-                  e_sat = SatVap(temp_env(i, k))
-                  qes(i, k) = 0.622*e_sat/max(1.e-8, (press_env(i, k) - e_sat))
-
-                  if (qes(i, k) .le. 1.e-08) qes(i, k) = 1.e-08
-                  if (qes(i, k) .gt. c_max_qsat) qes(i, k) = c_max_qsat
-                  if (qes(i, k) .lt. mixratio_env(i, k)) qes(i, k) = mixratio_env(i, k)
-                  !       IF(Q(I,K).GT.QES(I,K))Q(I,K)=QES(I,K)
-                  tv(i, k) = temp_env(i, k) + .608*mixratio_env(i, k)*temp_env(i, k)
-               end if
+            !CR: laco passa a percorrer todo o vetor com o indices a serem processados:
+            do vtp_index = 1, indexes_to_process%num_elements
+               !CR: antiga variavel de controle do laco "i" recebe o indice armazenado na 
+               !     posicao vtp_index do vetor indexes_to_process%vector(vtp_index)%x
+               i=indexes_to_process%vector(vtp_index)%x
+               !CR: processamento normal:
+               e_sat = SatVap(temp_env(i, k))
+               qes(i, k) = 0.622*e_sat/max(1.e-8, (press_env(i, k) - e_sat))
+               if (qes(i, k) .le. 1.e-08) qes(i, k) = 1.e-08
+               if (qes(i, k) .gt. c_max_qsat) qes(i, k) = c_max_qsat
+               if (qes(i, k) .lt. mixratio_env(i, k)) qes(i, k) = mixratio_env(i, k)
+               !IF(Q(I,K).GT.QES(I,K))Q(I,K)=QES(I,K)
+               tv(i, k) = temp_env(i, k) + .608*mixratio_env(i, k)*temp_env(i, k)
             end do
          end do
       else
          !--- better formulation for the mixed phase regime
          do k = kts, ktf
-            do i = its, itf
-               if (ierr(i) .eq. 0) then
-                  pqsat = SaturSpecHum(temp_env(i, k), press_env(i, k))
-                  qes(i, k) = pqsat
-                  !print*,"qes=",k,p(i,k),1000*qes(i,k),1000*pqsat
-                  qes(i, k) = min(c_max_qsat, max(1.e-08, qes(i, k)))
-                  qes(i, k) = max(qes(i, k), mixratio_env(i, k))
-                  tv(i, k) = temp_env(i, k) + .608*mixratio_env(i, k)*temp_env(i, k)
-               end if
+            do vtp_index = 1, indexes_to_process%num_elements
+               !CR: antiga variavel de controle do laco "i" recebe o indice armazenado na 
+               !     posicao vtp_index do vetor indexes_to_process%vector(vtp_index)%x
+               i=indexes_to_process%vector(vtp_index)%x
+               !CR: processamento normal:
+               pqsat = SaturSpecHum(temp_env(i, k), press_env(i, k))
+               qes(i, k) = pqsat
+               !print*,"qes=",k,p(i,k),1000*qes(i,k),1000*pqsat
+               qes(i, k) = min(c_max_qsat, max(1.e-08, qes(i, k)))
+               qes(i, k) = max(qes(i, k), mixratio_env(i, k))
+               tv(i, k) = temp_env(i, k) + .608*mixratio_env(i, k)*temp_env(i, k)
             end do
          end do
       end if
+      ! <---------------------------------------------------------------------------
+      
+      
+      
+      
+      
 
       !--- z's are calculated with changed h's and q's and t's
       !--- if itest=2

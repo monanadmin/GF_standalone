@@ -23,7 +23,6 @@ module ModVector
    
   ! Vector data type
   type :: vector_t
-    private
     type(data_t), allocatable, dimension(:) :: vector
     integer :: num_elements
     
@@ -47,6 +46,7 @@ contains
       
       if (end_val < start_val) then
          print*, p_procedure_name, "Erro: end_val", end_val, " menor que start_val", start_val 
+         stop
       endif
             
       vector_ind=0      
