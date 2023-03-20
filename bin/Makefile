@@ -21,8 +21,8 @@ ARC=$(BASE).a
 F_SRC=  $(DSRC2)/modConstants.F90 \
 	$(DSRC2)/modHenrysLawCts.F90 \
 	$(DSRC2)/modGate.F90 \
-	$(DSRC2)/modConvParGF.F90 \
 	$(DSRC2)/utils/modVector/modVector.F90 \
+	$(DSRC2)/modConvParGF.F90 \
 	$(DSRC2)/1d-gf-test.f90 	
 
 # Define targets.
@@ -50,7 +50,7 @@ modGate.o : $(DSRC2)/modGate.F90 modConstants.o
 
 modHenrysLawCts.o : $(DSRC2)/modHenrysLawCts.F90 modConstants.o
 
-modVector.o : $(DSRC2)/utils/vector/modVector.F90 
+modVector.o : $(DSRC2)/utils/modVector/modVector.F90 
 
 modConvParGF.o : $(DSRC2)/modConvParGF.F90 modConstants.o modGate.o modHenrysLawCts.o modVector.o
 

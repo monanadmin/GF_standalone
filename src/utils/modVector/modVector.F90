@@ -13,9 +13,10 @@ module ModVector
   public :: insert
   public :: vector_put
   public :: get
+  public :: get_index_value
   public :: remove
   public :: print_all
-  public :: data_t
+ ! public :: data_t
   public :: insert_range
 
       
@@ -23,6 +24,7 @@ module ModVector
    
   ! Vector data type
   type :: vector_t
+    private
     type(data_t), allocatable, dimension(:) :: vector
     integer :: num_elements
     
@@ -30,7 +32,7 @@ module ModVector
 
   ! Data is stored in data_t
   type :: data_t
-     integer :: x
+     integer :: index_value
   end type data_t
 
 contains
@@ -52,7 +54,7 @@ contains
       vector_ind=0      
       do i = start_val, end_val
          vector_ind=vector_ind+1
-         self%vector(vector_ind)%x=i
+         self%vector(vector_ind)%index_value=i
       enddo
       self%num_elements = vector_ind
       
@@ -127,6 +129,13 @@ contains
     type(data_t) :: data
     data = self%vector(data_index)
   end function get
+  
+  function get_index_value(self, data_index) result(data)
+    type(vector_t), intent(inout) :: self
+    integer, intent(in) :: data_index
+    integer :: data
+    data = self%vector(data_index)%index_value
+  end function get_index_value
 
   subroutine print_all(self) 
     type(vector_t), intent(inout) :: self
@@ -134,13 +143,13 @@ contains
     integer, parameter :: views = 5
     write(*, '(A8)', advance='NO') 'vector = ('
     do data_index = 1, min(self%num_elements, views)
-      write(*,'(i8, "," )',advance='NO')  self%vector(data_index)%x
+      write(*,'(i8, "," )',advance='NO')  self%vector(data_index)%index_value
     end do
     if (self%num_elements > views) then
       ! print last elements 
       write(*,'(A5)',advance='NO') ' ... '
       do data_index = max(self%num_elements - views, views +1 ), self%num_elements
-        write(*,'(i8, "," )',advance='NO')  self%vector(data_index)%x
+        write(*,'(i8, "," )',advance='NO')  self%vector(data_index)%index_value
       end do
     endif
     write(*, '(A2)', advance='YES') ' )'
@@ -161,7 +170,7 @@ contains
     endif
 
     do index = 1, self%num_elements
-      if (self%vector(index)%x == data_to_remove%x) then
+      if (self%vector(index)%index_value == data_to_remove%index_value) then
         self%vector(index:self%num_elements-1) = self%vector(index+1:self%num_elements)  ! Bidu
         self%num_elements = self%num_elements -1
         is_removed = .true.

@@ -63,7 +63,7 @@ module modConvParGF
                         ,  c_rgas_atm, c_hplus, c_r2es, c_r3les, c_r4ies, c_r4les, c_retv &
                         ,  c_rticecu, c_rtwat_rticecu_r, c_r3ies, c_r5alscp, c_r5alvcp, c_ralsdcp &
                         ,  c_ralvdcp, c_rtice, c_rtwat_rtice_r, i8, r8
-   use modVector, only: vector_t, data_t, init, insert_range, remove, free_memory, print_all
+   use modVector, only: vector_t, get_num_elements, get_index_value, init, insert_range, remove, free_memory, print_all
 
    implicit none
 
@@ -2598,10 +2598,12 @@ contains
       if (SATUR_CALC == 0) then
          do k = kts, ktf
             !CR: laco passa a percorrer todo o vetor com o indices a serem processados:
-            do vtp_index = 1, indexes_to_process%num_elements
+            !do vtp_index = 1, indexes_to_process%num_elements
+            do vtp_index = 1, get_num_elements(indexes_to_process)
                !CR: antiga variavel de controle do laco "i" recebe o indice armazenado na 
                !     posicao vtp_index do vetor indexes_to_process%vector(vtp_index)%x
-               i=indexes_to_process%vector(vtp_index)%x
+               !i=indexes_to_process%vector(vtp_index)%x
+               i=get_index_value(indexes_to_process, vtp_index)
                !CR: processamento normal:
                e_sat = SatVap(temp_env(i, k))
                qes(i, k) = 0.622*e_sat/max(1.e-8, (press_env(i, k) - e_sat))
@@ -2615,10 +2617,12 @@ contains
       else
          !--- better formulation for the mixed phase regime
          do k = kts, ktf
-            do vtp_index = 1, indexes_to_process%num_elements
+            !do vtp_index = 1, indexes_to_process%num_elements
+            do vtp_index = 1, get_num_elements(indexes_to_process)
                !CR: antiga variavel de controle do laco "i" recebe o indice armazenado na 
                !     posicao vtp_index do vetor indexes_to_process%vector(vtp_index)%x
-               i=indexes_to_process%vector(vtp_index)%x
+               !i=indexes_to_process%vector(vtp_index)%x
+               i=get_index_value(indexes_to_process, vtp_index)
                !CR: processamento normal:
                pqsat = SaturSpecHum(temp_env(i, k), press_env(i, k))
                qes(i, k) = pqsat
