@@ -1,59 +1,44 @@
-DSRC2=../src
+F90=gfortran
 
-F_COMP=gfortran
-F_OPTS= -O0 -g -fcheck=bounds -fbacktrace -ffree-line-length-200 -Wall -fdefault-real-8
+BIN=../bin
+SRC=../src
+UTILS=$(SRC)/utils
 
-LOADER=$(F_COMP)
-LOADER_OPTS=-v #-Bstatic -check_bounds -traceback #-Mlarge_arrays
-ARCHIVE=ar rs
 
-# Compiler commands.
-
-F_COMMAND = $(F_COMP) -c $(F_OPTS) $(INCLUDES)
-
-# Define archive and executable names.
+F_OPTS=-O0 -g -fcheck=bounds -fbacktrace -ffree-line-length-200 -Wall -fdefault-real-8 -w
 
 BASE=gf
 EXE=$(BASE).x
 ARC=$(BASE).a
 
-# Define source.
-F_SRC=  $(DSRC2)/modConstants.F90 \
-	$(DSRC2)/modHenrysLawCts.F90 \
-	$(DSRC2)/modGate.F90 \
-	$(DSRC2)/utils/modVector/modVector.F90 \
-	$(DSRC2)/modConvParGF.F90 \
-	$(DSRC2)/1d-gf-test.f90 	
+all: $(BIN)/$(EXE)
 
-# Define targets.
+$(BIN)/$(EXE):	$(BIN)/$(ARC)
+	$(F90) $(F_OPTS) $< -o $@
 
-all: $(EXE)
+$(BIN)/$(ARC):	$(BIN)/1d-gf-test.o $(BIN)/modConvParGF.o $(BIN)/modConstants.o $(BIN)/modGate.o $(BIN)/modHenrysLawCts.o $(BIN)/modVector.o 
+	ar rs $@ $(BIN)/*.o
 
-$(EXE): $(ARC) 
-	$(LOADER) -o $(EXE) $(LOADER_OPTS) $(ARC) $(LIB_IFS)
+$(BIN)/1d-gf-test.o: $(SRC)/1d-gf-test.f90 $(BIN)/modGate.o $(BIN)/modConvParGF.o 
+	$(F90) $(F_OPTS) -c $< -o $@
 
-	rm -f r*.o
+$(BIN)/modConvParGF.o: $(SRC)/modConvParGF.F90 $(BIN)/modConstants.o $(BIN)/modGate.o $(BIN)/modHenrysLawCts.o $(BIN)/modVector.o
+	$(F90) $(F_OPTS) -c $< -o $@
 
-$(ARC): $(F_SRC)
-	$(F_COMMAND) $(?)
-	$(ARCHIVE) $(ARC) *.o
+$(BIN)/modConstants.o:	$(SRC)/modConstants.F90
+	$(F90) $(F_OPTS) -c $< -o $@
 
-install:
-	ln -fs $(pwd)/$(EXE) ../$(BASE)
+$(BIN)/modGate.o:	$(SRC)/modGate.F90
+	$(F90) $(F_OPTS) -c $< -o $@
+
+$(BIN)/modHenrysLawCts.o:	$(SRC)/modHenrysLawCts.F90
+	$(F90) $(F_OPTS) -c $< -o $@
+
+$(BIN)/modVector.o:	$(UTILS)/modVector/modVector.F90
+	$(F90) $(F_OPTS) -c $< -o $@
+
 
 clean:
-	rm -f $(ARC) $(EXE) $(BASE) *.o  ___* core* *.mod *.a
+	rm -f $(BIN)/*.x $(BIN)/*.o $(BIN)/*.a $(BIN)/*.mod
 
-modConstants.o : $(DSRC2)/modConstants.F90
-
-modGate.o : $(DSRC2)/modGate.F90 modConstants.o
-
-modHenrysLawCts.o : $(DSRC2)/modHenrysLawCts.F90 modConstants.o
-
-modVector.o : $(DSRC2)/utils/modVector/modVector.F90 
-
-modConvParGF.o : $(DSRC2)/modConvParGF.F90 modConstants.o modGate.o modHenrysLawCts.o modVector.o
-
-1d-gf-test.o : $(DSRC2)/1d-gf-test.f90 modConstants.o modConvParGF.o
-
-
+	
