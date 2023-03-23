@@ -17,18 +17,25 @@ BASE=gf
 EXE=$(BASE).x
 ARC=$(BASE).a
 
+# Opcoes para o compilador gfortran:
+GNU_OPTS=-O0 -g -fcheck=bounds -fbacktrace -ffree-line-length-200 -fdefault-real-8
+
+# Opcoes para o compilador ifort:
+INTEL_OPTS=
+
+
 dummy:
 	@$(MAKE) usage --no-print-directory
 
 gnu:
 	@( $(MAKE) all --no-print-directory \
 	"COMP = gfortran" \
-	"F_OPTS = -O0 -g -fcheck=bounds -fbacktrace -ffree-line-length-200 -fdefault-real-8" )
+	"F_OPTS = $(GNU_OPTS)" )
 
 intel:
 	@( $(MAKE) all --no-print-directory \
 	"COMP = ifort" \
-	"F_OPTS = " )
+	"F_OPTS = $(INTEL_OPTS)" )
 
 all:	$(BIN)/$(EXE)
 	echo $(COMP)
