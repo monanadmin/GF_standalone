@@ -63,7 +63,7 @@ module modConvParGF
                         ,  c_rgas_atm, c_hplus, c_r2es, c_r3les, c_r4ies, c_r4les, c_retv &
                         ,  c_rticecu, c_rtwat_rticecu_r, c_r3ies, c_r5alscp, c_r5alvcp, c_ralsdcp &
                         ,  c_ralvdcp, c_rtice, c_rtwat_rtice_r, i8, r8
-   use modVector, only: vector_t, get_num_elements, get_index_value, init, insert_range, remove, free_memory, print_all
+   use modVector, only: get_num_elements, get_index_value, init, insert_range, remove, free_memory, print_all
 
    implicit none
 
@@ -928,8 +928,6 @@ contains
 
       character(len=128) :: ierrc(its:ite)
       
-      type(vector_t)    :: indexes_to_process
-      !! Vector_index controls var to decide which column will be processed
       integer           :: vec_max_size
 
       !----------------------------------------------------------------------
@@ -949,15 +947,11 @@ contains
  
       ! Init the vector with the all indexes to process
       vec_max_size = ite - its + 1
-      call init(indexes_to_process, vec_max_size)
+      call init(vec_max_size)
       
       ! Insert (initially) all the indexes to process in the vector 
-      call insert_range(indexes_to_process, its, ite)
+      call insert_range(its, ite)
       
-      !CR: print*, "CR=============", its, ite
-      !CR: call print_all(indexes_to_process) 
- 
- 
       !--- maximum depth (mb) of capping inversion (larger cap = no convection)
       if (MOIST_TRIGGER == 0) then
          if (trim(cumulus) == 'deep') then
@@ -1108,8 +1102,8 @@ contains
 
       !--- environmental conditions, FIRST HEIGHTS
       !--- calculate moist static energy, heights, qes
-      call cupEnv(z, qes, he, hes, t, q, po, z1, psur, ierr, -1, itf, ktf, its, ite, kts, kte, indexes_to_process)
-      call cupEnv(zo, qeso, heo, heso, tn, qo, po, z1, psur, ierr, -1, itf, ktf, its, ite, kts, kte, indexes_to_process)
+      call cupEnv(z, qes, he, hes, t, q, po, z1, psur, ierr, -1, itf, ktf, its, ite, kts, kte)
+      call cupEnv(zo, qeso, heo, heso, tn, qo, po, z1, psur, ierr, -1, itf, ktf, its, ite, kts, kte)
 
       !--- outputs a model sounding for the stand-alone code (part 1)
       if (output_sound == 1) then
@@ -1777,7 +1771,7 @@ contains
                               , up_massentro, zuo, p_liq_ice, qrco, ierr, zo, po, z1, qeso_x &
                               , heo_x, heso_x, qeso_cup_x, qo_cup_x, heo_cup_x, u_cup_x, v_cup_x &
                               , heso_cup_x , zo_cup_x, po_cup_x, gammao_cup_x, tn_cup_x, hkbo_x, hco_x &
-                              , dbyo_x, aa1_radpbl, aa1_adv, indexes_to_process)
+                              , dbyo_x, aa1_radpbl, aa1_adv)
       end if
       !
       !--- calculate CIN for updrafts
@@ -1887,7 +1881,7 @@ contains
          call zhangClosure(its, itf, ite, kts, ktf, kte, ktop, kbcon, ierr, psur, us, vs, t_cup, q_cup, zdo, qcdo &
                         ,  tempco, tempcdo, edto, dd_massdetro, up_massdetro, zuo, t, tn_bl, tn, q, qo_bl, qo, dtime &
                         ,  zo, po, z1, qeso_x, heo_x, heso_x, qeso_cup_x, qo_cup_x, heo_cup_x, u_cup, v_cup, heso_cup_x &
-                        ,  zo_cup, po_cup, gammao_cup_x, tn_cup_x, xk_x, aa1_bl, xland, qco, indexes_to_process)
+                        ,  zo_cup, po_cup, gammao_cup_x, tn_cup_x, xk_x, aa1_bl, xland, qco)
       end if
 
       !--- Trigger function based on Xie et al (2019)
@@ -1895,7 +1889,7 @@ contains
          call triggerXie(its, ite, itf, kts, kte, ktf, k22, start_level, ktop, kbcon, klcl, t, q, tn_adv &
                      ,   qo_adv, zuo, xland, psur, us, vs, up_massentro, up_massdetro, dtime, ierr &
                      ,   zo, po, z1, ierrc, qeso_x, heo_x, heso_x, qeso_cup_x, qo_cup_x, heo_cup_x, u_cup_x, v_cup_x &
-                     ,   heso_cup_x, zo_cup_x, po_cup_x, gammao_cup_x, hkbo_x, dbyo_x, tn_cup_x, aaa0_, indexes_to_process)
+                     ,   heso_cup_x, zo_cup_x, po_cup_x, gammao_cup_x, hkbo_x, dbyo_x, tn_cup_x, aaa0_)
       end if
 
       !--- determine downdraft strength in terms of windshear
@@ -1912,7 +1906,7 @@ contains
                      , aa1, dhdt, mpcf, mpqi, mpql, omeg, xaa0, xf_coldpool , xf_dicycle, xk_x, xmb, xz , xzu , zws, ierrc &
                      , ierr2, ierr3, cape, dellabuoy, dellah, dellampcf, dellampqi, dellampql, dellaq, dellaqc, dellat, dellu &
                      , dellv, edt, edto, gamma_cup, pr_ens, pwo_eff, subten_h, subten_q, subten_t, trash, trash2, xf_ens &
-                     , xff_mid, xff_shal, zenv, indexes_to_process)
+                     , xff_mid, xff_shal, zenv)
       end do
 
       !--- Include kinetic energy dissipation converted to heating
@@ -2046,8 +2040,7 @@ contains
                            ,   start_level, dd_massdetro, dd_massentro, dtime, edto, fscav, po, po_cup, pw_up_chem &
                            ,   pwavo, pwevo, pwdo, pwo, qrco, sc_up_chem, tempco, tot_pw_up_chem &
                            ,   up_massdetro, up_massentro, vvel2d, xland, zdo, zo_cup, zuo, cumulus &
-                           ,   se_chem, massf, out_chem, pw_dn_chem, sc_dn_chem, se_cup_chem, tot_pw_dn_chem, zenv &
-                           ,   indexes_to_process)
+                           ,   se_chem, massf, out_chem, pw_dn_chem, sc_dn_chem, se_cup_chem, tot_pw_dn_chem, zenv )
       end if 
       !--------------------------------------------------------------------------------------------!
 
@@ -2481,7 +2474,7 @@ contains
 
    ! ------------------------------------------------------------------------------------
    subroutine cupEnv(z_heights, qes, he, hes, temp_env, mixratio_env, press_env, z1, psur, ierr, itest, itf, ktf &
-                   , its, ite, kts, kte, indexes_to_process)
+                   , its, ite, kts, kte)
       !! ## Determine the thermodynamical variables at full levels
       !!
       !! Author: Saulo Freitas [SRF] e Georg Grell [GAG]
@@ -2536,8 +2529,6 @@ contains
       !! environmental saturation moist static energy
       real, intent(out) :: qes(:, :)
       !! environmental saturation mixing ratio
-      type(vector_t)    :: indexes_to_process
-      !! Vector_index controls var to decide which column will be processed
 
       !Local variables
       integer :: i, k, vtp_index
@@ -2554,57 +2545,14 @@ contains
       hes = 0.0
       qes = 0.0
       
-      !CR: Primeiro if-cycle encontrado no codico: alvo da monan-190-qi.
-      !CR: print*, "CR:1", ierr(:), indexes_to_process%vector(:)%x
-
-      ! loop antigo para comparacao >---------------------------------------------
-      ! if (SATUR_CALC == 0) then
-      !    do k = kts, ktf
-      !       do i = its, itf
-      !          if (ierr(i) .eq. 0) then
-      ! 
-      !             e_sat = SatVap(temp_env(i, k))
-      !             qes(i, k) = 0.622*e_sat/max(1.e-8, (press_env(i, k) - e_sat))
-      ! 
-      !             if (qes(i, k) .le. 1.e-08) qes(i, k) = 1.e-08
-      !             if (qes(i, k) .gt. c_max_qsat) qes(i, k) = c_max_qsat
-      !             if (qes(i, k) .lt. mixratio_env(i, k)) qes(i, k) = mixratio_env(i, k)
-      !             !       IF(Q(I,K).GT.QES(I,K))Q(I,K)=QES(I,K)
-      !             tv(i, k) = temp_env(i, k) + .608*mixratio_env(i, k)*temp_env(i, k)
-      !          end if
-      !       end do
-      !    end do
-      ! else
-      !    !--- better formulation for the mixed phase regime
-      !    do k = kts, ktf
-      !       do i = its, itf
-      !         if (ierr(i) .eq. 0) then
-      !             pqsat = SaturSpecHum(temp_env(i, k), press_env(i, k))
-      !             qes(i, k) = pqsat
-      !             !print*,"qes=",k,p(i,k),1000*qes(i,k),1000*pqsat
-      !             qes(i, k) = min(c_max_qsat, max(1.e-08, qes(i, k)))
-      !             qes(i, k) = max(qes(i, k), mixratio_env(i, k))
-      !             tv(i, k) = temp_env(i, k) + .608*mixratio_env(i, k)*temp_env(i, k)
-      !          end if
-      !       end do
-      !    end do
-      ! end if
-      ! <---------------------------------------------------------------------------
-      
       
       ! loop modificado com vetor de indices >--------------------------------------
-      !CR: print*, "CR:", SATUR_CALC 
-      !CR: SATUR_CALC sempre 1! Mas trecho true do if tbm foi modificado:
       if (SATUR_CALC == 0) then
          do k = kts, ktf
-            !CR: laco passa a percorrer todo o vetor com o indices a serem processados:
-            !do vtp_index = 1, indexes_to_process%num_elements
-            do vtp_index = 1, get_num_elements(indexes_to_process)
+            do vtp_index = 1, get_num_elements()
                !CR: antiga variavel de controle do laco "i" recebe o indice armazenado na 
-               !     posicao vtp_index do vetor indexes_to_process%vector(vtp_index)%x
-               !i=indexes_to_process%vector(vtp_index)%x
-               i=get_index_value(indexes_to_process, vtp_index)
-               !CR: processamento normal:
+               ! posicao vtp_index do vetor module vector
+               i=get_index_value(vtp_index)
                e_sat = SatVap(temp_env(i, k))
                qes(i, k) = 0.622*e_sat/max(1.e-8, (press_env(i, k) - e_sat))
                if (qes(i, k) .le. 1.e-08) qes(i, k) = 1.e-08
@@ -2617,12 +2565,10 @@ contains
       else
          !--- better formulation for the mixed phase regime
          do k = kts, ktf
-            !do vtp_index = 1, indexes_to_process%num_elements
-            do vtp_index = 1, get_num_elements(indexes_to_process)
+            do vtp_index = 1, get_num_elements()
                !CR: antiga variavel de controle do laco "i" recebe o indice armazenado na 
-               !     posicao vtp_index do vetor indexes_to_process%vector(vtp_index)%x
-               !i=indexes_to_process%vector(vtp_index)%x
-               i=get_index_value(indexes_to_process, vtp_index)
+               !    posicao vtp_index do vetor do module vector
+               i=get_index_value(vtp_index)
                !CR: processamento normal:
                pqsat = SaturSpecHum(temp_env(i, k), press_env(i, k))
                qes(i, k) = pqsat
@@ -10006,7 +9952,7 @@ contains
                               , up_massdetr, up_massdetro, up_massentr, up_massentro, zuo, p_liq_ice, qrco &
                               , ierr, zo, po, z1, qeso_x, heo_x, heso_x, qeso_cup_x, qo_cup_x, heo_cup_x, u_cup_x &
                               , v_cup_x, heso_cup_x , zo_cup_x, po_cup_x, gammao_cup_x, tn_cup_x, hkbo_x, hco_x, dbyo_x &
-                              , aa1_radpbl, aa1_adv, indexes_to_process)
+                              , aa1_radpbl, aa1_adv)
       !! ## Becker et Al closure
       !!
       !! Author: Saulo R Freitas [SRF]
@@ -10087,8 +10033,6 @@ contains
       real, intent(out) :: dbyo_x(:,:)
       real, intent(out) :: aa1_radpbl(:)
       real, intent(out) :: aa1_adv(:)
-      type(vector_t)    :: indexes_to_process
-      !! Vector_index controls var to decide which column will be processed
 
       ! Local variables:
       integer :: ki, i, k
@@ -10110,7 +10054,7 @@ contains
             qo_x = qo_adv
          end if
          ierr_dummy = ierr
-         call cupEnv(zo, qeso_x, heo_x, heso_x, tn_x, qo_x, po, z1, psur, ierr_dummy, p_itest, itf, ktf, its, ite, kts, kte, indexes_to_process)
+         call cupEnv(zo, qeso_x, heo_x, heso_x, tn_x, qo_x, po, z1, psur, ierr_dummy, p_itest, itf, ktf, its, ite, kts, kte)
          call cupEnvCLev(tn_x, qeso_x, qo_x, heo_x, heso_x, zo, po, qeso_cup_x, qo_cup_x, heo_cup_x, us, vs &
                            , u_cup_x, v_cup_x, heso_cup_x, zo_cup_x, po_cup_x, gammao_cup_x, tn_cup_x, psur &
                            , ierr_dummy, z1, itf, ktf, its, kts)
@@ -10157,7 +10101,7 @@ contains
    subroutine zhangClosure(its, itf, ite, kts, ktf, kte, ktop, kbcon, ierr, psur, us, vs, t_cup, q_cup, zdo, qcdo &
                         ,  tempco, tempcdo, edto, dd_massdetro, up_massdetro, zuo, t_in, tn_bl, tn, q_in, qo_bl, qo, dtime &
                         ,  zo, po, z1, qeso_x, heo_x, heso_x, qeso_cup_x, qo_cup_x, heo_cup_x, u_cup, v_cup, heso_cup_x &
-                        ,  zo_cup, po_cup, gammao_cup_x, tn_cup_x, xk_x, aa1_bl, xland, qco, indexes_to_process) 
+                        ,  zo_cup, po_cup, gammao_cup_x, tn_cup_x, xk_x, aa1_bl, xland, qco) 
       !! ## Zhang (2002) Closure
       !!
       !! Author: Saulo R Freitas
@@ -10236,9 +10180,7 @@ contains
       real, intent(out) :: tn_cup_x(:,:)
       real, intent(out) :: xk_x(:)
       real, intent(out) :: aa1_bl(:)
-      type(vector_t)    :: indexes_to_process
-      !! Vector_index controls var to decide which column will be processed
-   
+ 
 
       ! Local variables:
       integer :: i, k
@@ -10253,7 +10195,7 @@ contains
          qo_x(i, kts:ktf) = qo(i, kts:ktf) - qo_bl(i, kts:ktf) + q_in(i, kts:ktf)
       end do
       !--- calculate moist static energy, heights, qes, ... only by free troposphere tendencies
-      call cupEnv(zo, qeso_x, heo_x, heso_x, tn_x, qo_x, po, z1, psur, ierr, p_itest, itf, ktf, its, ite, kts, kte, indexes_to_process)
+      call cupEnv(zo, qeso_x, heo_x, heso_x, tn_x, qo_x, po, z1, psur, ierr, p_itest, itf, ktf, its, ite, kts, kte)
       !--- environmental values on cloud levels only by FT tendencies
       call cupEnvCLev(tn_x, qeso_x, qo_x, heo_x, heso_x, zo, po, qeso_cup_x, qo_cup_x, heo_cup_x, us, vs, u_cup, v_cup, &
                         heso_cup_x, zo_cup, po_cup, gammao_cup_x, tn_cup_x, psur, ierr, z1, itf, ktf, its, kts)
@@ -10316,7 +10258,7 @@ contains
    subroutine triggerXie(its, ite, itf, kts, kte, ktf, k22, start_level, ktop, kbcon, klcl, t_in, q_in, tn_adv &
                      ,   qo_adv, zuo, xland, psur, us, vs, up_massentro, up_massdetro, dtime, ierr &
                      ,   zo, po, z1, ierrc, qeso_x, heo_x, heso_x, qeso_cup_x, qo_cup_x, heo_cup_x, u_cup_x, v_cup_x &
-                     ,   heso_cup_x, zo_cup_x, po_cup_x, gammao_cup_x, hkbo_x, dbyo_x, tn_cup_x, aaa0_, indexes_to_process) !1937
+                     ,   heso_cup_x, zo_cup_x, po_cup_x, gammao_cup_x, hkbo_x, dbyo_x, tn_cup_x, aaa0_) !1937
       !! ## Trigger function based on Xie et al (2019)
       !!
       !! Author: Saulo  R Freitas
@@ -10390,8 +10332,6 @@ contains
       real, intent(out) :: dbyo_x(:,:)
       real, intent(out) :: tn_cup_x(:,:)
       real, intent(out) :: aaa0_(:)
-       type(vector_t)    :: indexes_to_process
-      !! Vector_index controls var to decide which column will be processed
    
       ! Local variables:
       integer :: i, k, step
@@ -10410,7 +10350,7 @@ contains
             tn_x = tn_adv
             qo_x = qo_adv
          end if
-         call cupEnv(zo, qeso_x, heo_x, heso_x, tn_x, qo_x, po, z1, psur, ierr, p_itest, itf, ktf, its, ite, kts, kte, indexes_to_process)
+         call cupEnv(zo, qeso_x, heo_x, heso_x, tn_x, qo_x, po, z1, psur, ierr, p_itest, itf, ktf, its, ite, kts, kte)
          call cupEnvCLev(tn_x, qeso_x, qo_x, heo_x, heso_x, zo, po, qeso_cup_x, qo_cup_x, heo_cup_x, us, vs &
                            , u_cup_x, v_cup_x, heso_cup_x, zo_cup_x, po_cup_x, gammao_cup_x, tn_cup_x, psur &
                            , ierr, z1, itf, ktf, its, kts)
@@ -11275,7 +11215,7 @@ contains
                            ,   start_level, dd_massdetro, dd_massentro, dtime, edto, fscav, po, po_cup, pw_up_chem &
                            ,   pwavo, pwevo, pwdo, pwo, qrco, sc_up_chem, tempco, tot_pw_up_chem &
                            ,   up_massdetro, up_massentro, vvel2d, xland, zdo, zo_cup, zuo, cumulus &
-                           ,   se_chem, massf, out_chem, pw_dn_chem, sc_dn_chem, se_cup_chem, tot_pw_dn_chem, zenv, indexes_to_process) 
+                           ,   se_chem, massf, out_chem, pw_dn_chem, sc_dn_chem, se_cup_chem, tot_pw_dn_chem, zenv) 
       !! ## section for atmospheric composition
       !!
       !! Author: Rodrigues, L. F. [LFR]
@@ -11349,8 +11289,6 @@ contains
       real, intent(out) :: tot_pw_dn_chem(:,:)
       real, intent(out) :: tot_pw_up_chem(:,:)
       real, intent(out) :: zenv(:,:)
-      type(vector_t)    :: indexes_to_process
-      !! Vector_index controls var to decide which column will be processed
 
       ! Local variables:
       real :: se_chem_update(3, its:ite, kts:kte)
@@ -11741,7 +11679,7 @@ contains
                      , aa1, dhdt, mpcf, mpqi, mpql, omeg, xaa0, xf_coldpool , xf_dicycle, xk_x, xmb, xz , xzu , zws, ierrc &
                      , ierr2, ierr3, cape, dellabuoy, dellah, dellampcf, dellampqi, dellampql, dellaq, dellaqc, dellat, dellu &
                      , dellv, edt, edto, gamma_cup, pr_ens, pwo_eff, subten_h, subten_q, subten_t, trash, trash2, xf_ens &
-                     , xff_mid, xff_shal, zenv, indexes_to_process)
+                     , xff_mid, xff_shal, zenv)
       !! ## Loop in iedt
       !!
       !! Author: Rodrigues, L. F. [LFR]
@@ -11894,8 +11832,6 @@ contains
       real, intent(out) :: xq_cup(:,:)
       real, intent(out) :: xqes_cup(:,:)
       real, intent(out) :: zenv(:,:)
-      type(vector_t)    :: indexes_to_process
-      !! Vector_index controls var to decide which column will be processed
 
       ! Local variables:
       integer :: i, k, nens3, kk, nens
@@ -12068,7 +12004,7 @@ contains
       end do
 
       !--- calculate moist static energy, heights, qes
-      call cupEnv(xz, xqes, xhe, xhes, xt, xq, po, z1, psur, ierr, p_itest, itf, ktf, its, ite, kts, kte, indexes_to_process)
+      call cupEnv(xz, xqes, xhe, xhes, xt, xq, po, z1, psur, ierr, p_itest, itf, ktf, its, ite, kts, kte)
 
       !--- environmental values on cloud levels
       call cupEnvCLev(xt, xqes, xq, xhe, xhes, xz, po, xqes_cup, xq_cup, xhe_cup, us, vs, u_cup, v_cup, xhes_cup, xz_cup &

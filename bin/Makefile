@@ -5,7 +5,7 @@ SRC=../src
 UTILS=$(SRC)/utils
 
 
-F_OPTS=-O0 -g -fcheck=bounds -fbacktrace -ffree-line-length-200 -Wall -fdefault-real-8 -w
+F_OPTS=-O0 -g -fcheck=bounds -fbacktrace -ffree-line-length-200 -fdefault-real-8 # -Wall -w  -std=f95 -> erro a partir do padrao 95
 
 BASE=gf
 EXE=$(BASE).x

@@ -10,7 +10,7 @@
 #   exit
 #fi
  
-DIRHOME=/home/renato/Documentos/repo_MONAN/GF_standalone
+DIRHOME=$PWD/..
 SCRIPTS=${DIRHOME}/scripts
 DATAOUT=${DIRHOME}/dataout
 DATAIN=${DIRHOME}/datain
