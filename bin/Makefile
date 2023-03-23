@@ -38,7 +38,6 @@ intel:
 	"F_OPTS = $(INTEL_OPTS)" )
 
 all:	$(BIN)/$(EXE)
-	echo $(COMP)
 
 $(BIN)/$(EXE):	$(BIN)/$(ARC)
 	$(COMP) $(F_OPTS) $< -o $@

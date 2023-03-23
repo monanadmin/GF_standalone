@@ -22,7 +22,7 @@ cd ${BIN}
 rm -f ${BIN}/gf.x
 echo "Compilando"
 #make clean
-make 
+make gnu
 sleep 3
 
 
