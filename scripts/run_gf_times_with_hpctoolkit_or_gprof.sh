@@ -8,7 +8,7 @@
 #
 # Date: 2023/02/08 
 #
-# Version: TODO -> numero_da_versão_em_git_flow
+# Version: TODO -> USAR VERSÃO DA RELEASE, QUANDO FOR GERADA
 #
 
 # Full description

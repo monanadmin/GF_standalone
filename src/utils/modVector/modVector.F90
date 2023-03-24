@@ -99,22 +99,20 @@ contains
 
 
   ! Insert a value at end of the vector
-  ! TODO - change data to index_value 
-  subroutine insert(data)
-    type(data_t), intent(in) :: data
+  subroutine insert(index_value_param)
+    integer, intent(in) :: index_value_param
 
     instance%num_elements = instance%num_elements + 1
-    instance%vector(instance%num_elements) = data
+    instance%vector(instance%num_elements)%index_value = index_value_param
   end subroutine insert
 
 
   ! Store the encoded data the index_data position
-  ! TODO - change data to index_value 
-  subroutine vector_put(data, data_index)
-    type(data_t), intent(in) :: data
+  subroutine vector_put(index_value_param, data_index)
+    integer, intent(in) :: index_value_param
     integer, intent(in) :: data_index
 
-    instance%vector(data_index) = data
+    instance%vector(data_index)%index_value = index_value_param
   end subroutine vector_put
 
 

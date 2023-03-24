@@ -6,4 +6,4 @@ Pasta com scripts auxiliares para execução do gf
     - env_hpctoolkit.sh
     - submit_hpctoolkit_from_script_run_gf_times.sbatch
 - GF_standalone.sh					- Script que compila e executa o codigo GF_StandAlone localmente
-- run.csh						- ? ToDO
+- run.csh						  - Executa o gf com uma configuração definida no script e compara com a referência

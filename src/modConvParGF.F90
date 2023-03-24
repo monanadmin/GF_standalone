@@ -3501,7 +3501,6 @@ contains
             psum(i) = psum(i) + clw_all(i, k)*zu(i, k)*dz
          end do
          if (pwav(i) < 0.) then
-            ! TODO - verificar casos onde o vetor está vazio
             is_removed_dummy = remove(i)
             ierr(i) = 66
             ierrc(i) = "pwav negative"
