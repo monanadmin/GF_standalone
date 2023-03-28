@@ -1,56 +1,75 @@
-DSRC2=../src
+# Novo Makefile, preparado para compilar com gfortran e intel:
+#
+# Usage: make usage, ou apenas make
+#
+#			make gnu		:: para compilar com gfortran
+#			make intel  :: para compilar com ifort
+#
+# Carlos Renato
+# 2023/mar
+#-------------------------------------------------------------------
 
-F_COMP=gfortran
-F_OPTS= -O0 -g -fcheck=bounds -fbacktrace -ffree-line-length-200 -Wall -fdefault-real-8
-
-LOADER=$(F_COMP)
-LOADER_OPTS=-v #-Bstatic -check_bounds -traceback #-Mlarge_arrays
-ARCHIVE=ar rs
-
-# Compiler commands.
-
-F_COMMAND = $(F_COMP) -c $(F_OPTS) $(INCLUDES)
-
-# Define archive and executable names.
+BIN=../bin
+SRC=../src
+UTILS=$(SRC)/utils
 
 BASE=gf
 EXE=$(BASE).x
 ARC=$(BASE).a
 
-# Define source.
-F_SRC=  $(DSRC2)/modConstants.F90 \
-	$(DSRC2)/modHenrysLawCts.F90 \
-	$(DSRC2)/modGate.F90 \
-	$(DSRC2)/modConvParGF.F90 \
-	$(DSRC2)/1d-gf-test.f90 	
+# Opcoes para o compilador gfortran:
+GNU_OPTS=-O0 -g -fcheck=bounds -fbacktrace -ffree-line-length-200 -fdefault-real-8
 
-# Define targets.
+# Opcoes para o compilador ifort:
+INTEL_OPTS=-O0 -g -check bounds -traceback -check uninit -r8 -free
 
-all: $(EXE)
+dummy:
+	@$(MAKE) usage --no-print-directory
 
-$(EXE): $(ARC) 
-	$(LOADER) -o $(EXE) $(LOADER_OPTS) $(ARC) $(LIB_IFS)
+gnu:
+	@( $(MAKE) all --no-print-directory \
+	"COMP = gfortran" \
+	"F_OPTS = $(GNU_OPTS)" )
 
-	rm -f r*.o
+intel:
+	@( $(MAKE) all --no-print-directory \
+	"COMP = ifort" \
+	"F_OPTS = $(INTEL_OPTS)" )
 
-$(ARC): $(F_SRC)
-	$(F_COMMAND) $(?)
-	$(ARCHIVE) $(ARC) *.o
+all:	$(BIN)/$(EXE)
 
-install:
-	ln -fs $(pwd)/$(EXE) ../$(BASE)
+$(BIN)/$(EXE):	$(BIN)/$(ARC)
+	$(COMP) $(F_OPTS) $< -o $@
+
+$(BIN)/$(ARC):	$(BIN)/1d-gf-test.o $(BIN)/modConvParGF.o $(BIN)/modConstants.o $(BIN)/modGate.o $(BIN)/modHenrysLawCts.o $(BIN)/modVector.o 
+	ar rs $@ $(BIN)/*.o
+
+$(BIN)/1d-gf-test.o: $(SRC)/1d-gf-test.f90 $(BIN)/modGate.o $(BIN)/modConvParGF.o 
+	$(COMP) $(F_OPTS) -c $< -o $@
+
+$(BIN)/modConvParGF.o: $(SRC)/modConvParGF.F90 $(BIN)/modConstants.o $(BIN)/modGate.o $(BIN)/modHenrysLawCts.o $(BIN)/modVector.o
+	$(COMP) $(F_OPTS) -c $< -o $@
+
+$(BIN)/modConstants.o:	$(SRC)/modConstants.F90
+	$(COMP) $(F_OPTS) -c $< -o $@
+
+$(BIN)/modGate.o:	$(SRC)/modGate.F90
+	$(COMP) $(F_OPTS) -c $< -o $@
+
+$(BIN)/modHenrysLawCts.o:	$(SRC)/modHenrysLawCts.F90
+	$(COMP) $(F_OPTS) -c $< -o $@
+
+$(BIN)/modVector.o:	$(UTILS)/modVector/modVector.F90
+	$(COMP) $(F_OPTS) -c $< -o $@
 
 clean:
-	rm -f $(ARC) $(EXE) $(BASE) *.o  ___* core* *.mod *.a
+	rm -f $(BIN)/*.x $(BIN)/*.o $(BIN)/*.a $(BIN)/*.mod
 
-modConstants.o : $(DSRC2)/modConstants.F90
-
-modGate.o : $(DSRC2)/modGate.F90 modConstants.o
-
-modHenrysLawCts.o : $(DSRC2)/modHenrysLawCts.F90 modConstants.o
-
-modConvParGF.o : $(DSRC2)/modConvParGF.F90 modConstants.o modGate.o modHenrysLawCts.o
-
-1d-gf-test.o : $(DSRC2)/1d-gf-test.f90 modConstants.o modConvParGF.o
-
-
+usage:
+	@echo ""
+	@echo "Usage: $(MAKE) <target> "
+	@echo ""
+	@echo "Example targets:"
+	@echo "                 gnu"
+	@echo "                 intel"
+	@echo ""

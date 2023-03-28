@@ -63,6 +63,7 @@ module modConvParGF
                         ,  c_rgas_atm, c_hplus, c_r2es, c_r3les, c_r4ies, c_r4les, c_retv &
                         ,  c_rticecu, c_rtwat_rticecu_r, c_r3ies, c_r5alscp, c_r5alvcp, c_ralsdcp &
                         ,  c_ralvdcp, c_rtice, c_rtwat_rtice_r, i8, r8
+   use modVector, only: get_num_elements, get_index_value, init, insert_range, remove, free_memory, print_all
 
    implicit none
 
@@ -926,6 +927,8 @@ contains
             , dzlcl, zlll, trash2, ke_mx, min_deep_top, min_shall_top
 
       character(len=128) :: ierrc(its:ite)
+      
+      integer           :: vec_max_size
 
       !----------------------------------------------------------------------
       !--only for debug
@@ -942,6 +945,13 @@ contains
          end if
       end if
  
+      ! Init the vector with the all indexes to process
+      vec_max_size = ite - its + 1
+      call init(vec_max_size)
+      
+      ! Insert (initially) all the indexes to process in the vector 
+      call insert_range(its, ite)
+      
       !--- maximum depth (mb) of capping inversion (larger cap = no convection)
       if (MOIST_TRIGGER == 0) then
          if (trim(cumulus) == 'deep') then
@@ -2030,7 +2040,7 @@ contains
                            ,   start_level, dd_massdetro, dd_massentro, dtime, edto, fscav, po, po_cup, pw_up_chem &
                            ,   pwavo, pwevo, pwdo, pwo, qrco, sc_up_chem, tempco, tot_pw_up_chem &
                            ,   up_massdetro, up_massentro, vvel2d, xland, zdo, zo_cup, zuo, cumulus &
-                           ,   se_chem, massf, out_chem, pw_dn_chem, sc_dn_chem, se_cup_chem, tot_pw_dn_chem, zenv)
+                           ,   se_chem, massf, out_chem, pw_dn_chem, sc_dn_chem, se_cup_chem, tot_pw_dn_chem, zenv )
       end if 
       !--------------------------------------------------------------------------------------------!
 
@@ -2521,7 +2531,7 @@ contains
       !! environmental saturation mixing ratio
 
       !Local variables
-      integer :: i, k
+      integer :: i, k, vtp_index
       !real, dimension (1:2) :: ae,be,ht
 
       real, dimension(its:ite, kts:kte) :: tv
@@ -2534,38 +2544,47 @@ contains
       he = 0.0
       hes = 0.0
       qes = 0.0
-
+      
+      
+      ! loop modificado com vetor de indices >--------------------------------------
       if (SATUR_CALC == 0) then
          do k = kts, ktf
-            do i = its, itf
-               if (ierr(i) .eq. 0) then
-
-                  e_sat = SatVap(temp_env(i, k))
-                  qes(i, k) = 0.622*e_sat/max(1.e-8, (press_env(i, k) - e_sat))
-
-                  if (qes(i, k) .le. 1.e-08) qes(i, k) = 1.e-08
-                  if (qes(i, k) .gt. c_max_qsat) qes(i, k) = c_max_qsat
-                  if (qes(i, k) .lt. mixratio_env(i, k)) qes(i, k) = mixratio_env(i, k)
-                  !       IF(Q(I,K).GT.QES(I,K))Q(I,K)=QES(I,K)
-                  tv(i, k) = temp_env(i, k) + .608*mixratio_env(i, k)*temp_env(i, k)
-               end if
+            do vtp_index = 1, get_num_elements()
+               !CR: antiga variavel de controle do laco "i" recebe o indice armazenado na 
+               ! posicao vtp_index do vetor module vector
+               i=get_index_value(vtp_index)
+               e_sat = SatVap(temp_env(i, k))
+               qes(i, k) = 0.622*e_sat/max(1.e-8, (press_env(i, k) - e_sat))
+               if (qes(i, k) .le. 1.e-08) qes(i, k) = 1.e-08
+               if (qes(i, k) .gt. c_max_qsat) qes(i, k) = c_max_qsat
+               if (qes(i, k) .lt. mixratio_env(i, k)) qes(i, k) = mixratio_env(i, k)
+               !IF(Q(I,K).GT.QES(I,K))Q(I,K)=QES(I,K)
+               tv(i, k) = temp_env(i, k) + .608*mixratio_env(i, k)*temp_env(i, k)
             end do
          end do
       else
          !--- better formulation for the mixed phase regime
          do k = kts, ktf
-            do i = its, itf
-               if (ierr(i) .eq. 0) then
-                  pqsat = SaturSpecHum(temp_env(i, k), press_env(i, k))
-                  qes(i, k) = pqsat
-                  !print*,"qes=",k,p(i,k),1000*qes(i,k),1000*pqsat
-                  qes(i, k) = min(c_max_qsat, max(1.e-08, qes(i, k)))
-                  qes(i, k) = max(qes(i, k), mixratio_env(i, k))
-                  tv(i, k) = temp_env(i, k) + .608*mixratio_env(i, k)*temp_env(i, k)
-               end if
+            do vtp_index = 1, get_num_elements()
+               !CR: antiga variavel de controle do laco "i" recebe o indice armazenado na 
+               !    posicao vtp_index do vetor do module vector
+               i=get_index_value(vtp_index)
+               !CR: processamento normal:
+               pqsat = SaturSpecHum(temp_env(i, k), press_env(i, k))
+               qes(i, k) = pqsat
+               !print*,"qes=",k,p(i,k),1000*qes(i,k),1000*pqsat
+               qes(i, k) = min(c_max_qsat, max(1.e-08, qes(i, k)))
+               qes(i, k) = max(qes(i, k), mixratio_env(i, k))
+               tv(i, k) = temp_env(i, k) + .608*mixratio_env(i, k)*temp_env(i, k)
             end do
          end do
       end if
+      ! <---------------------------------------------------------------------------
+      
+      
+      
+      
+      
 
       !--- z's are calculated with changed h's and q's and t's
       !--- if itest=2
@@ -3228,6 +3247,7 @@ contains
       real :: qaver, denom, aux, cx0, cbf, qrc_crit_bf, min_liq
       real :: delt, tem1, qrc_0, cup
       real :: qrch
+      logical :: is_removed_dummy
       !! saturation q in cloud
 
       !--- no precip for small clouds
@@ -3481,6 +3501,7 @@ contains
             psum(i) = psum(i) + clw_all(i, k)*zu(i, k)*dz
          end do
          if (pwav(i) < 0.) then
+            is_removed_dummy = remove(i)
             ierr(i) = 66
             ierrc(i) = "pwav negative"
          end if
@@ -10014,6 +10035,7 @@ contains
       real, intent(out) :: dbyo_x(:,:)
       real, intent(out) :: aa1_radpbl(:)
       real, intent(out) :: aa1_adv(:)
+
       ! Local variables:
       integer :: ki, i, k
       integer, dimension(its:ite) :: ierr_dummy
@@ -10160,7 +10182,7 @@ contains
       real, intent(out) :: tn_cup_x(:,:)
       real, intent(out) :: xk_x(:)
       real, intent(out) :: aa1_bl(:)
-   
+ 
 
       ! Local variables:
       integer :: i, k

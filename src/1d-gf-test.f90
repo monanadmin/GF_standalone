@@ -462,6 +462,7 @@ init_stat = initModConvParGF()
        !print*," ====================================================================="
        !print*,"Sounding =",jl
                
+      
        CALL convParGFDriver(mxp,myp,KLEV_LOCAL,n_aer,p_nmp, time, itime1 &
               ,its,ite, jts,jte, kts,kte                        & 
 	          ,flip        &

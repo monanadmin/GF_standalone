@@ -2,16 +2,13 @@
 
 # Script que compila e executa o codigo GF_StandAlone:
 
-#if [ $# -ne 1 ]
-#then
-#   echo ""
-#   echo "/scripts/clima/tools/makeproj [PROJECT root name]"
-#   echo ""
-#   exit
-#fi
- 
+# Usage: 
+#
+#        ./GF_standalone.sh gnu    :: para compilar com gfortran (default)
+#        ./GF_standalone.sh intel  :: para compilar com ifort
 
-DIRHOME=$(pwd)/..
+
+DIRHOME=$PWD/..
 SCRIPTS=${DIRHOME}/scripts
 DATAOUT=${DIRHOME}/dataout
 DATAIN=${DIRHOME}/datain
@@ -19,11 +16,23 @@ SRC=${DIRHOME}/src
 BIN=${DIRHOME}/bin
 
 
-cd ${BIN}
+# Verificando o argumento de entrada
+if [ -z "${1}" ]
+then
+  echo "Compiler is not set: gnu or intel"
+  echo "gnu is set by default" 
+  COMPILER='gnu'
+else
+  COMPILER=`echo $1 | awk '{print $1}' `
+fi
+  
+echo "COMPILER=$COMPILER"
 
+cd ${BIN}
+rm -f ${BIN}/gf.x
 echo "Compilando"
 #make clean
-make 
+make $COMPILER
 sleep 3
 
 
