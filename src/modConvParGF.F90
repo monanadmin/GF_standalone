@@ -2589,27 +2589,24 @@ contains
       !--- z's are calculated with changed h's and q's and t's
       !--- if itest=2
       if (itest .eq. 1 .or. itest .eq. 0) then
-         do i = its, itf
-            if (ierr(i) .eq. 0) then
+            do vtp_index = 1, get_num_elements()
+               i = get_index_value(vtp_index)
                z_heights(i, 1) = max(0., z1(i)) - (Alog(press_env(i, 1)) - Alog(psur(i)))*287.*tv(i, 1)/c_grav
-            end if
-         end do
+            end do
          ! --- calculate heights
          do k = kts + 1, ktf
-            do i = its, itf
-               if (ierr(i) .eq. 0) then
-                  tvbar = .5*tv(i, k) + .5*tv(i, k - 1)
-                  z_heights(i, k) = z_heights(i, k - 1) - (Alog(press_env(i, k)) - Alog(press_env(i, k - 1)))*287.*tvbar/c_grav
-               end if
+            do vtp_index = 1, get_num_elements()
+               i = get_index_value(vtp_index)
+               tvbar = .5*tv(i, k) + .5*tv(i, k - 1)
+               z_heights(i, k) = z_heights(i, k - 1) - (Alog(press_env(i, k)) - Alog(press_env(i, k - 1)))*287.*tvbar/c_grav
             end do
          end do
       else if (itest .eq. 2) then
          do k = kts, ktf
-            do i = its, itf
-               if (ierr(i) .eq. 0) then
-                  z_heights(i, k) = (he(i, k) - 1004.*temp_env(i, k) - 2.5e6*mixratio_env(i, k))/c_grav
-                  z_heights(i, k) = max(1.e-3, z_heights(i, k))
-               end if
+            do vtp_index = 1, get_num_elements()
+               i = get_index_value(vtp_index)
+               z_heights(i, k) = (he(i, k) - 1004.*temp_env(i, k) - 2.5e6*mixratio_env(i, k))/c_grav
+               z_heights(i, k) = max(1.e-3, z_heights(i, k))
             end do
          end do
       else if (itest .eq. -1) then
@@ -2618,8 +2615,8 @@ contains
       !--- calculate moist static energy - HE
       !    saturated moist static energy - HES
       do k = kts, ktf
-         do i = its, itf
-            if (ierr(i) /= 0) cycle
+         do vtp_index = 1, get_num_elements()
+            i = get_index_value(vtp_index)
             if (itest .le. 0) he(i, k) = c_grav*z_heights(i, k) + real(c_cp)*temp_env(i, k) + real(c_alvl)*mixratio_env(i, k)
             hes(i, k) = c_grav*z_heights(i, k) + real(c_cp)*temp_env(i, k) + real(c_alvl)*qes(i, k)
             if (he(i, k) .ge. hes(i, k)) he(i, k) = hes(i, k)
