@@ -2704,7 +2704,7 @@ contains
       real, intent(out) :: v_cup(:, :)
 
       !Local variables:
-      integer :: i, k
+      integer :: i, k, vtp_index 
       real  :: p1, p2, ct1, ct2
 
       qes_cup = 0.
@@ -2737,6 +2737,7 @@ contains
 
             end do
          end do
+         !CR:
          do i = its, itf
             if (ierr(i) /= 0) cycle
             qes_cup(i, 1) = qes(i, 1)
@@ -2761,6 +2762,7 @@ contains
          !enddo
       elseif (CLEV_GRID == 0) then
          !--- weigthed mean
+         !DE:
          do i = its, itf
             if (ierr(i) /= 0) cycle
             p_cup(i, 1) = psur(i)
@@ -2819,8 +2821,13 @@ contains
          end do
       elseif (CLEV_GRID == 1) then
          !--- based on Tiedke (1989)
-         do i = its, itf
-            if (ierr(i) /= 0) cycle
+         !EB:
+       !  do i = its, itf
+       !     if (ierr(i) /= 0) cycle
+         do vtp_index = 1, get_num_elements()
+               !CR: antiga variavel de controle do laco "i" recebe o indice armazenado na 
+               !    posicao vtp_index do vetor do module vector
+            i=get_index_value(vtp_index)
             do k = ktf, kts + 1, -1
 
                qes_cup(i, k) = qes(i, k)
