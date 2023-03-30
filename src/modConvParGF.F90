@@ -2763,8 +2763,8 @@ contains
       elseif (CLEV_GRID == 0) then
          !--- weigthed mean
          !DE:
-         do i = its, itf
-            if (ierr(i) /= 0) cycle
+         do vtp_index = 1, get_num_elements()
+            i=get_index_value(vtp_index)
             p_cup(i, 1) = psur(i)
             z_cup(i, 1) = z1(i)
             do k = kts, ktf - 1
