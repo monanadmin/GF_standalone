@@ -1160,17 +1160,19 @@ contains
          start_k22 = 2
       end if
       k22(:) = kts
-      !DE:
-      do i = its, itf
-         if (ierr(i) /= 0) cycle
+      !DE: done
+      do vtp_index = 1, get_num_elements()
+         i=get_index_value(vtp_index)
          k22(i) = maxloc(heo_cup(i, start_k22:kbmax(i) + 1), 1) + start_k22 - 1
          k22(i) = max(k22(i), start_k22)
          if (trim(cumulus) == 'shallow') then
             k22(i) = min(2, k22(i))
 
             if (K22(i) .gt. kbmax(i)) then
-               ierr(i) = 2
-               ierrc(i) = "could not find k22"
+               if(remove(i)) then
+                  ierr(i) = 2
+                  ierrc(i) = "could not find k22"
+               endif
             end if
          else
             if (k22(i) > kbmax(i)) then
@@ -2767,7 +2769,7 @@ contains
          !enddo
       elseif (CLEV_GRID == 0) then
          !--- weigthed mean
-         !DE:
+         !DE: done
          do vtp_index = 1, get_num_elements()
             i=get_index_value(vtp_index)
             p_cup(i, 1) = psur(i)
@@ -2826,9 +2828,7 @@ contains
          end do
       elseif (CLEV_GRID == 1) then
          !--- based on Tiedke (1989)
-         !EB:
-       !  do i = its, itf
-       !     if (ierr(i) /= 0) cycle
+         !EB: done
          do vtp_index = 1, get_num_elements()
                !CR: antiga variavel de controle do laco "i" recebe o indice armazenado na 
                !    posicao vtp_index do vetor do module vector
