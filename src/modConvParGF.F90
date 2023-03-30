@@ -928,7 +928,7 @@ contains
 
       character(len=128) :: ierrc(its:ite)
       
-      integer           :: vec_max_size
+      integer           :: vec_max_size, vtp_index
 
       !----------------------------------------------------------------------
       !--only for debug
@@ -1122,6 +1122,7 @@ contains
                     , po_cup, gammao_cup, tn_cup, psur, ierr, z1, itf, ktf, its, kts)
 
       !--- get air density at full layer (model levels) by hydrostatic balance (kg/m3)
+      !EK:
       do i = its, itf
          rho_hydr(i, :) = 0.0
          if (ierr(i) /= 0) cycle
@@ -1134,8 +1135,9 @@ contains
       !--- partition between liq/ice cloud contents
       call getPartitionLiqIce(ierr, tn, po_cup, p_liq_ice, melting_layer, itf, ktf, its, ite, kts, cumulus)
 
-      do i = its, itf
-         if (ierr(i) /= 0) cycle
+      !CR:
+      do vtp_index = 1, get_num_elements()
+         i=get_index_value(vtp_index)
          do k = kts, ktf
             if (zo_cup(i, k) .gt. zkbmax + z1(i)) then
                kbmax(i) = k
@@ -1158,6 +1160,7 @@ contains
          start_k22 = 2
       end if
       k22(:) = kts
+      !DE:
       do i = its, itf
          if (ierr(i) /= 0) cycle
          k22(i) = maxloc(heo_cup(i, start_k22:kbmax(i) + 1), 1) + start_k22 - 1
@@ -1183,6 +1186,7 @@ contains
       call precipCwvFactor(itf, ktf, its, ite, kts, ierr, tn, po, qo, po_cup, cumulus, p_cwv_ave)
 
       !------- determine LCL for the air parcels around K22
+      !EK:
       do i = its, itf
          klcl(i) = k22(i) ! default value
          if (ierr(i) == 0) then
@@ -2737,9 +2741,10 @@ contains
 
             end do
          end do
-         !CR:
-         do i = its, itf
-            if (ierr(i) /= 0) cycle
+         
+         !CR: done
+         do vtp_index = 1, get_num_elements()
+            i=get_index_value(vtp_index)
             qes_cup(i, 1) = qes(i, 1)
             q_cup(i, 1) = q(i, 1)
             !hes_cup(i,1)=hes(i,1)
@@ -6530,23 +6535,25 @@ contains
       real, intent(inout) :: melting_layer(:, :)
 
       !Local variables:
-      integer :: i, k
+      integer :: i, k, vtp_index
       real :: dp
       real, dimension(its:ite) :: norm
    
       p_liq_ice(:, :) = 1.
       melting_layer(:, :) = 0.
       !-- get function of T for partition of total condensate into liq and ice phases.
+      !CR:
       if (p_melt_glac .and. trim(cumulus) == 'deep') then
          do k = kts, ktf
-            do i = its, itf
-               if (ierr(i) /= 0) cycle
+            do vtp_index = 1, get_num_elements()
+               i=get_index_value(vtp_index)
                p_liq_ice(i, k) = FractLiqF(tn(i, k))
             end do
          end do
 
          !-- define the melting layer (the layer will be between T_0+1 < TEMP < T_1
          !-- definition em terms of temperatura
+         !DE:
          do k = kts, ktf
             do i = its, itf
                if (ierr(i) /= 0) cycle
@@ -6587,12 +6594,14 @@ contains
          !-normalize vertical integral of melting_layer to 1
          norm(:) = 0.
          do k = kts, ktf - 1
+            !EB:
             do i = its, itf
                if (ierr(i) /= 0) cycle
                dp = 100.*(po_cup(i, k) - po_cup(i, k + 1))
                norm(i) = norm(i) + melting_layer(i, k)*dp/c_grav
             end do
          end do
+         !EK:
          do i = its, itf
             if (ierr(i) /= 0) cycle
             melting_layer(i, :) = melting_layer(i, :)/(norm(i) + 1.e-6)*(100*(po_cup(i, kts) - po_cup(i, ktf))/c_grav)
@@ -7981,7 +7990,7 @@ contains
       real, intent(out)  :: p_cwv_ave(:)
       
       !Local variables:
-      integer :: i, k
+      integer :: i, k, vtp_index
       real :: dp, trash
       real, dimension(its:ite) :: w_col, w_ccrit, t_troposph
 
@@ -7989,6 +7998,7 @@ contains
       if (trim(cumulus) /= 'deep') return
 
       !-- get the pickup of ensemble ave prec, following Neelin et al 2009.
+      !EB:
       do i = its, itf
          w_col(i) = 0.
          w_ccrit(i) = 0.
