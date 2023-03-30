@@ -3510,9 +3510,10 @@ contains
             psum(i) = psum(i) + clw_all(i, k)*zu(i, k)*dz
          end do
          if (pwav(i) < 0.) then
-            is_removed_dummy = remove(i)
-            ierr(i) = 66
-            ierrc(i) = "pwav negative"
+            if(remove(i)) then
+               ierr(i) = 66
+               ierrc(i) = "pwav negative"
+            endif
          end if
       end do
 
