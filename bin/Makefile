@@ -18,7 +18,7 @@ EXE=$(BASE).x
 ARC=$(BASE).a
 
 # Opcoes para o compilador gfortran:
-GNU_OPTS=-O0 -g -fcheck=bounds -fbacktrace -ffree-line-length-200 -fdefault-real-8
+GNU_OPTS=-O0 -g -fcheck=bounds -fbacktrace -ffree-line-length-200 #-fdefault-real-8
 
 # Opcoes para o compilador ifort:
 INTEL_OPTS=-O0 -g -check bounds -traceback -check uninit -r8 -free

@@ -59,8 +59,10 @@ program  gf_test
       write(ctime,fmt="(I4.4)") int(local_time)
       inquire (file="gf_dataIn-"//ctime//".bin", exist=exists)
       if (.not. exists) then
-         print *,"Arquivo gf_dataIn-"//ctime//".bin nao encontrado. Encerrando!"
-         stop "!!!"
+         print *,"Não foram encontrados mais arquivos a serem processados no tempo", int(local_time)
+         print *,"***** Fim da execução *****"
+         
+         exit
       end if
       print *, icnt,"Abrindo e lendo arquivo gf_dataIn-"//ctime//".bin"
       open(newunit = l_unit,file = "gf_dataIn-"//ctime//".bin",ACCESS = "stream", action="read", status="old")
@@ -301,7 +303,7 @@ program  gf_test
    !                   )
 
 
-
+        print*, "Processando GF"
         CALL convParGFDriver(mxp,myp,mzp,mtp ,nmp, time, itime1 &
                        ,its,ite, jts,jte, kts,kte   &
 		                 ,flip        &
@@ -418,8 +420,8 @@ program  gf_test
       glat= lats*180./3.14159
 
       rec_size = mxp*myp*4
-      print *, rec_size
-      open(newunit = l_unit, file="gf_dataOut-"//ctime//".gra", form='unformatted', &
+      ! print *, rec_size
+      open(newunit = l_unit, file="../dataout/gf_dataOut-"//ctime//".gra", form='unformatted', &
                access='direct', status='replace', recl=rec_size)
       irec=1
       do nz=1,mzp
@@ -453,7 +455,7 @@ program  gf_test
       write(l_unit,rec=irec) conprr(:,:)
       close(l_unit)
 
-      open(newunit = l_unit, file="gf_dataOut-"//ctime//".ctl", action='write', status='replace')
+      open(newunit = l_unit, file="../dataout/gf_dataOut-"//ctime//".ctl", action='write', status='replace')
 
         write(l_unit,*) 'dset ^'//"gf_dataOut-"//ctime//".gra"
         !writing others infos to ctl
