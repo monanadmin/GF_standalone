@@ -1125,6 +1125,7 @@ contains
       !EK:
       do i = its, itf
          rho_hydr(i, :) = 0.0
+         print *,"1 - 1128 cycle" 
          if (ierr(i) /= 0) cycle
          do k = kts, ktf
             rho_hydr(i, k) = 100.*(po_cup(i, k) - po_cup(i, k + 1))/(zo_cup(i, k + 1) - zo_cup(i, k))/c_grav
@@ -1170,6 +1171,7 @@ contains
 
             if (K22(i) .gt. kbmax(i)) then
                if(remove(i)) then
+                  print *, "2 - 1173 remove 2"  
                   ierr(i) = 2
                   ierrc(i) = "could not find k22"
                endif
@@ -1191,6 +1193,7 @@ contains
       !EK:
       do i = its, itf
          klcl(i) = k22(i) ! default value
+         print *, "3 - 1194 ==0" 
          if (ierr(i) == 0) then
             !tlll, rlll,plll - temp, water vapor and pressure of the source air parcel
             x_add = max(0., zqexec(i))
@@ -1219,8 +1222,10 @@ contains
       !-- check if LCL height is below PBL height to allow shallow convection
       if (LCL_TRIGGER > 0 .and. trim(cumulus) == 'shallow') then
          do i = its, itf
+            print *, "4 - 1222 cycle" 
             if (ierr(i) /= 0) cycle
             if (klcl(i) > max(1, kpbl(i) - LCL_TRIGGER)) then
+               print *, "5 - 1224 remove 21" 
                ierr(i) = 21
                ierrc(i) = 'for shallow convection:  LCL height < PBL height'
             end if
@@ -1249,6 +1254,7 @@ contains
       do i = its, itf
          entr_rate_2d(i, :) = entr_rate(i)
          cd(i, :) = entr_rate(i)
+         print *, "6 - 1252 cycle" 
          if (ierr(i) /= 0) cycle
 
          if (trim(cumulus) /= 'shallow') then
@@ -1296,6 +1302,7 @@ contains
 
       !--- determine the moist static energy of air parcels at source level
       do i = its, itf
+         print *, "7 - 1299 cycle" 
          if (ierr(i) /= 0) cycle
          x_add = (real(c_alvl)*zqexec(i) + real(c_cp)*ztexec(i)) + x_add_buoy(i)
          call getCloudBc(kts, ktf, xland(i), po(i, kts:kte), he_cup(i, kts:kte), hkb(i), k22(i), x_add &
@@ -1317,6 +1324,7 @@ contains
       else
          do i = its, itf
             sig(i) = 0.
+            print *, "8 - 1320 cycle" 
             if (ierr(i) /= 0) cycle
             !--original
             !sig(i) = 1.0-0.9839*exp(-0.09835.  *(dx(i)/1000.))
@@ -1346,6 +1354,7 @@ contains
 
       !--- update hkb/hkbo in case of k22 is redefined in 'cup_kbon'
       do i = its, itf
+         print *, "9 - 1349 cycle" 
          if (ierr(i) /= 0) cycle
          x_add = (real(c_alvl)*zqexec(i) + real(c_cp)*ztexec(i)) + x_add_buoy(i)
          call getCloudBc(kts, ktf, xland(i), po(i, kts:kte), he_cup(i, kts:kte), hkb(i), k22(i), x_add &
@@ -1364,6 +1373,7 @@ contains
             call getInversionLayers(cumulus, ierr, psur, po_cup, tn_cup, zo_cup, k_inv_layers, dtempdz, itf, ktf, its, ite &
                                   , kts, kte)
             do i = its, itf
+               print *, "10 - 1367 cycle" 
                if (ierr(i) /= 0) cycle
                ktop(i) = min(ktop(i), k_inv_layers(i, p_mid))
                !print*,"ktop=",ktop(i),k_inv_layers(i,mid)
@@ -1372,9 +1382,11 @@ contains
 
          !-- check if ktop is above 450hPa layer for mid convection
          do i = its, itf
+            print *, "11 - 1375 cycle" 
             if (ierr(i) /= 0) cycle
             !print*,"sta=",Kbcon(i),kstabm(i),kstabi(i),p_cup(i,ktop(i)),z_cup(i,kstabi(i))
             if (po_cup(i, ktop(i)) < 450.) then
+               print *, "12 - 1378 remove 25"  
                ierr(i) = 25
                ierrc(i) = 'mid convection with cloud top above 450 hPa (~ 7km asl)'
             end if
@@ -1382,8 +1394,10 @@ contains
 
          !-- check if ktop is below 750hPa layer for mid convection
          do i = its, itf
+            print *, "13 - 1385 cycle" 
             if (ierr(i) /= 0) cycle
             if (po_cup(i, ktop(i)) > 750.) then
+               print *, "14 - 1387 remove 55" 
                ierr(i) = 55
                ierrc(i) = 'ktop too low for mid'
             end if
@@ -1395,6 +1409,7 @@ contains
             call getInversionLayers(cumulus, ierr, psur, po_cup, tn_cup, zo_cup, k_inv_layers, dtempdz, itf, ktf, its, ite, kts &
                                   , kte)
             do i = its, itf
+               print *, "15 1398 cycle" 
                if (ierr(i) /= 0) cycle
                ktop(i) = min(ktop(i), k_inv_layers(i, p_shal))
             end do
@@ -1402,10 +1417,12 @@ contains
 
          !--- Check if ktop is above 700hPa layer for shallow convection
          do i = its, itf
+            print *, "16 - 1405 cycle"  
             if (ierr(i) /= 0) cycle
             min_shall_top = 700.
             !if(icumulus_gf(mid) == 0) min_shall_top=500.
             if (po_cup(i, ktop(i)) < min_shall_top) then
+               print *, "17 - 1409 remove 26" 
                ierr(i) = 26
                ierrc(i) = 'shallow convection wit h cloud top above min_shall_top hPa'
             end if
@@ -1414,6 +1431,7 @@ contains
 
       do i = its, itf
          if (ktop(i) <= kbcon(i)) then
+            print *, "18 - 1417 remove 5" 
             ierr(i) = 5
             ierrc(i) = 'ktop too small'
          end if
@@ -1423,8 +1441,10 @@ contains
          min_deep_top = 500.
          if (ICUMULUS_GF(p_mid) == 0) min_deep_top = 750.
          do i = its, itf
+            print *, "19 - 1426 cycle" 
             if (ierr(i) /= 0) cycle
             if (po_cup(i, ktop(i)) > min_deep_top) then
+               print *, "20 - 1428 remove 55" 
                ierr(i) = 55
                ierrc(i) = 'ktop too low for deep'
             end if
@@ -1433,6 +1453,7 @@ contains
 
       !-- avoid double-counting with shallow scheme (deep and mid)
       do i = its, itf
+         print *, "21 - 1436 cycle" 
          if (ierr(i) /= 0) cycle
          if (last_ierr(i) == 0) then
             !--- if 'mid' => last was 'shallow'
@@ -1442,6 +1463,7 @@ contains
             ! endif
             !--- if 'mid' => last was 'shallow'
             if (trim(cumulus) == 'mid') then
+               print *, "22 - 1445 remove 27" 
                ierr(i) = 27
                ierrc(i) = 'avoiding double-counting deep and mid'
             end if
@@ -1451,6 +1473,7 @@ contains
       !--- determine the normalized mass flux profile for updraft
       do i = its, itf
          zuo(i, :) = 0.
+         print *, "23 - 1454 cycle " 
          if (ierr(i) /= 0) cycle
          call getZuZdPdf(trim(cumulus), trim(cumulus)//"_up", ierr(i), k22(i), ktop(i), zuo(i, kts:kte), kts &
                        , kte, ktf, kpbl(i), kbcon(i), klcl(i), po_cup(i, kts:kte), psur(i), xland(i) &
@@ -1458,6 +1481,7 @@ contains
       end do
 
       do i = its, itf
+         print *, "24 - 1461 cycle " 
          if (ierr(i) /= 0) cycle
          xzu(i, :) = zuo(i, :)
          zu(i, :) = zuo(i, :)
@@ -1472,6 +1496,7 @@ contains
       hc = 0.
       hco = 0.
       do i = its, itf
+         print *, "25 - 1475 == 0 " 
          if (ierr(i) .eq. 0) then
             do k = kts, start_level(i)
                hc(i, k) = hkb(i)
@@ -1485,6 +1510,7 @@ contains
 
       !--- 1st guess for moist static energy and dbyo (not including ice phase)
       do i = its, itf
+         print *, "26 - 1488 cycle " 
          if (ierr(i) /= 0) cycle
          do k = start_level(i) + 1, ktop(i) + 1  ! mass cons option
             denom = (zu(i, k - 1) - .5*up_massdetro(i, k - 1) + up_massentro(i, k - 1))
@@ -1510,6 +1536,7 @@ contains
       !--- get "c1d" profile ----------------------------------------
       if (trim(cumulus) == 'deep' .and. use_c1d) then
          do i = its, itf
+            print *, "27 - 1513 cycle " 
             if (ierr(i) /= 0) cycle
             c1d(i, kbcon(i) + 1:ktop(i) - 1) = abs(C1)
          end do
@@ -1533,6 +1560,7 @@ contains
                            , psumh, c1d, x_add_buoy, vvel2d, itf, ktf, its, kts, kte)
 
       do i = its, itf
+         print *, "28 - 1536 cycle " 
          if (ierr(i) /= 0) cycle
          cupclw(i, kts:ktop(i) + 1) = qrco(i, kts:ktop(i) + 1)
       end do
@@ -1545,6 +1573,7 @@ contains
       !--- option to produce linear fluxes in the sub-cloud layer.
       if (trim(cumulus) == 'shallow' .and. USE_LINEAR_SUBCL_MF == 1) then
          do i = its, itf
+            print *, "29 - 1548 cycle " 
             if (ierr(i) /= 0) cycle
             call getDelmix(kts, start_level(i), po(i, kts:kte), he_cup(i, kts:kte), hc(i, kts:kte))
             call getDelmix(kts, start_level(i), po(i, kts:kte) , heo_cup(i, kts:kte), hco(i, kts:kte))
@@ -1552,6 +1581,7 @@ contains
       end if
 
       do i = its, itf
+         print *, "30 - 1555 cycle " 
          if (ierr(i) /= 0) cycle
 
          do k = start_level(i) + 1, ktop(i) + 1  ! mass cons option
@@ -1616,8 +1646,10 @@ contains
             call cupUpAa0(cin1, zo_cup, zuo, dbyo, gammao_cup, tn_cup, kbcon, ktop, ierr, itf, its, ite, kts  &
                         , integ_interval = 'CIN')
             do i = its, itf
+               print *, "31 - 1619 cycle " 
                if (ierr(i) /= 0) cycle
                ke_mx = 0.5*max(wlpool_bcon(i)**2, zws(i)**2) + 1.e-6
+               print *, "32 - 1621 remove 500" 
                if (ke_mx < abs(min(cin1(i), 0.))) ierr(i) = 500
             end do
          end if
@@ -1626,6 +1658,7 @@ contains
       if (.not. first_guess_w) then
          !--- calculate in-cloud/updraft air temperature for vertical velocity
          do i = its, itf
+            print *, "33 - 1629 == 0 " 
             if (ierr(i) == 0) then
                do k = kts, ktf
                   tempco(i, k) = (1./real(c_cp))*(hco(i, k) - c_grav*zo_cup(i, k) - real(c_alvl)*qco(i, k))
@@ -1655,6 +1688,7 @@ contains
       !
       do i = its, itf
          kzdown(i) = 0
+         print *, "34 - 1658 == 0 " 
          if (ierr(i) .eq. 0) then
             zktop = (zo_cup(i, ktop(i)) - z1(i))*.6
             zktop = min(zktop + z1(i), zcutdown + z1(i))
@@ -1677,6 +1711,7 @@ contains
       !--- this calls routine to get downdrafts normalized mass flux
       do i = its, itf
          zd(i, :) = 0.
+         print *, "35 - 1680 cycle " 
          if (ierr(i) /= 0) cycle
          call getZuZdPdf(trim(cumulus), "DOWN", ierr(i), kdet(i), jmin(i), zdo(i, :), kts, kte, ktf &
                        , kpbl(i), kbcon(i), klcl(i), po_cup(i, kts:kte), psur(i), xland(i), random(i))
@@ -1690,6 +1725,7 @@ contains
       !---  calls routine to get wet bulb temperature and moisture at jmin
       if (USE_WETBULB == 1 .and. trim(cumulus) /= 'shallow') then
          do i = its, itf
+            print *, "36 - 1693 cycle " 
             if (ierr(i) /= 0) cycle
             k = jmin(i)
             call getWetbulb(qo_cup(i, k), t_cup(i, k), po_cup(i, k), q_wetbulb(i), t_wetbulb(i))
@@ -1708,6 +1744,7 @@ contains
 
       do i = its, itf
          bud(i) = 0.
+         print *, "37 - 1711 or shallow cycle " 
          if (ierr(i) /= 0 .or. trim(cumulus) == 'shallow') cycle
          i_wb = 0
          !--for future test
@@ -1747,6 +1784,7 @@ contains
             end if
          end do
          if (bud(i) .gt. 0) then
+            print *, "38 - 1750 remove 7 " 
             ierr(i) = 7
             ierrc(i) = 'downdraft is not negatively buoyant '
          end if
@@ -1762,8 +1800,10 @@ contains
       call cupUpAa0(aa1, zo_cup, zuo, dbyo, gammao_cup, tn_cup, kbcon, ktop, ierr, itf, its, ite, kts)
 
       do i = its, itf
+         print *, "39 - 1765 cycle " 
          if (ierr(i) /= 0) cycle
          if (aa1(i) .eq. 0.) then
+            print *, "40 - 1767 remove 17 " 
             ierr(i) = 17
             ierrc(i) = "cloud work function zero"
          end if
@@ -1803,6 +1843,7 @@ contains
       !--- calculate in-cloud/updraft and downdraft air temperature for vertical velocity
       !
       do i = its, itf
+         print *, "41 - 1806 == 0 " 
          if (ierr(i) == 0) then
             do k = kts, ktf
                tempcdo(i, k) = (1./real(c_cp))*(hcdo(i, k) - c_grav*zo_cup(i, k) - real(c_alvl)*qcdo(i, k))
@@ -1823,6 +1864,7 @@ contains
       !tau_ecmwf(:)= tau_ecmwf(:) * (1. + 1.66 * (dx(:)/(125*1000.)))! dx must be in meters
       if (SGS_W_TIMESCALE == 1 .and. trim(cumulus) == 'deep') then
          do i = its, itf
+            print *, "42 -1826 cycle " 
             if (ierr(i) /= 0) cycle
             !- mean vertical velocity based on integration of vertical veloc equation
             wmean(i) = min(max(vvel1d(i), 3.), 20.)
@@ -1843,6 +1885,7 @@ contains
 
       !--- Implements the Bechtold et al (2014) and Becker et al (2021) closures
       do i = its, itf
+         print *, "43 - 1846 cycle " 
          if (ierr(i) /= 0) cycle
          !- over water
          !   umean= 2.0+sqrt(0.5*(US(i,1)**2+VS(i,1)**2+US(i,kbcon(i))**2+VS(i,kbcon(i))**2))
@@ -1863,6 +1906,7 @@ contains
                         , kpbl, kbcon, ktop, ierr, itf, its, kts)
 
          do i = its, itf
+            print *, "44 - 1866 cycle " 
             if (ierr(i) /= 0) cycle
             aa1_bl(i) = (aa1_bl(i)/t_star)*tau_bl(i) ! units J/kg
             !aa1_bl(i) = (aa1_bl(i)/T_star) * tau_bl(i) - cin1(i)
@@ -1877,6 +1921,7 @@ contains
 
          if (DICYCLE == 3) then
             do i = its, itf
+               print *, "45 - 1880 cycle " 
                if (ierr(i) /= 0) cycle
                aa1_adv(i) = (aa1_adv(i) - aa0(i))*tau_bl(i)/dtime
             end do
@@ -1940,6 +1985,7 @@ contains
 
       !--- get the total (deep+congestus) evaporation flux for output (units kg/kg/s)
       do i = its, itf
+         print *, "46 - 1943 cycle " 
          if (ierr(i) /= 0) cycle
          do k = kts, ktop(i)
             dp = 100.*(po_cup(i, k) - po_cup(i, k + 1))
@@ -1959,6 +2005,7 @@ contains
       !--- for outputs (only deep plume)
       if (trim(cumulus) == 'deep') then
          do i = its, itf
+            print *, "47 - 1962 cycle " 
             if (ierr(i) /= 0) cycle
             var2d(i) = p_cwv_ave(i)
             do k = kts, ktop(i) + 1
@@ -1970,6 +2017,7 @@ contains
 
       !--- for tracer convective transport / outputs
       do i = its, itf
+         print *, "48 - 1973 cycle " 
          if (ierr(i) /= 0) cycle
          do k = kts, ktf
             !clwup5d     (i,k) = qrco (i,k) !ice/liquid water
@@ -1981,6 +2029,7 @@ contains
 
       !--- convert mass fluxes, etc...
       do i = its, itf
+         print *, "49 - 1984 cycle " 
          if (ierr(i) /= 0) cycle
          pwavo(i) = xmb(i)*pwavo(i)
          pwevo(i) = xmb(i)*pwevo(i)
@@ -2027,6 +2076,7 @@ contains
             ! AA1_ADV_ (:) = cin1 (:)
          end if
          do i = its, itf
+            print *, "50 - 2030 cycle " 
             if (ierr(i) == 0) cycle
             kbcon(i) = 1
             ktop(i) = 1
@@ -2239,6 +2289,7 @@ contains
       if (trim(cumulus) == 'shallow') return
 
       do i = its, itf
+         print *, "51 - 2242 cycle " 
          if (ierr(i) /= 0) cycle
          do kk = kbcon(i), ktop(i)
             dp = p(i, kk) - p(i, kk + 1)
@@ -2250,6 +2301,7 @@ contains
       end do
 
       do i = its, itf
+         print *, "52 - 2253 cycle " 
          if (ierr(i) /= 0) cycle
          pef = (1.591 - 0.639*vshear(i) + 0.0953*(vshear(i)**2) - 0.00496*(vshear(i)**3))
 
@@ -2288,6 +2340,7 @@ contains
 
       end do
       do i = its, itf
+         print *, "53 - 2291 cycle " 
          if (ierr(i) /= 0) cycle
          edtc(i, 1) = -edt(i)*pwav(i)/pwev(i)
          edtc(i, 1) = min(edtmax(i), edtc(i, 1))
@@ -2388,6 +2441,7 @@ contains
       if (trim(cumulus) == 'shallow') return
       !
       do i = its, itf
+         print *, "54 - 2391 cycle " 
          if (ierr(i) /= 0) cycle
 
          !-- boundary condition in jmin ('level of free sinking')
@@ -2450,15 +2504,18 @@ contains
          end do
 
          if (pwev(i) .ge. 0 .and. iloop .eq. 1) then
+            print *, "55 - 2453 remove 70 " 
             ierr(i) = 70
             ierrc(i) = "problem with buoy in cup_dd_moisture"
          end if
          if (bu(i) .ge. 0 .and. iloop .eq. 1) then
+            print *, "56 - 2457 remove 73 " 
             ierr(i) = 73
             ierrc(i) = "problem2 with buoy in cup_dd_moisture"
          end if
 
          !-- fix evap, in case of not conservation
+         print *, "57 - 2462 ==0 " 
          if (abs(pwev(i)) > pwavo(i) .and. ierr(i) == 0) then
             fix_evap = pwavo(i)/(1.e-16 + abs(pwev(i)))
             pwev(i) = 0.
@@ -2470,6 +2527,7 @@ contains
                qcd(i, k) = qrcd(i, k) + dq_eva
             end do
             if (pwev(i) .ge. 0.) then
+               print *, "58 - 2473 remove 70 " 
                ierr(i) = 70
                ierrc(i) = "problem with buoy in cup_dd_moisture"
             end if
@@ -2728,6 +2786,7 @@ contains
          !--original formulation
          do k = kts + 1, ktf
             do i = its, itf
+               print *, "59 - 2731 cycle " 
                if (ierr(i) /= 0) cycle
                qes_cup(i, k) = .5*(qes(i, k - 1) + qes(i, k))
                q_cup(i, k) = .5*(q(i, k - 1) + q(i, k))
@@ -2973,6 +3032,7 @@ contains
          xff_mid(i, :) = 0.
          xf_dicycle(i) = 0.
 
+         print *, "60 - 2976 cycle " 
          if (ierr(i) /= 0) cycle
 
          !- Think about this:
@@ -2989,6 +3049,7 @@ contains
       end do
 
       do i = its, itf
+         print *, "61 - 2992 cycle " 
          if (ierr(i) /= 0) cycle
          !- Boundary layer quasi-equilibrium (Raymond 1995)
          if (k22(i) .lt. kpbl(i) + 1) then
@@ -3055,6 +3116,7 @@ contains
 
        do i = its, itf
          kt(i) = ks(i)
+         print *, "62 - 3058 == 0 " 
          if (ierr(i) == 0) then
             x(i) = array(i, ks(i))
             kstop = max(ks(i) + 1, kend(i))
@@ -3146,6 +3208,7 @@ contains
       end if
 
       do i = its, itf
+         print *, "63 - 3149 cycle " 
          if (ierr(i) /= 0) cycle
          do k = kbeg(i), kend(i)
             dz = z_cup(i, k + 1) - z_cup(i, k)
@@ -3281,6 +3344,7 @@ contains
 
       !--- get boundary condition for qc
       do i = its, itf
+         print *, "64 - 3284 cycle " 
          if (ierr(i) /= 0) cycle
          call getCloudBc(kts, ktf, xland(i), po(i, kts:kte), qe_cup(i, kts:kte), qaver, k22(i))
          qc(i, kts:start_level(i)) = qaver + zqexec(i) + 1.*x_add_buoy(i)/real(c_alvl)
@@ -3293,11 +3357,13 @@ contains
       !--- option to produce linear fluxes in the sub-cloud layer.
       if (trim(name) == 'shallow' .and. USE_LINEAR_SUBCL_MF == 1) then
          do i = its, itf
+            print *, "65 - 3296 cycle " 
             if (ierr(i) /= 0) cycle
             call getDelmix(kts, start_level(i), po(i, kts:kte), qe_cup(i, kts:kte), qc(i, kts:kte))
          end do
       end if
       do i = its, itf
+         print *, "66 - 3301 cycle " 
          if (ierr(i) /= 0) cycle
 
          do k = start_level(i) + 1, ktop(i) + 1
@@ -3511,13 +3577,16 @@ contains
          end do
          if (pwav(i) < 0.) then
             if(remove(i)) then
+               print *, "67 - 3514 remove 66 " 
                ierr(i) = 66
                ierrc(i) = "pwav negative"
             endif
          end if
-      end do
+      end do 
+
       !--- get back water vapor qc
       do i = its, itf
+         print *, "68 - 3521 cycle " 
          if (ierr(i) /= 0) cycle
          do k = kts, ktop(i) + 1
             qc(i, k) = qc(i, k) - qrc(i, k)
@@ -3633,12 +3702,14 @@ contains
 
       !--- get boundary condition for qc
       do i = its, itf
+         print *, "69 - 3636 cycle " 
          if (ierr(i) /= 0) cycle
          call getCloudBc( kts, ktf, xland(i), po(i, kts:kte), qe_cup(i, kts:kte), qaver, k22(i))
          qc(i, kts:start_level(i)) = qaver + zqexec(i) + 0.5*x_add_buoy(i)/real(c_alvl)
       end do
 
       do i = its, itf
+         print *, "70 - 3642 cycle " 
          if (ierr(i) /= 0) cycle
 
          do k = start_level(i) + 1, ktop(i) + 1
@@ -3689,6 +3760,7 @@ contains
 
       !- get back water vapor qc
       do i = its, itf
+         print *, "71 - 3692 cycle " 
          if (ierr(i) /= 0) cycle
          do k = kts, ktop(i) + 1
             qc(i, k) = qc(i, k) - qrc(i, k)
@@ -3817,6 +3889,7 @@ contains
       aa1_bl(:) = 0.
       if (version == 0) then
          do i = its, itf
+            print *, "72 - 3820 " 
             if (ierr(i) /= 0) cycle
             !***       do k=kts,kbcon(i)
             do k = kts, kpbl(i)
@@ -3827,6 +3900,7 @@ contains
          end do
       elseif (version == 1) then
          do i = its, itf
+            print *, "73 - 3830 cycle " 
             if (ierr(i) /= 0) cycle
             do k = kts, kpbl(i)
                dz = (z_cup(i, k + 1) - z_cup(i, k))
@@ -3844,6 +3918,7 @@ contains
 
       aa1_fa(:) = 0.
       do i = its, itf
+         print *, "74 - 3847 cycle " 
          if (ierr(i) /= 0) cycle
          do k = kbcon(i), ktop(i)
 
@@ -3936,6 +4011,7 @@ contains
       nlay = int(kte/90)
 
       do i = its, itf
+         print *, "75 - 3939 cycle " 
          if (ierr(i) /= 0) cycle
 
          !-will not allow detrainment below the location of the maximum zu
@@ -4079,6 +4155,7 @@ contains
       end do ! i
       !---- check mass conservation
       do i = its, itf
+         print *, "76 - 4082 cycle " 
          if (ierr(i) /= 0) cycle
          do k = kts + 1, kte
 
@@ -4163,6 +4240,7 @@ contains
       if (trim(cumulus) == 'shallow') return
 
       do i = its, itf
+         print *, "77 - 4166 cycle" 
          if (ierr(i) /= 0) cycle
 
          mentrd_rate_2d(i, 1:jmin(i)) = mentrd_rate(i)
@@ -4749,6 +4827,7 @@ contains
       !
       aa0(:) = 0.
       do i = its, itf
+         print *, "78 - 4752 ==0 " 
          if (ierr(i) == 0) then
             do k = kbcon(i), ktop(i)
                dz = z(i, k) - z(i, max(1, k - 1))
@@ -5062,6 +5141,7 @@ contains
       ist = 3
 
       do i = its, itf
+         print *, "79 - 5065 cycle " 
          if (ierr(i) /= 0) cycle
          !- displacement from local surface pressure level
          delp = 1000.-psur(i)
@@ -5116,6 +5196,7 @@ contains
          !----------------
          !k_inv_layers(i,mid)=1
          !----------------
+         print *, "80 - 5119 cycle " 
          if (ierr(i) /= 0) cycle
          !- displacement from local surface pressure level
          delp = 1000.-psur(i)
@@ -5152,6 +5233,7 @@ contains
 
             if (k550 <= kts .or. k550 >= ktf - 4) then
                k_inv_layers(i, p_mid) = 1
+               print *, "81 - 5155 remove 8 " 
                ierr(i) = 8
             else
                !-save k550 in the k_inv_layers array
@@ -5159,10 +5241,12 @@ contains
             end if
             if (k_inv_layers(i, p_mid) <= kts .or. k_inv_layers(i, p_mid) >= ktf - 4) then
                !print*,"MID_k_inv_layers=",k_inv_layers(i,MID),ierr(i)
+               print *, "82 - 5162 remove 12 " 
                ierr(i) = 12
             end if
          else
             k_inv_layers(i, :) = 1
+            print *, "83 - 5166 remove 88 " 
             ierr(i) = 88
          end if
       end do
@@ -5533,6 +5617,7 @@ contains
       cap_max(:) = cap_max_in(:)
 
       do i = its, itf
+         print *, "84 - 5536 cycle " 
          if (ierr(i) /= 0) cycle
          start_level(i) = start_level_(i)
          do k = kts, start_level(i)
@@ -5548,9 +5633,11 @@ contains
          kbcon         (i)=kbmax(i)+3
          depth_neg_buoy(i)=0.
          frh           (i)=0.
+         print *, "85 - 5551 cycle " 
          if(ierr(i) /= 0) cycle
 
 
+         print *, "86 - 5554 while ==0 " 
          loop1:  do while(ierr(i) == 0)
 
             kbcon(i)=start_level(i)
@@ -5568,6 +5655,7 @@ contains
             loop2:      do while (hcot(i,kbcon(i)) < HESO_cup(i,kbcon(i)))
                kbcon(i)=kbcon(i)+1
                if(kbcon(i).gt.kbmax(i)+2) then
+                  print *, "87 - 5571 remove 3 " 
                   ierr(i)=3
                   ierrc(i)="could not find reasonable kbcon in cup_kbcon : above kbmax+2 "
                   exit loop2
@@ -5575,6 +5663,7 @@ contains
                 !print*,"kbcon=",kbcon(i);call flush(6)
             enddo loop2
 
+            print *, "88 - 5578 cycle loop0 " 
             if(ierr(i) /= 0) cycle loop0
 
             !---     cloud base pressure and max moist static energy pressure
@@ -5629,6 +5718,7 @@ contains
          enddo loop1
          !--- last check for kbcon
          if(kbcon(i) == kts) then
+            print *, "89 - 5632 remove 33 " 
             ierr(i)=33
             ierrc(i)="could not find reasonable kbcon in cup_kbcon = kts"
          endif
@@ -5638,6 +5728,7 @@ contains
       !--- determine the level of neutral buoyancy - ktop
       do i = its, itf
          ktop(i) = ktf - 1
+         print *, "90 - 5641 cycle " 
          if (ierr(i) /= 0) cycle
          !~ dby(:)=0.0
 
@@ -5659,9 +5750,11 @@ contains
                exit
             end if
          end do
+         print *, "91 - 5662 remove 41 " 
          if (ktop(i) .le. kbcon(i) + 1) ierr(i) = 41
 
          !----------------
+         print *, "92 - 5665 ==0 " 
          if (OVERSHOOT > 1.e-6 .and. ierr(i) == 0) then
             z_overshoot = (1.+delz_oversh)*z_cup(i, ktop(i))
             do k = ktop(i), ktf - 2
@@ -5718,6 +5811,7 @@ contains
    
       do i = its, itf
          dby(i, :) = 0.
+         print *, "93 - 5721 cycle " 
          if (ierr(i) /= 0) cycle
          do k = kts, klcl(i)
             dby(i, k) = hc(i, k) - he_cup(i, k)
@@ -5803,6 +5897,7 @@ contains
             vvel1d(i) = 0.0
             vvel2d(i, :) = 0.0
 
+            print *, "94 - 5806 cycle " 
             if (ierr(i) /= 0) cycle
             vvel2d(i, kts:kbcon(i)) = max(1., max(wlpool_bcon(i)**2, zws(i)**2))
 
@@ -5825,6 +5920,7 @@ contains
          end do
          if (p_smooth) then
             do i = its, itf
+               print *, "95 - 5828 cycle " 
                if (ierr(i) /= 0) cycle
                do k = kts, ktop(i) + 1
                   vs = 0.
@@ -5842,10 +5938,12 @@ contains
 
          !-- convert to vertical velocity
          do i = its, itf
+            print *, "96 - 5845 cycle " 
             if (ierr(i) /= 0) cycle
             vvel2d(i, :) = sqrt(max(0.1, vvel2d(i, :)))
 
             if (maxval(vvel2d(i, :)) < 1.0) then
+               print *, "97 - 5849 remove 54 " 
                ierr(i) = 54
                !  print*,"ierr=54",maxval(vvel2d(i,:))
             end if
@@ -5866,6 +5964,7 @@ contains
          end do
       else
          do i = its, itf
+            print *, "98 - 5869 cycle " 
             if (ierr(i) /= 0) cycle
             ke = wlpool(i)**2
 
@@ -6002,6 +6101,7 @@ contains
       end do
 
       do i = its, itf
+         print *, "99 - 6005 ==0 " 
          if (ierr(i) .eq. 0) then
             do n_cnt = 1, maxens3
                if (pr_ens(i, n_cnt) .le. 0.) then
@@ -6014,6 +6114,7 @@ contains
       !--- calculate ensemble average mass fluxes
       if (trim(cumulus) == 'deep') then
          do i = its, itf
+            print *, "100 - 6017 ==0 " 
             if (ierr(i) .eq. 0) then
                k = 0
                xmb_ave(i) = 0.
@@ -6030,6 +6131,7 @@ contains
       elseif (trim(cumulus) == 'mid') then
          if (ichoice .le. 3) then
             do i = its, itf
+               print *, "101 - 6033 cycle " 
                if (ierr(i) /= 0) cycle
                if (ichoice == 0) then
                   xmb_ave(i) = 0.3333*(xff_mid(i, 1) + xff_mid(i, 2) + xff_mid(i, 3))
@@ -6044,6 +6146,7 @@ contains
          !- shallow  convection
       elseif (trim(cumulus) == 'shallow') then
          do i = its, itf
+            print *, "102 - 6047 cycle " 
             if (ierr(i) /= 0) cycle
 
             if (ichoice > 0) then
@@ -6066,6 +6169,7 @@ contains
       !- apply the mean tropospheric RH control on diurnal cycle (Tian GRL 2022)
       if (trim(cumulus) == 'deep' .and. RH_DICYCLE == 1) then
          do i = its, itf
+            print *, "103 - 6069 cycle " 
             if (ierr(i) /= 0) cycle
             xf_dicycle(i) = xf_dicycle(i)*rh_dicycle_fct(i)
          end do
@@ -6081,6 +6185,7 @@ contains
 
       !- set the updraft mass flux, do not allow negative values and apply the diurnal cycle closure
       do i = its, itf
+         print *, "104 - 6084 cycle " 
          if (ierr(i) /= 0) cycle
          !- mass flux of updradt at cloud base
          xmb(i) = xmb_ave(i)
@@ -6091,12 +6196,14 @@ contains
          !- diurnal cycle closure
          xmb(i) = xmb(i) - xf_dicycle(i)
          if (xmb(i) .le. 0.) then
+            print *, "105 - 6094 remove 13 " 
             ierr(i) = 13
             xmb(i) = 0.
          end if
       end do
       !-apply the scale-dependence Arakawa's approach
       do i = its, itf
+         print *, "106 - 6100 cycle " 
          if (ierr(i) /= 0) cycle
          !- scale dependence
          xmb(i) = sig(i)*xmb(i)
@@ -6104,13 +6211,16 @@ contains
          !- apply the adjust factor for tunning
          !xmb(i) = FADJ_MASSFLX * xmb(i)
 
+         print *, "107 - 6107 remove 14 " 
          if (xmb(i) == 0.) ierr(i) = 14
+         print *, "108 - 6108 remove 15 " 
          if (xmb(i) > 100.) ierr(i) = 15
       end do
 
       !--- sanity check for mass flux
       !
       do i = its, itf
+         print *, "109 - 6114 cycle " 
          if (ierr(i) /= 0) cycle
          xmbmax(i) = 100.*(po_cup(i, kbcon(i)) - po_cup(i, kbcon(i) + 1))/(c_grav*dtime)
          xmb(i) = min(xmb(i), xmbmax(i))
@@ -6120,6 +6230,7 @@ contains
       !--- criteria: if abs (dT/dt or dQ/dt) > 100 K/day => fix xmb
       if (MAX_TQ_TEND < -1.e-6) then
          do i = its, itf
+            print *, "110 - 6123 cycle " 
             if (ierr(i) /= 0) cycle
             fixouts = xmb(i)*86400.*max(maxval(abs(dellat(i, kts:ktop(i)))), (real(c_alvl)/real(c_cp))*maxval(abs &
                     ( dellaq(i, kts:ktop(i)))))
@@ -6135,6 +6246,7 @@ contains
       if (MAX_TQ_TEND > 1.e-6) then
          do i = its, itf
 
+            print *, "111 - 6138 cycle " 
             if (ierr(i) /= 0) cycle
             tend1d = 0.
             do k = kts, ktop(i)
@@ -6166,6 +6278,7 @@ contains
       !-- now do feedback
       !
       do i = its, itf
+         print *, "112 - 6169 cycle " 
          if (ierr(i) /= 0) cycle
          do k = kts, ktop(i)
             pre(i) = pre(i) + pw(i, k)*xmb(i)
@@ -6282,6 +6395,7 @@ contains
       ! large scale forcing
       do i = its, itf
          xf_ens(i, 1:16) = 0.
+         print *, "113 - 6285 cycle " 
          if (ierr(i) /= 0) cycle
 
          xff0 = (aa1(i) - aa0(i))/dtime
@@ -6418,6 +6532,7 @@ contains
          do i = its, itf
             xf_dicycle(i) = 0.
 !           if(ierr(i) /=  0 .or. p_cup(i,kbcon(i))< 950. )cycle
+            print *, "114 - 6421 cycle " 
             if (ierr(i) /= 0) cycle
 
             !--- Bechtold et al (2014)
@@ -6448,6 +6563,7 @@ contains
          do i = its, itf
             xf_dicycle(i) = 0.
 
+            print *, "115 - 6451 cycle " 
             if (ierr(i) /= 0) cycle
 
             xff_dicycle = (1.-alpha_adv(i))*aa1(i) + alpha_adv(i)*(aa1_radpbl(i) + aa1_adv(i)) - aa1_bl(i)
@@ -6465,6 +6581,7 @@ contains
       elseif (DICYCLE == 4) then
          do i = its, itf
             xf_dicycle(i) = 0.
+            print *, "116 - 6468 cycle " 
             if (ierr(i) /= 0) cycle
             !the signal "-" is to convert from Pa/s to kg/m2/s
             if (xk_x(i) > 0.) xf_dicycle(i) = max(0., -aa1_bl(i))/xk_x(i)
@@ -6484,6 +6601,7 @@ contains
       !-
       if (ADD_COLDPOOL_CLOS == 4) then
          do i = its, itf
+            print *, "117 - 6487 cycle " 
             if (ierr(i) /= 0 .or. xk(i) >= 0) cycle
             xf_coldpool(i) = -(0.5*wlpool(i)**2/tau_ecmwf(i))/xk(i)
          end do
@@ -6556,6 +6674,7 @@ contains
          !DE:
          do k = kts, ktf
             do i = its, itf
+               print *, "118 - 6559 cycle " 
                if (ierr(i) /= 0) cycle
                if (tn(i, k) <= c_t00 - p_delt) then
                   melting_layer(i, k) = 0.
@@ -6596,6 +6715,7 @@ contains
          do k = kts, ktf - 1
             !EB:
             do i = its, itf
+               print *, "119 - 6599 cycle " 
                if (ierr(i) /= 0) cycle
                dp = 100.*(po_cup(i, k) - po_cup(i, k + 1))
                norm(i) = norm(i) + melting_layer(i, k)*dp/c_grav
@@ -6603,6 +6723,7 @@ contains
          end do
          !EK:
          do i = its, itf
+            print *, "120 - 6606 cycle" 
             if (ierr(i) /= 0) cycle
             melting_layer(i, :) = melting_layer(i, :)/(norm(i) + 1.e-6)*(100*(po_cup(i, kts) - po_cup(i, ktf))/c_grav)
             !print*,"i2=",i,maxval(melting_layer(i,:)),minval(melting_layer(i,:)),norm(i)
@@ -6678,6 +6799,7 @@ contains
          melting = 0.0
          !-- set melting mixing ratio to zero for columns that do not have deep convection
          do i = its, itf
+            print *, "121 - 6681 >0 " 
             if (ierr(i) > 0) melting(i, :) = 0.
          end do
 
@@ -6686,6 +6808,7 @@ contains
 
          do k = kts, ktf - 1
             do i = its, itf
+               print *, "122 - 6689 cycle " 
                if (ierr(i) /= 0) cycle
                dp = 100.*(po_cup(i, k) - po_cup(i, k + 1))
                !-- effective precip (after evaporation by downdraft)
@@ -6701,6 +6824,7 @@ contains
 
          do k = kts, ktf
             do i = its, itf
+               print *, "123 - 6704 cycle " 
                if (ierr(i) /= 0) cycle
                !-- melting profile (kg/kg)
                melting(i, k) = melting_layer(i, k)*(total_pwo_solid_phase(i)/(100*(po_cup(i, kts) - po_cup(i, ktf))/c_grav))
@@ -6775,6 +6899,7 @@ contains
 
       ! since kinetic energy is being dissipated, add heating accordingly (from ECMWF)
       do i = its, itf
+         print *, "124 - 6778 cycle " 
          if (ierr(i) /= 0) cycle
          dts = 0.
          fpi = 0.
@@ -6879,6 +7004,7 @@ contains
       if (USE_TRACER_SCAVEN == 2 .and. cumulus /= 'shallow') then
          factor_temp = 1.
          do i = its, itf
+            print *, "125 - 6882 cycle " 
             if (ierr(i) /= 0) cycle
             do ispc = 1, mtp
                ! - if tracer is type "carbon" then set coefficient to 0 for hydrophobic
@@ -6906,6 +7032,7 @@ contains
       end if
 
       do i = its, itf
+         print *, "126 - 6909 cycle " 
          if (ierr(i) /= 0) cycle
          !start_level(i) = klcl(i)
          !start_level(i) = k22(i)
@@ -6920,6 +7047,7 @@ contains
       end do
 
       do i = its, itf
+         print *, "127 - 6923 cycle " 
          if (ierr(i) /= 0) cycle
          loopk: do k = start_level(i) + 1, ktop(i) + 1
 
@@ -7134,6 +7262,7 @@ contains
       if (cumulus == 'shallow') return
 
       do i = its, itf
+         print *, "128 - 7137 cycle " 
          if (ierr(i) /= 0) cycle
 
          !--- fration of the total rain that was evaporated
@@ -7518,6 +7647,7 @@ contains
       if (p_clev_option == 1) then
          !-- original version
          do i = its, itf
+            print *, "129 - 7521 cycle " 
             if (ierr(i) /= 0) cycle
             do k = kts + 1, ktf
                se_cup_chem(1:mtp, i, k) = 0.5*(se_chem(1:mtp, i, k - 1) + se_chem(1:mtp, i, k))
@@ -7528,6 +7658,7 @@ contains
       else
          !-- version 2: se_cup (k+1/2) = se(k) => smoother profiles
          do i = its, itf
+            print *, "130 - 7531 cycle " 
             if (ierr(i) /= 0) cycle
             do k = kts, ktf
                se_cup_chem(1:mtp, i, k) = se_chem(1:mtp, i, k)
@@ -7625,6 +7756,7 @@ contains
 
       do i = its, itf
 
+         print *, "131 - 7628 cycle " 
          if (ierr(i) /= 0) cycle
 
          !-- critical rel humidity  - check this, if the value is too small, not evapo will take place.
@@ -7751,6 +7883,7 @@ contains
       if (c0 < 1.e-6) return
 
       do i = its, itf
+         print *, "132 - 7754 cycle " 
          if (ierr(i) /= 0) cycle
 
          do k = ktop(i), kts, -1
@@ -7895,6 +8028,7 @@ contains
       end if
 
       do i = its, itf
+         print *, "133 - 7898 cycle " 
          if (ierr(i) /= 0) cycle
 
          if (trim(cumulus) == 'deep' .and. p_melt_glac) jmin(i) = max(jmin(i), maxloc(melting_layer(i, :), 1))
@@ -7919,6 +8053,7 @@ contains
                   if (jmini .gt. 5) then
                      keep_going = .true.
                   else
+                     print *, "134 - 7922 remove 9 " 
                      ierr(i) = 9
                      ierrc(i) = "could not find jmini9"
                      exit
@@ -7928,6 +8063,7 @@ contains
          end do
          jmin(i) = jmini
          if (jmini .le. 5) then
+            print *, "135 - 7931 remove 4 " 
             ierr(i) = 4
             ierrc(i) = "could not find jmini4"
          end if
@@ -7935,9 +8071,11 @@ contains
 
       ! - must have at least depth_min m between cloud convective base and cloud top.
       do i = its, itf
+         print *, "136 - 7938 cycle " 
          if (ierr(i) /= 0) cycle
          if (jmin(i) - 1 .lt. kdet(i)) kdet(i) = jmin(i) - 1
          if (-zo_cup(i, kbcon(i)) + zo_cup(i, ktop(i)) .lt. depth_min) then
+            print *, "137 - 7941 remove 6 " 
             ierr(i) = 6
             ierrc(i) = "cloud depth very shallow"
          end if
@@ -8003,6 +8141,7 @@ contains
          w_col(i) = 0.
          w_ccrit(i) = 0.
          t_troposph(i) = 0.
+         print *, "138 - 8006 cycle " 
          if (ierr(i) /= 0) cycle
          trash = 0.
          do k = kts, ktf
@@ -8223,6 +8362,7 @@ contains
       do i = its, itf
          xmb(i) = 0.
          xf_dicycle(i) = 0.
+         print *, "139 - 8226 cycle " 
          if (ierr(i) /= 0) cycle
 
          xmbmax(i) = 100.*(po(i, kbcon(i)) - po(i, kbcon(i) + 1))/(c_grav*dtime)
@@ -8369,6 +8509,7 @@ contains
 
       do i = its, itf
          lightn_dens(i) = 0.0
+         print *, "140 - 8372 cycle " 
          if (ierr(i) /= 0) cycle
 
          beta = xland(i)*p_beta_ocean + (1.-xland(i))*p_beta_land
@@ -8802,6 +8943,7 @@ contains
 
       do i = its, itf
 
+         print *, "141 - 8805 cycle " 
          if (ierr(i) /= 0) cycle
 
          do k = ktop(i), kbcon(i), -1
@@ -9073,6 +9215,7 @@ contains
       nifa(:, :) = 0.     ! in the future set this as NCPI
       dtinv = 1./dtime
       do i = its, itf
+         print *, "142 - 9076 cycle " 
          if (ierr(i) /= 0) cycle
 
          do k = kts, ktop(i) + 1
@@ -9579,6 +9722,7 @@ contains
       do i = its, itf
          col_sat_adv(i) = 0.   !check if it needs be inout, perhavps only local var
 
+         print *, "143 - 9582 cycle " 
          if (ierr(i) /= 0) cycle
 
          alpha_adv(i) = ALPHA_ADV_TUNING
@@ -9895,6 +10039,7 @@ contains
 
       if (USE_MEMORY >= 0) then
          do i = its, itf
+            print *, "144 - 9898 cycle " 
             if (ierr(i) /= 0) cycle
             !x_add_buoy(i) = min(mx_buoy2, maxval(buoy_exc(i,kts:klcl(i))))
             call getCloudBc(kts, ktf, xland(i), po(i, kts:kte), buoy_exc(i, kts:kte), x_add_buoy(i), kts)
@@ -9911,10 +10056,12 @@ contains
       !-- avoid extra-buoyancy where rained before
       if (USE_MEMORY == 4 .or. USE_MEMORY == 14) then
          do i = its, itf
+            print *, "145 - 9914 cycle " 
             if (ierr(i) /= 0) cycle
             if (aa2_(i) > 1.e-6 .and. x_add_buoy(i) < 1000. .and. x_add_buoy(i) > 250.) then
                x_add_buoy(i) = 0.0
                wlpool(i) = 0.0
+               print *, "146 - 9918 remove 100 " 
                ierr(i) = 100
             end if
          end do
@@ -9929,6 +10076,7 @@ contains
          entr_rate(:) = entr_rate_input       ! * 2.0
          min_entr_rate = entr_rate_input*0.1 ! * 2.0
          do i = its, itf !-- reduce entr rate, where cold pools exist
+            print *, "147 - 9932 " 
             if (ierr(i) /= 0) cycle
             !entr_rate(i) = max(0.1, 1.-ColdPoolStart(x_add_buoy(i))) * entr_rate(i)
             !entr_rate(i) = max(0.5, 1.-ColdPoolStart(x_add_buoy(i))) * entr_rate(i)
@@ -9940,12 +10088,14 @@ contains
       end if
       if (USE_MEMORY == 3 .or. ADD_COLDPOOL_CLOS >= 1) then ! increase capmax
          do i = its, itf
+            print *, "148 - 9943 cycle " 
             if (ierr(i) /= 0) cycle
             cap_max(i) = cap_max(i) + ColdPoolStart(x_add_buoy(i))*35.
          end do
       end if
       if (ADD_COLDPOOL_CLOS == 3) then ! increase x_add_buoy
          do i = its, itf
+            print *, "149 - 9949 cycle " 
             if (ierr(i) /= 0) cycle
             x_add_buoy(i) = x_add_buoy(i) + 0.5*wlpool(i)**2
          end do
@@ -10206,6 +10356,7 @@ contains
    
       !- T and Q profiles modified only by RAD+ADV tendencies
       do i = its, itf
+         print *, "150 - 10209 cycle" 
          if (ierr(i) /= 0) cycle
          tn_x(i, kts:ktf) = tn(i, kts:ktf) - tn_bl(i, kts:ktf) + t_in(i, kts:ktf)
          qo_x(i, kts:ktf) = qo(i, kts:ktf) - qo_bl(i, kts:ktf) + q_in(i, kts:ktf)
@@ -10217,6 +10368,7 @@ contains
                         heso_cup_x, zo_cup, po_cup, gammao_cup_x, tn_cup_x, psur, ierr, z1, itf, ktf, its, kts)
       !--- this is (DT_ve/Dt)_adv+rad
       do i = its, itf
+         print *, "151 - 10220 cycle " 
          if (ierr(i) /= 0) cycle
          aa3(i) = 0.
          do k = max(kbcon(i), kts + 1), ktop(i)
@@ -10228,6 +10380,7 @@ contains
          end do
       end do
       do i = its, itf
+         print *, "152 - 10231 cycle " 
          if (ierr(i) /= 0) cycle
          !- this is (DCAPE_env/Dt)_adv+rad
          !aa1_bl(i) = -aa3(i)
@@ -10240,6 +10393,7 @@ contains
       do i = its, itf
          dtdt(i, :) = 0.
          dqdt(i, :) = 0.
+         print *, "153 - 10243 cycle " 
          if (ierr(i) /= 0) cycle
          do k = max(kbcon(i), kts + 1), ktop(i)
             dp = 100.*(po_cup(i, k + 1) - po_cup(i, k))
@@ -10372,6 +10526,7 @@ contains
                            , ierr, z1, itf, ktf, its, kts)
          !--- get MSE
          do i = its, itf
+            print *, "154 - 10375 cycle " 
             if (ierr(i) /= 0) cycle
             call getCloudBc(kts, ktf, xland(i), po(i, kts:kte), heo_cup_x(i, kts:kte), hkbo_x(i) &
                           , k22(i))
@@ -10397,11 +10552,13 @@ contains
       end do
       !
       do i = its, itf
+         print *, "155 - 10400 cycle " 
          if (ierr(i) /= 0) cycle
          daa_adv_dt(i) = (aa_adv(i) - aa_ini(i))/dtime
          !print*,"daa_adv_dt J. kg-1 hr-1=",daa_adv_dt(i)*3600.
          ! call flush(6
          if (daa_adv_dt(i) > DCAPE_THRESHOLD/3600. .and. aa_ini(i) > 0.) cycle !
+         print *, "156 - 10405 remove 90 " 
          ierr(i) = 90
          ierrc(i) = "dcape trigger not satisfied"
       end do
@@ -10465,6 +10622,7 @@ contains
 
       is_conservative = .true.
       do i = its, itf
+         print *, "157 - 10468 cycle " 
          if (ierr(i) /= 0) cycle
          do k = kts, ktop(i)
             ! these three are only used at or near mass detrainment and/or entrainment levels
@@ -10737,6 +10895,7 @@ contains
       !---- convective transport of momentum
       if (ALP1 == 0.) then !-- fully time explicit
          do i = its, itf
+            print *, "158 - 10740 cycle " 
             if (ierr(i) /= 0) cycle
             do k = kts, ktop(i)
                dp = 100.*(po_cup(i, k) - po_cup(i, k + 1))
@@ -10755,6 +10914,7 @@ contains
       elseif (ALP1 > 0.) then              !-- time alp0*explict + ALP1*implicit + upstream
          alp0 = 1.-ALP1
          do i = its, itf
+            print *, "159 - 10758 cycle " 
             if (ierr(i) /= 0) cycle
             do k = kts, ktop(i) + 1
                fp(k) = 0.5*(zenv(i, k) + abs(zenv(i, k)))
@@ -10795,6 +10955,7 @@ contains
       !--- convective transport of MSE and Q/Qc
       !if(USE_FLUX_FORM == 1) then
       do i = its, itf
+         print *, "160 - 10798 cycle " 
          if (ierr(i) /= 0) cycle
 
          !--- moist static energy : flux form + source/sink terms + time explicit
@@ -10879,6 +11040,7 @@ contains
       !-------------------------
       !--- water vapor + condensates : flux form + source/sink terms + time explicit
       do i = its, itf
+         print *, "161 - 10882 cycle " 
          if (ierr(i) /= 0) cycle
          call vd1Loop(i, kts, ktop, c1d(i,:), dbydo(i,:), dd_massdetro(i,:), edto(i), po_cup(i,:) &
                   ,   pwdo(i,:), pwo(i,:), qcdo(i,:), qco(i,:), qrco(i,:), up_massdetro(i,:) &
@@ -11176,6 +11338,7 @@ contains
       dellampcf = 0.
 
       do i = its, itf
+         print *, "162 - 11179 cycle " 
          if (ierr(i) /= 0) cycle
          do k = kts, ktop(i)
             dp = 100.*(po_cup(i, k) - po_cup(i, k + 1))
@@ -11320,6 +11483,7 @@ contains
             se_chem(1, :, :) = se_chem_update(1, :, :)
          end if
          do i = its, itf
+            print *, "163 - 11323 cycle " 
             if (ierr(i) /= 0) cycle
             massi = 0.
             do k = kts, ktop(i)
@@ -11351,6 +11515,7 @@ contains
       !
       !---a) change per unit mass that a model cloud would modify the environment
       do i = its, itf
+         print *, "164 - 11354 cycle " 
          if (ierr(i) /= 0) cycle
 
          call fluxFormsSourceSink(kte, kts, mtp, ktop(i), chem_name_mask, dtime, edto(i), po_cup(i,:) &
@@ -11362,6 +11527,7 @@ contains
       if (p_use_gate) then
          !--only for debug
          do i = its, itf
+            print *, "165 - 11365 cycle " 
             if (ierr(i) /= 0) cycle
             massf = 0.
             do k = kts, ktop(i)
@@ -11860,6 +12026,7 @@ contains
       real :: rcount, dp, dellah_aver, denom, x_add
 
       do i = its, itf
+         print *, "166 - 11863 ==0 " 
          if (ierr(i) == 0) then
             edto(i) = sigd(i)*edtc(i, iedt)
             edt(i) = edto(i)
@@ -11869,6 +12036,7 @@ contains
       !--- get the environmental mass flux
       do i = its, itf
          zenv(i, :) = 0.0
+         print *, "167 - 11872 cycle " 
          if (ierr(i) /= 0) cycle
          zenv(i, :) = zuo(i, :) - edto(i)*zdo(i, :)
       end do
@@ -11895,6 +12063,7 @@ contains
 
       if (VERT_DISCR == 0) then
          do i = its, itf
+            print *, "168 - 11898 cycle " 
             if (ierr(i) /= 0) cycle
             do k = kts, ktop(i)
                dp = 100.*(po_cup(i, k) - po_cup(i, k + 1))
@@ -11913,6 +12082,7 @@ contains
          do i = its, itf
             trash = 0.0
             trash2 = 0.0
+            print *, "169 - 11916 ==0 " 
             if (ierr(i) == 0) then
                call vd0_loop(i, kts, ktop, po_cup, qo_cup, zo_cup, zuo, hco, heo_cup, zdo, hcdo, p_liq_ice, qrco, melting &
                              , up_massdetro, dd_massdetro, c1d, pwo, pwdo, qcdo, qco, dbydo, edto, cumulus, trash, trash2 &
@@ -11939,6 +12109,7 @@ contains
       !--- make the smoothness procedure
       if (USE_SMOOTH_TEND > 0) then
          do i = its, itf
+            print *, "170 - 11942 cycle " 
             if (ierr(i) /= 0) cycle
             tend2d = 0.
 
@@ -11971,6 +12142,7 @@ contains
       do k = kts, ktf
          do i = its, itf
             dellat(i, k) = 0.
+            print *, "171 - 11974 cycle " 
             if (ierr(i) /= 0) cycle
             !
             xhe(i, k) = (dellah(i, k))*mbdt(i) + heo(i, k)
@@ -12002,7 +12174,8 @@ contains
          end do
       end do
       do i = its, itf
-         if (ierr(i) /= 0) cycle
+        print *, "172 - 12005 cycle "  
+        if (ierr(i) /= 0) cycle
          !XHKB(I)=(dsubh(i,k22(i))+DELLAH(I,K22(i)))*MBDT+HKBO(I)
          xhe(i, ktf) = heo(i, ktf)
          xq(i, ktf) = qo(i, ktf)
@@ -12011,6 +12184,7 @@ contains
       end do
       !- new way for defining XHKB
       do i = its, itf
+         print *, "173 - 12014 cycle " 
          if (ierr(i) /= 0) cycle
          !XHKB(I)= DELLAH(I,K22(i))*MBDT+HKBO(I)
          !-note that HKBO already contains the contribuition from
@@ -12031,6 +12205,7 @@ contains
       !--- moist static energy inside cloud
       do i = its, itf
          xhc(i, :) = 0.
+         print *, "174 - 12034 cycle " 
          if (ierr(i) /= 0) cycle
          do k = kts, start_level(i) !k22(i)
             xhc(i, k) = xhkb(i)
@@ -12040,11 +12215,13 @@ contains
       !--- option to produce linear fluxes in the sub-cloud layer.
       if (trim(cumulus) == 'shallow' .and. USE_LINEAR_SUBCL_MF == 1) then
          do i = its, itf
+            print *, "175 - 12043 cycle " 
             if (ierr(i) /= 0) cycle
             call getDelmix(kts, start_level(i), po(i, kts:kte), xhe_cup(i, kts:kte), xhc(i, kts:kte))
          end do
       end if
       do i = its, itf
+         print *, "176 - 12048 cycle " 
          if (ierr(i) /= 0) cycle
          do k = start_level(i) + 1, ktop(i) + 1  ! mass cons option
             denom = (xzu(i, k - 1) - .5*up_massdetro(i, k - 1) + up_massentro(i, k - 1))
@@ -12076,6 +12253,7 @@ contains
 
       do nens = 1, p_maxens
          do i = its, itf
+            print *, "177 - 12079 cycle " 
             if (ierr(i) /= 0) cycle
             !~ xaa0_ens(i,nens)=xaa0(i)
             do k = kts, ktop(i)
@@ -12096,6 +12274,7 @@ contains
                end do
             end do
             if (pr_ens(i, 7) < 1.e-6 .and. C0_MID > 0. .and. trim(cumulus) /= 'shallow') then
+               print *, "178 - 12099 remove 18 " 
                ierr(i) = 18
                ierrc(i) = "total normalized condensate too small"
                do nens3 = 1, p_maxens3
@@ -12136,6 +12315,7 @@ contains
       !--- get the net precipitation at surface
 
       do i = its, itf
+         print *, "179 - 12139 ==0 " 
          if (ierr(i) == 0) then
             pwo_eff(i, :) = pwo(i, :) + edto(i)*pwdo(i, :)
          else
