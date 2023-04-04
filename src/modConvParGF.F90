@@ -3516,7 +3516,6 @@ contains
             endif
          end if
       end do
-
       !--- get back water vapor qc
       do i = its, itf
          if (ierr(i) /= 0) cycle
