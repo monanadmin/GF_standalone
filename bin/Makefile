@@ -18,7 +18,7 @@ EXE=$(BASE).x
 ARC=$(BASE).a
 
 # Opcoes para o compilador gfortran:
-GNU_OPTS=-O0 -g -fcheck=bounds -fbacktrace -ffree-line-length-200 -fdefault-real-8
+GNU_OPTS=-O0 -g -fcheck=bounds -fbacktrace -ffree-line-length-200 #-fdefault-real-8
 
 # Opcoes para o compilador ifort:
 INTEL_OPTS=-O0 -g -check bounds -traceback -check uninit -r8 -free
@@ -41,11 +41,21 @@ all:	$(BIN)/$(EXE)
 $(BIN)/$(EXE):	$(BIN)/$(ARC)
 	$(COMP) $(F_OPTS) $< -o $@
 
-$(BIN)/$(ARC):	$(BIN)/1d-gf-test.o $(BIN)/modConvParGF.o $(BIN)/modConstants.o $(BIN)/modGate.o $(BIN)/modHenrysLawCts.o $(BIN)/modVector.o 
+# TODO: ainda é necessário compilar com 1 coluna também ? Se sim, deverá ser parametrizado o executável e o diretório datain / dataout para chavear entre 1 e n colunas
+
+# $(BIN)/$(ARC):	$(BIN)/1d-gf-test.o $(BIN)/modConvParGF.o $(BIN)/modConstants.o $(BIN)/modGate.o $(BIN)/modHenrysLawCts.o $(BIN)/modVector.o 
+# 	ar rs $@ $(BIN)/*.o
+
+# $(BIN)/1d-gf-test.o: $(SRC)/1d-gf-test.f90 $(BIN)/modGate.o $(BIN)/modConvParGF.o 
+# 	$(COMP) $(F_OPTS) -c $< -o $@
+
+
+$(BIN)/$(ARC):	$(BIN)/gf_teste.o $(BIN)/modConvParGF.o $(BIN)/modConstants.o $(BIN)/modGate.o $(BIN)/modHenrysLawCts.o $(BIN)/modVector.o 
 	ar rs $@ $(BIN)/*.o
 
-$(BIN)/1d-gf-test.o: $(SRC)/1d-gf-test.f90 $(BIN)/modGate.o $(BIN)/modConvParGF.o 
-	$(COMP) $(F_OPTS) -c $< -o $@
+$(BIN)/gf_teste.o: $(SRC)/gf_teste.F90 $(BIN)/modGate.o $(BIN)/modConvParGF.o $(BIN)/modConstants.o
+	$(COMP) $(F_OPTS) -c $< -o $@	
+
 
 $(BIN)/modConvParGF.o: $(SRC)/modConvParGF.F90 $(BIN)/modConstants.o $(BIN)/modGate.o $(BIN)/modHenrysLawCts.o $(BIN)/modVector.o
 	$(COMP) $(F_OPTS) -c $< -o $@
