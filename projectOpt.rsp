@@ -1,0 +1,8 @@
+# my build options
+     options build
+     options --compiler gfortran
+     options --flag "-Dbd -fPIC -O0 -g -fcheck=bounds -fbacktrace -ffree-line-length-200 "
+
+#options install --prefix ifort_debug_win
+#options --profile debug
+#options --flags "/I..\..\wint\lib.i64"

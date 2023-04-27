@@ -1,0 +1,41 @@
+# prototipo criado para o projeto Monan
+# usages:
+# fpm build @projectOpt
+# fpm build -flag="-Dbd -fPIC -O0 -g -fcheck=bounds -fbacktrace -ffree-line-length-200 -fdefault-real-8" 
+#
+# seção sem keyword para criação do package
+name = "gfB" # nome da biblioteca (package) que será criada
+             # a partir dos fontes do diretorio src
+version = "0.1.0"
+license = "license"
+author = "bidu@lncc.br"
+maintainer = "ebiduardo@gmail.com"
+copyright = "Copyright 2023"
+# build/gfortran_C3D51FADC9D68F29/gfB/libgfB.a
+
+[build] # sobre os executaveis 
+auto-executables = true #cria o executavél de utilização
+#auto-tests = true #cria o executavél de teste
+                  # com o nome do fonte que contem o main 
+                  #     build/gfortran_C3D51FADC9D68F29/app/gf_teste
+auto-examples = true # não sei dizer
+
+[[executable]]
+name = "gfPx" # nome do executavel que será criado
+              # não permite uso de ponto no nome
+# local de criação: build/gfortran_C3D51FADC9D68F29/app/gfPx
+source-dir = "src"
+main = "gf_teste.f90"
+
+# tentativas, sem sucesso, de escolha do flags de compilação
+[profiles.gfortran]
+flags="-fPIC -O0 -fcheck=bounds -fbacktrace -ffree-line-length-200 "  #-fdefault-real-8
+#flags=" -Wall -Wextra -Wimplicit-interface -fPIC -fmax-errors=1 -g -fcheck=bounds -fcheck=array-temps -fbacktrace -fcoarray=single -ffree-line-length-200 "
+
+[profiles.ifort]
+flags="-O0 -g -check bounds -traceback -check uninit -free "  #-r8
+
+# incluida no exemplo do tutorial
+# # nao entendi
+[install]
+library = false
