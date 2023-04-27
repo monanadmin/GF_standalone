@@ -29,10 +29,11 @@ fi
 echo "COMPILER=$COMPILER"
 
 cd ${BIN}
-rm -f ${BIN}/gf.x
+#rm -f gf.x
+rm -f gf_testex
 echo "Compilando"
-#make clean
-make $COMPILER
+#make clean; make $COMPILER
+(cd ../; ./FPM.sh)
 sleep 3
 
 
