@@ -6,3 +6,7 @@
 *.o
 *.gra
 *.ctl
+*.bin
+*.png
+*.out
+*.bak
