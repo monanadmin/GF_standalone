@@ -33,7 +33,7 @@ cd ${BIN}
 rm -f gf_testex
 echo "Compilando"
 #make clean; make $COMPILER
-(cd ../; ./FPM.sh)
+# (cd ../; ./FPM.sh)
 sleep 3
 
 
