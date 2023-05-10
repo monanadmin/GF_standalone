@@ -4,7 +4,7 @@
 # fpm build -flag="-Dbd -fPIC -O0 -g -fcheck=bounds -fbacktrace -ffree-line-length-200 -fdefault-real-8" 
 #
 # seção sem keyword para criação do package
-name = "gfB" # nome da biblioteca (package) que será criada
+name = "gf_teste" # nome da biblioteca (package) que será criada
              # a partir dos fontes do diretorio src
 version = "0.1.0"
 license = "license"
@@ -21,7 +21,7 @@ auto-executables = true #cria o executavél de utilização
 auto-examples = true # não sei dizer
 
 [[executable]]
-name = "gfPx" # nome do executavel que será criado
+name = "gf_testePx" # nome do executavel que será criado
               # não permite uso de ponto no nome
 # local de criação: build/gfortran_C3D51FADC9D68F29/app/gfPx
 source-dir = "src"

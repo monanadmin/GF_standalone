@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Script que compila e executa o codigo GF_StandAlone:
 
@@ -17,26 +17,25 @@ BIN=${DIRHOME}/bin
 
 
 # Verificando o argumento de entrada
+COMPILER=${1:-"gnu"}
 if [ -z "${1}" ]
 then
   echo "Compiler is not set: gnu or intel"
-  echo "gnu is set by default" 
-  COMPILER='gnu'
-else
-  COMPILER=`echo $1 | awk '{print $1}' `
+  echo "$COMPILER is set by default" 
 fi
   
 echo "COMPILER=$COMPILER"
 
 cd ${BIN}
-#rm -f gf.x
-rm -f gf_testex
+rm -f gf.x
 echo "Compilando"
-#make clean; make $COMPILER
-# (cd ../; ./FPM.sh)
-sleep 3
+comando="make clean; make $COMPILER"
+echo $comando; eval $comando
 
+#(cd ../; ./FPM.sh)
 
+#rm ${DATAOUT}/ref_g.gra
+rm ${DATAOUT}/*.gra
 cd ${DATAIN}
 echo "Executando"
 time ${BIN}/gf.x
