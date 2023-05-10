@@ -5656,16 +5656,18 @@ contains
             loop2:      do while (hcot(i,kbcon(i)) < HESO_cup(i,kbcon(i)))
                kbcon(i)=kbcon(i)+1
                if(kbcon(i).gt.kbmax(i)+2) then
-                  print *, "87 - 5571 remove 3 " 
-                  ierr(i)=3
-                  ierrc(i)="could not find reasonable kbcon in cup_kbcon : above kbmax+2 "
-                  exit loop2
+                  if(remove(i)) then
+                     print *, "87 - 5571 remove 3 " 
+                     ierr(i)=3
+                     ierrc(i)="could not find reasonable kbcon in cup_kbcon : above kbmax+2 "
+                     exit loop2
+                  endif
                endif
                 !print*,"kbcon=",kbcon(i);call flush(6)
             enddo loop2
 
             print *, "88 - 5578 cycle loop0 " 
-!BD_n            if(ierr(i) /= 0) cycle loop0
+            if(ierr(i) /= 0) cycle loop0  ! DE: cycle needed due to possible remove in loop2 
 
             !---     cloud base pressure and max moist static energy pressure
             !---     i.e., the depth (in mb) of the layer of negative buoyancy
