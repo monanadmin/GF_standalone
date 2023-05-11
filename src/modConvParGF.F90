@@ -406,6 +406,8 @@ module modConvParGF
    type(t_hcts_vars), allocatable :: hcts(:)
    !!
    logical :: modConvParGF_initialized
+
+   logical :: is_removed
    !=================================================
    ! End of module internal variables  -
    !=================================================
@@ -1171,11 +1173,11 @@ contains
             k22(i) = min(2, k22(i))
 
             if (K22(i) .gt. kbmax(i)) then
-               if(remove(i)) then
-                  print *, "2 - 1173 remove 2"  
-                  ierr(i) = 2
-                  ierrc(i) = "could not find k22"
-               endif
+               is_removed=remove(i)
+               print *, " removed(i) = ", is_removed
+               print *, "2 - 1173 remove 2"  
+               ierr(i) = 2
+               ierrc(i) = "could not find k22"
             end if
          else
             if (k22(i) > kbmax(i)) then
@@ -1226,6 +1228,8 @@ contains
             print *, "4 - 1222 cycle" 
 !BD_n            if (ierr(i) /= 0) cycle
             if (klcl(i) > max(1, kpbl(i) - LCL_TRIGGER)) then
+               is_removed=remove(i)
+               print *, " removed(i) = ", is_removed
                print *, "5 - 1224 remove 21" 
                ierr(i) = 21
                ierrc(i) = 'for shallow convection:  LCL height < PBL height'
@@ -1387,6 +1391,8 @@ contains
 !BD_n            if (ierr(i) /= 0) cycle
             !print*,"sta=",Kbcon(i),kstabm(i),kstabi(i),p_cup(i,ktop(i)),z_cup(i,kstabi(i))
             if (po_cup(i, ktop(i)) < 450.) then
+               is_removed=remove(i)
+               print *, " removed(i) = ", is_removed
                print *, "12 - 1378 remove 25"  
                ierr(i) = 25
                ierrc(i) = 'mid convection with cloud top above 450 hPa (~ 7km asl)'
@@ -1398,6 +1404,8 @@ contains
             print *, "13 - 1385 cycle" 
 !BD_n            if (ierr(i) /= 0) cycle
             if (po_cup(i, ktop(i)) > 750.) then
+               is_removed=remove(i)
+               print *, " removed(i) = ", is_removed
                print *, "14 - 1387 remove 55" 
                ierr(i) = 55
                ierrc(i) = 'ktop too low for mid'
@@ -1423,6 +1431,8 @@ contains
             min_shall_top = 700.
             !if(icumulus_gf(mid) == 0) min_shall_top=500.
             if (po_cup(i, ktop(i)) < min_shall_top) then
+               is_removed=remove(i)
+               print *, " removed(i) = ", is_removed
                print *, "17 - 1409 remove 26" 
                ierr(i) = 26
                ierrc(i) = 'shallow convection wit h cloud top above min_shall_top hPa'
@@ -1432,6 +1442,8 @@ contains
 
       do i = its, itf
          if (ktop(i) <= kbcon(i)) then
+            is_removed=remove(i)
+            print *, " removed(i) = ", is_removed
             print *, "18 - 1417 remove 5" 
             ierr(i) = 5
             ierrc(i) = 'ktop too small'
@@ -1445,6 +1457,8 @@ contains
             print *, "19 - 1426 cycle" 
 !BD_n            if (ierr(i) /= 0) cycle
             if (po_cup(i, ktop(i)) > min_deep_top) then
+               is_removed=remove(i)
+               print *, " removed(i) = ", is_removed
                print *, "20 - 1428 remove 55" 
                ierr(i) = 55
                ierrc(i) = 'ktop too low for deep'
@@ -1464,6 +1478,8 @@ contains
             ! endif
             !--- if 'mid' => last was 'shallow'
             if (trim(cumulus) == 'mid') then
+               is_removed=remove(i)
+               print *, " removed(i) = ", is_removed
                print *, "22 - 1445 remove 27" 
                ierr(i) = 27
                ierrc(i) = 'avoiding double-counting deep and mid'
@@ -1650,8 +1666,12 @@ contains
                print *, "31 - 1619 cycle " 
 !BD_n               if (ierr(i) /= 0) cycle
                ke_mx = 0.5*max(wlpool_bcon(i)**2, zws(i)**2) + 1.e-6
-               print *, "32 - 1621 remove 500" 
-               if (ke_mx < abs(min(cin1(i), 0.))) ierr(i) = 500
+               if (ke_mx < abs(min(cin1(i), 0.))) then
+                  is_removed=remove(i)
+                  print *, " removed(i) = ", is_removed
+                  print *, "32 - 1621 remove 500" 
+                  ierr(i) = 500
+               endif
             end do
          end if
       end if
@@ -1785,6 +1805,8 @@ contains
             end if
          end do
          if (bud(i) .gt. 0) then
+            is_removed=remove(i)
+            print *, " removed(i) = ", is_removed
             print *, "38 - 1750 remove 7 " 
             ierr(i) = 7
             ierrc(i) = 'downdraft is not negatively buoyant '
@@ -1804,6 +1826,8 @@ contains
          print *, "39 - 1765 cycle " 
 !BD_n         if (ierr(i) /= 0) cycle
          if (aa1(i) .eq. 0.) then
+            is_removed=remove(i)
+            print *, " removed(i) = ", is_removed
             print *, "40 - 1767 remove 17 " 
             ierr(i) = 17
             ierrc(i) = "cloud work function zero"
@@ -2505,11 +2529,15 @@ contains
          end do
 
          if (pwev(i) .ge. 0 .and. iloop .eq. 1) then
+            is_removed=remove(i)
+            print *, " removed(i) = ", is_removed
             print *, "55 - 2453 remove 70 " 
             ierr(i) = 70
             ierrc(i) = "problem with buoy in cup_dd_moisture"
          end if
          if (bu(i) .ge. 0 .and. iloop .eq. 1) then
+            is_removed=remove(i)
+            print *, " removed(i) = ", is_removed
             print *, "56 - 2457 remove 73 " 
             ierr(i) = 73
             ierrc(i) = "problem2 with buoy in cup_dd_moisture"
@@ -2528,6 +2556,8 @@ contains
                qcd(i, k) = qrcd(i, k) + dq_eva
             end do
             if (pwev(i) .ge. 0.) then
+               is_removed=remove(i)
+               print *, " removed(i) = ", is_removed
                print *, "58 - 2473 remove 70 " 
                ierr(i) = 70
                ierrc(i) = "problem with buoy in cup_dd_moisture"
@@ -3577,11 +3607,11 @@ contains
             psum(i) = psum(i) + clw_all(i, k)*zu(i, k)*dz
          end do
          if (pwav(i) < 0.) then
-            if(remove(i)) then
-               print *, "67 - 3514 remove 66 " 
-               ierr(i) = 66
-               ierrc(i) = "pwav negative"
-            endif
+            is_removed=remove(i)
+            print *, " removed(i) = ", is_removed
+            print *, "67 - 3514 remove 66 " 
+            ierr(i) = 66
+            ierrc(i) = "pwav negative"
          end if
       end do 
 
