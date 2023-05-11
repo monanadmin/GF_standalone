@@ -5617,7 +5617,7 @@ contains
       start_level = 0
       cap_max(:) = cap_max_in(:)
 
-       do vtp_index = 1, get_num_elements() ; i=get_index_value(vtp_index) !BD_n
+      do vtp_index = 1, get_num_elements() ; i=get_index_value(vtp_index) !BD_n
          print *, "84 - 5536 cycle " 
 !BD_n         if (ierr(i) /= 0) cycle
          start_level(i) = start_level_(i)
@@ -5626,8 +5626,11 @@ contains
          end do
       end do
 
+      ! WARNING - do not remove cycles or insert "remove(i) below in the routine. 
+      !         - There some dependencies in loops (loop0, loop1) that crashes the execution
+
       !--- determine the level of convective cloud base  - kbcon
-   !--- DETERMINE THE LEVEL OF CONVECTIVE CLOUD BASE  - KBCON
+      !--- DETERMINE THE LEVEL OF CONVECTIVE CLOUD BASE  - KBCON
       !
       loop0:  do vtp_index = 1, get_num_elements() ; i=get_index_value(vtp_index) !BD_n
          !-default value
@@ -5635,8 +5638,7 @@ contains
          depth_neg_buoy(i)=0.
          frh           (i)=0.
          print *, "85 - 5551 cycle " 
-!BD_n         if(ierr(i) /= 0) cycle
-
+         if(ierr(i) /= 0) cycle
 
          print *, "86 - 5554 while ==0 " 
          loop1:  do while(ierr(i) == 0)
@@ -5665,7 +5667,7 @@ contains
             enddo loop2
 
             print *, "88 - 5578 cycle loop0 " 
-!BD_n            if(ierr(i) /= 0) cycle loop0
+            if(ierr(i) /= 0) cycle loop0
 
             !---     cloud base pressure and max moist static energy pressure
             !---     i.e., the depth (in mb) of the layer of negative buoyancy
@@ -5719,9 +5721,9 @@ contains
          enddo loop1
          !--- last check for kbcon
          if(kbcon(i) == kts) then
-            print *, "89 - 5632 remove 33 " 
-            ierr(i)=33
-            ierrc(i)="could not find reasonable kbcon in cup_kbcon = kts"
+               print *, "89 - 5632 remove 33 " 
+               ierr(i)=33
+               ierrc(i)="could not find reasonable kbcon in cup_kbcon = kts"
          endif
       enddo loop0
 
@@ -5730,7 +5732,7 @@ contains
        do vtp_index = 1, get_num_elements() ; i=get_index_value(vtp_index) !BD_n
          ktop(i) = ktf - 1
          print *, "90 - 5641 cycle " 
-!BD_n         if (ierr(i) /= 0) cycle
+         if (ierr(i) /= 0) cycle
          !~ dby(:)=0.0
 
          start_level(i) = kbcon(i)
