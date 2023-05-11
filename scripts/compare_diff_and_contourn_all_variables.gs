@@ -10,18 +10,19 @@
 function main(args)
 
    if (args='')
-      say 'requires arguments: dir1/file.ctl dir2/file.ctl'
+      say 'requires arguments: dir1/file.ctl dir2/file.ctl filebasename'
       'quit'
    else
       file1=subwrd(args,1)
       file2=subwrd(args,2)
+      filebasename=subwrd(args,3)
    endif
  c say "running with args " args
-   fileout=compare(file1,file2)
+   fileout=compare(file1,file2,filebasename)
 
 'quit'
 
-function compare(file1,file2)
+function compare(file1,file2,filebasename)
   'reinit'
   openFile(file1,'ctl')
   'set gxout print'
@@ -136,7 +137,7 @@ function compare(file1,file2)
           varmax=subwrd(cada,4)
           if(varmax>difmaxima)
             say '===> ATENÇÃO !!! Diferença na variavel 'var' em z='z', t='t' foi de 'varmax' e superou 'difmaxima
-           'printim 'var'_z'z'_t't'__diff.png'
+           'printim 'var'_z'z'_t't'__diff___'filebasename'.png'
 
            'c'
            'd 'var
@@ -144,7 +145,7 @@ function compare(file1,file2)
            'd 'var'.2'
            'cbarn'
            'draw title Contorno 'var'.2 = arq. 2' 
-           'printim 'var'_z'z'_t't'__contourn.png'
+           'printim 'var'_z'z'_t't'__contourn___'filebasename'.png'
           endif
         endif
         t=t+1

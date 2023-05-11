@@ -81,8 +81,12 @@ if [ -s diff.txt ]; then
 
     file_path_ref=$(echo $line | awk '{print $5}')
     file_path_ref=$(echo $file_path_ref | sed 's/gra/ctl/g')
+
+    file_name=$(basename $file_path_test)
+    file_base_name="${file_name%.*}"
+    
         
-    GRADS_PARAMS='grads -lc "compare_diff_and_contourn_all_variables.gs '$file_path_test' '$file_path_ref'"'
+    GRADS_PARAMS='grads -lc "compare_diff_and_contourn_all_variables.gs '$file_path_test' '$file_path_ref' '$file_base_name' "'
     echo $GRADS_PARAMS
     eval $GRADS_PARAMS
     
