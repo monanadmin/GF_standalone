@@ -1,7 +1,23 @@
+
+function main(args)
+
+   if (args='')
+      say 'requires arguments: testingdir/file.ctl referencedir/file.ctl'
+      'quit'
+   else
+      file1=subwrd(args,1)
+      file2=subwrd(args,2)
+   endif
+ c say "running with args " args
+   fileout=compare(file1,file2)
+
+'quit'
+
+function compare(file1,file2)
 'reinit'
 
-'open ../dataout/ref_g.ctl'
-'open ../dataout__compare_local_modifications/ref_g.ctl'
+'open 'file1
+'open 'file2
 
 var=1
 while(var<=3)
@@ -15,7 +31,7 @@ say ""
 'set gxout shaded'
 'd outt'var'.2 - outt'var'.1'
 *'cbar'
-'printim outt'var'_diff.png'
+'printim 'file1'___outt'var'_diff'.png'
 
 say ""
 say "Comparing shaded (original) x contourn (actual)"
@@ -25,7 +41,7 @@ say ""
 'd outt'var'.1'
 'set gxout contour'
 'd outt'var'.2'
-'printim outt'var'_contourn.png'
+'printim 'file1'___outt'var'_contourn.png'
 
 var=var+1
 endwhile

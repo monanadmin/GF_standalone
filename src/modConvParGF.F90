@@ -928,7 +928,7 @@ contains
 
       character(len=128) :: ierrc(its:ite)
       
-      integer           :: vec_max_size, vtp_index
+      integer           :: vtp_index
 
       !----------------------------------------------------------------------
       !--only for debug
@@ -945,13 +945,6 @@ contains
          end if
       end if
  
-      ! Init the vector with the all indexes to process
-      vec_max_size = ite - its + 1
-      call init(vec_max_size)
-      
-      ! Insert (initially) all the indexes to process in the vector 
-      call insert_range(its, ite)
-      
       !--- maximum depth (mb) of capping inversion (larger cap = no convection)
       if (MOIST_TRIGGER == 0) then
          if (trim(cumulus) == 'deep') then
@@ -12701,6 +12694,9 @@ contains
 
 
       integer :: jlx, plume, ii_plume
+      
+      integer :: vec_max_size
+      !! max size control loop vector can assume
 
       !----------------------------------------------------------------------
       !-do not change this
@@ -12712,6 +12708,12 @@ contains
       time_in = time
       itime1_in = itime1
       !----------------------------------------------------------------------
+      
+      ! Init the vector with the all indexes to process
+      vec_max_size = ite - its + 1
+      call init(vec_max_size)
+      call insert_range(its, ite)
+
       if (abs(C1) > 0.) use_c1d = .true.
 
       !-- big loop over j dimension

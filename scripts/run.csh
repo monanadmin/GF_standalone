@@ -1,11 +1,13 @@
-#!/bin/csh
+#!/bin/bash
 
 DIRHOME=/mnt/beegfs/carlos.souza/GF_standalone_monan-178-c
+DIRHOME=$PWD
 SCRIPTS=${DIRHOME}/scripts
 DATAOUT=${DIRHOME}/dataout
 DATAIN=${DIRHOME}/datain
 SRC=${DIRHOME}/src
 BIN=${DIRHOME}/bin
+#echo $BIN; exit
 
 #---------------------------create the executable
 #rm -f gf.x
@@ -161,10 +163,13 @@ Eof0
 #--
 
 #-----------------------------run GF standalone
-gf.x > gf.out
+i=''
+(cd ${DATAIN};
+$BIN/gf.x > gf.out
 #ls -ltr *ctl
 echo "compare --------"
-cmp ./ref_i.gra ./refs/ref_i.gra
+cmp ${DATAOUT}/ref_$i.gra ${DIRHOME}/refs/ref_g.gra
+)
 
 
 

@@ -17,29 +17,24 @@
 # ================
 # - executes GF_standalone.sh script
 # - run binay comparison between grads .gra files
-# - run grads diff comparison of variables outt1, outt2 and outt3
-# - run scripts
+# - run grads script to compare all variables of all levels of files that fails binary comparison.
+# 
 #
 #
 # Instructions
 # ~~~~~~~~~~~~
 # 
 # - First of all (once):
-#
-#   - The base results are reference files generated before for comparison. Must be at ../dataout__compare_local_modifications. 
-#     So, execute:
-#          
-#     $ ./GF_Standalone.sh
-#     $ copy -rf ../dataout ../dataout__compare_local_modifications
+#   - The base results are reference files generated before for comparison. Parametrize then in "DIR_REF" variable. 
 #
 # - Now you can execute this script:
-#
 #   $ ./compare_local_modifications.sh
 #
 #
 # History
 # =======
 # 2023/03/60 - Creation - deniseiras
+# 2023/05/11 - Update - ncolumns; using script compare_diff_and_contourn_all_variables
 #
 #
 # Licence
@@ -61,16 +56,46 @@
 # along with this program.  If not, see [GNU Public    License](https://www.gnu.org/licenses/gpl-3.0.html).
 #
 
+DIR_TESTING="../dataout"
+DIR_REF="../refs"
+
 echo -e "\n\nCompiling and executing GF"
 echo -e "==============================\n"
 
 ./GF_standalone.sh
 echo -e "\n\nComparing binary diferences"
 echo -e "===========================\n"
-diff -qr ../dataout/ref_g.gra ../dataout__compare_local_modifications/ref_g.gra 
 
-echo
-echo -e "\n\nComparing using grads"
-echo -e "=====================\n"
 
-grads -lc "compare_diff_and_contourn_outt_variables.gs"
+diff -qr $DIR_TESTING $DIR_REF > diff.txt
+sed -i '/^Somente/d' diff.txt
+if [ -s diff.txt ]; then
+
+  while read line
+  do
+    echo
+    echo -e "\n\nComparing using grads"
+    echo -e "=====================\n"
+    file_path_test=$(echo $line | awk '{print $3}')
+    file_path_test=$(echo $file_path_test | sed 's/gra/ctl/g')
+
+    file_path_ref=$(echo $line | awk '{print $5}')
+    file_path_ref=$(echo $file_path_ref | sed 's/gra/ctl/g')
+
+    file_name=$(basename $file_path_test)
+    file_base_name="${file_name%.*}"
+    
+        
+    GRADS_PARAMS='grads -lc "compare_diff_and_contourn_all_variables.gs '$file_path_test' '$file_path_ref' '$file_base_name' "'
+    echo $GRADS_PARAMS
+    eval $GRADS_PARAMS
+    
+  done < diff.txt
+
+else
+  echo -e "\nCongratulations, no diferences found!!!"
+fi
+
+
+
+
