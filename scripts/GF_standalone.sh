@@ -32,10 +32,10 @@ echo "Compilando"
 comando="make clean; make $COMPILER"
 echo $comando; eval $comando
 
+# for FPM Fortran Benchmarking use only
 #(cd ../; ./FPM.sh)
 
-#rm ${DATAOUT}/ref_g.gra
-rm ${DATAOUT}/*.gra
+(cd ${DATAOUT}; rm *.gra *.ctl)
 cd ${DATAIN}
 echo "Executando"
 time ${BIN}/gf.x
