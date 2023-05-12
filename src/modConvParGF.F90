@@ -931,7 +931,7 @@ contains
 
       character(len=128) :: ierrc(its:ite)
       
-      integer           :: vec_max_size, vtp_index
+      integer           :: vtp_index
 
       !----------------------------------------------------------------------
       !--only for debug
@@ -948,13 +948,6 @@ contains
          end if
       end if
  
-      ! Init the vector with the all indexes to process
-      vec_max_size = ite - its + 1
-      call init(vec_max_size)
-      
-      ! Insert (initially) all the indexes to process in the vector 
-      call insert_range(its, ite)
-      
       !--- maximum depth (mb) of capping inversion (larger cap = no convection)
       if (MOIST_TRIGGER == 0) then
          if (trim(cumulus) == 'deep') then
@@ -1174,7 +1167,7 @@ contains
 
             if (K22(i) .gt. kbmax(i)) then
                is_removed=remove(i)
-               print *, " removed(i) = ", is_removed
+               print *, " i = ", i, " / removed(i) = ", is_removed, " / num elements = ", get_num_elements()
                print *, "2 - 1173 remove 2"  
                ierr(i) = 2
                ierrc(i) = "could not find k22"
@@ -1229,7 +1222,7 @@ contains
 !BD_n            if (ierr(i) /= 0) cycle
             if (klcl(i) > max(1, kpbl(i) - LCL_TRIGGER)) then
                is_removed=remove(i)
-               print *, " removed(i) = ", is_removed
+               print *, " i = ", i, " / removed(i) = ", is_removed, " / num elements = ", get_num_elements()
                print *, "5 - 1224 remove 21" 
                ierr(i) = 21
                ierrc(i) = 'for shallow convection:  LCL height < PBL height'
@@ -1392,7 +1385,7 @@ contains
             !print*,"sta=",Kbcon(i),kstabm(i),kstabi(i),p_cup(i,ktop(i)),z_cup(i,kstabi(i))
             if (po_cup(i, ktop(i)) < 450.) then
                is_removed=remove(i)
-               print *, " removed(i) = ", is_removed
+               print *, " i = ", i, " / removed(i) = ", is_removed, " / num elements = ", get_num_elements()
                print *, "12 - 1378 remove 25"  
                ierr(i) = 25
                ierrc(i) = 'mid convection with cloud top above 450 hPa (~ 7km asl)'
@@ -1405,7 +1398,7 @@ contains
 !BD_n            if (ierr(i) /= 0) cycle
             if (po_cup(i, ktop(i)) > 750.) then
                is_removed=remove(i)
-               print *, " removed(i) = ", is_removed
+               print *, " i = ", i, " / removed(i) = ", is_removed, " / num elements = ", get_num_elements()
                print *, "14 - 1387 remove 55" 
                ierr(i) = 55
                ierrc(i) = 'ktop too low for mid'
@@ -1432,7 +1425,7 @@ contains
             !if(icumulus_gf(mid) == 0) min_shall_top=500.
             if (po_cup(i, ktop(i)) < min_shall_top) then
                is_removed=remove(i)
-               print *, " removed(i) = ", is_removed
+               print *, " i = ", i, " / removed(i) = ", is_removed, " / num elements = ", get_num_elements()
                print *, "17 - 1409 remove 26" 
                ierr(i) = 26
                ierrc(i) = 'shallow convection wit h cloud top above min_shall_top hPa'
@@ -1443,7 +1436,7 @@ contains
       do i = its, itf
          if (ktop(i) <= kbcon(i)) then
             is_removed=remove(i)
-            print *, " removed(i) = ", is_removed
+            print *, " i = ", i, " / removed(i) = ", is_removed, " / num elements = ", get_num_elements()
             print *, "18 - 1417 remove 5" 
             ierr(i) = 5
             ierrc(i) = 'ktop too small'
@@ -1458,7 +1451,7 @@ contains
 !BD_n            if (ierr(i) /= 0) cycle
             if (po_cup(i, ktop(i)) > min_deep_top) then
                is_removed=remove(i)
-               print *, " removed(i) = ", is_removed
+               print *, " i = ", i, " / removed(i) = ", is_removed, " / num elements = ", get_num_elements()
                print *, "20 - 1428 remove 55" 
                ierr(i) = 55
                ierrc(i) = 'ktop too low for deep'
@@ -1479,7 +1472,7 @@ contains
             !--- if 'mid' => last was 'shallow'
             if (trim(cumulus) == 'mid') then
                is_removed=remove(i)
-               print *, " removed(i) = ", is_removed
+               print *, " i = ", i, " / removed(i) = ", is_removed, " / num elements = ", get_num_elements()
                print *, "22 - 1445 remove 27" 
                ierr(i) = 27
                ierrc(i) = 'avoiding double-counting deep and mid'
@@ -1668,7 +1661,7 @@ contains
                ke_mx = 0.5*max(wlpool_bcon(i)**2, zws(i)**2) + 1.e-6
                if (ke_mx < abs(min(cin1(i), 0.))) then
                   is_removed=remove(i)
-                  print *, " removed(i) = ", is_removed
+                  print *, " i = ", i, " / removed(i) = ", is_removed, " / num elements = ", get_num_elements()
                   print *, "32 - 1621 remove 500" 
                   ierr(i) = 500
                endif
@@ -1806,7 +1799,7 @@ contains
          end do
          if (bud(i) .gt. 0) then
             is_removed=remove(i)
-            print *, " removed(i) = ", is_removed
+            print *, " i = ", i, " / removed(i) = ", is_removed, " / num elements = ", get_num_elements()
             print *, "38 - 1750 remove 7 " 
             ierr(i) = 7
             ierrc(i) = 'downdraft is not negatively buoyant '
@@ -1827,7 +1820,7 @@ contains
 !BD_n         if (ierr(i) /= 0) cycle
          if (aa1(i) .eq. 0.) then
             is_removed=remove(i)
-            print *, " removed(i) = ", is_removed
+            print *, " i = ", i, " / removed(i) = ", is_removed, " / num elements = ", get_num_elements()
             print *, "40 - 1767 remove 17 " 
             ierr(i) = 17
             ierrc(i) = "cloud work function zero"
@@ -2530,14 +2523,14 @@ contains
 
          if (pwev(i) .ge. 0 .and. iloop .eq. 1) then
             is_removed=remove(i)
-            print *, " removed(i) = ", is_removed
+            print *, " i = ", i, " / removed(i) = ", is_removed, " / num elements = ", get_num_elements()
             print *, "55 - 2453 remove 70 " 
             ierr(i) = 70
             ierrc(i) = "problem with buoy in cup_dd_moisture"
          end if
          if (bu(i) .ge. 0 .and. iloop .eq. 1) then
             is_removed=remove(i)
-            print *, " removed(i) = ", is_removed
+            print *, " i = ", i, " / removed(i) = ", is_removed, " / num elements = ", get_num_elements()
             print *, "56 - 2457 remove 73 " 
             ierr(i) = 73
             ierrc(i) = "problem2 with buoy in cup_dd_moisture"
@@ -2557,7 +2550,7 @@ contains
             end do
             if (pwev(i) .ge. 0.) then
                is_removed=remove(i)
-               print *, " removed(i) = ", is_removed
+               print *, " i = ", i, " / removed(i) = ", is_removed, " / num elements = ", get_num_elements()
                print *, "58 - 2473 remove 70 " 
                ierr(i) = 70
                ierrc(i) = "problem with buoy in cup_dd_moisture"
@@ -3608,7 +3601,7 @@ contains
          end do
          if (pwav(i) < 0.) then
             is_removed=remove(i)
-            print *, " removed(i) = ", is_removed
+            print *, " i = ", i, " / removed(i) = ", is_removed, " / num elements = ", get_num_elements()
             print *, "67 - 3514 remove 66 " 
             ierr(i) = 66
             ierrc(i) = "pwav negative"
@@ -12913,6 +12906,9 @@ contains
 
 
       integer :: jlx, plume, ii_plume
+      
+      integer :: vec_max_size
+      !! max size control loop vector can assume
 
       !----------------------------------------------------------------------
       !-do not change this
@@ -12924,6 +12920,12 @@ contains
       time_in = time
       itime1_in = itime1
       !----------------------------------------------------------------------
+      
+      ! Init the vector with the all indexes to process
+      vec_max_size = ite - its + 1
+      call init(vec_max_size)
+      call insert_range(its, ite)
+
       if (abs(C1) > 0.) use_c1d = .true.
 
       !-- big loop over j dimension
