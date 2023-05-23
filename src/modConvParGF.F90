@@ -1183,7 +1183,7 @@ contains
       call precipCwvFactor(itf, ktf, its, ite, kts, ierr, tn, po, qo, po_cup, cumulus, p_cwv_ave)
 
       !------- determine LCL for the air parcels around K22
-      !EK:
+      !DE: !!! manual if cycle remove causes ERROR, klcl is setted inside loop !!!
       do i = its, itf
          klcl(i) = k22(i) ! default value
          print *, "3 - 1194 ==0" 
@@ -1502,9 +1502,12 @@ contains
       vc = 0.
       hc = 0.
       hco = 0.
-      do i = its, itf
+      
+      !DE: manual if cycle remove
+      do vtp_index = 1, get_num_elements()
+         i=get_index_value(vtp_index)
          print *, "25 - 1475 == 0 " 
-         if (ierr(i) .eq. 0) then
+         ! if (ierr(i) .eq. 0) then
             do k = kts, start_level(i)
                hc(i, k) = hkb(i)
                hco(i, k) = hkbo(i)
@@ -1512,7 +1515,7 @@ contains
                call getCloudBc(kts, ktf, xland(i), po(i, kts:kte), u_cup(i, kts:kte), uc(i, k), k22(i))
                call getCloudBc(kts, ktf, xland(i), po(i, kts:kte), v_cup(i, kts:kte), vc(i, k), k22(i))
             end do
-         end if
+         ! end if
       end do
 
       !--- 1st guess for moist static energy and dbyo (not including ice phase)
