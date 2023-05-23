@@ -370,8 +370,6 @@ module modConvParGF
    !!
    integer :: itime1_in
    !!
-   integer :: nrec
-   !!
    integer :: ntimes
    !!
    integer ::  use_excess        
@@ -544,7 +542,6 @@ contains
       whoami_all = 0
       jcol = 0
       itime1_in = 0
-      nrec = 0
       ntimes = 0
        use_excess   = 0      
       output_sound = 0   
