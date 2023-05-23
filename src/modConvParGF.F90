@@ -1172,6 +1172,7 @@ contains
             if (k22(i) > kbmax(i)) then
                !- let's try k22=start_k22 for the cases k22>kbmax
                k22(i) = start_k22
+               !DE: TODO - this cycle could be affected by the if cycle replacement by  do vtp_index ... ?
                cycle
             end if
 
@@ -5649,7 +5650,8 @@ contains
       start_level = 0
       cap_max(:) = cap_max_in(:)
 
-      do vtp_index = 1, get_num_elements() ; i=get_index_value(vtp_index) !BD_n
+      do i = its, itf
+      ! do vtp_index = 1, get_num_elements() ; i=get_index_value(vtp_index) !BD_n
          print *, "84 - 5536 cycle " 
 !BD_n         if (ierr(i) /= 0) cycle
          start_level(i) = start_level_(i)
@@ -5660,11 +5662,13 @@ contains
 
       ! WARNING - do not remove cycles or insert "remove(i) below in the routine. 
       !         - There some dependencies in loops (loop0, loop1) that crashes the execution
+      !         - must be carefully reviwed to remove if cycles
 
       !--- determine the level of convective cloud base  - kbcon
       !--- DETERMINE THE LEVEL OF CONVECTIVE CLOUD BASE  - KBCON
       !
-      loop0:  do vtp_index = 1, get_num_elements() ; i=get_index_value(vtp_index) !BD_n
+      loop0:  do i = its, itf
+      ! loop0:  do vtp_index = 1, get_num_elements() ; i=get_index_value(vtp_index) !BD_n
          !-default value
          kbcon         (i)=kbmax(i)+3
          depth_neg_buoy(i)=0.
@@ -5761,7 +5765,8 @@ contains
 
 
       !--- determine the level of neutral buoyancy - ktop
-       do vtp_index = 1, get_num_elements() ; i=get_index_value(vtp_index) !BD_n
+      do i = its, itf         
+      !  do vtp_index = 1, get_num_elements() ; i=get_index_value(vtp_index) !BD_n
          ktop(i) = ktf - 1
          print *, "90 - 5641 cycle " 
          if (ierr(i) /= 0) cycle
