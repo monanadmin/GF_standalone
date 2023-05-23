@@ -6,3 +6,5 @@
 *.o
 *.gra
 *.ctl
+*.png
+datain
