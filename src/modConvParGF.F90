@@ -66,7 +66,6 @@ module modConvParGF
    use modVector, only: get_num_elements, get_index_value, init, insert_range, remove, free_memory, print_all
 
    implicit none
-   integer           :: vtp_index !BD
 
    private
    public p_maxiens, icumulus_gf, closure_choice, p_deep, p_shal, p_mid &
@@ -2295,6 +2294,7 @@ contains
       real :: pef, pefb, prezk, zkbc
       real, dimension(its:ite) :: vws, sdp
       real :: pefc, aeroadd, dp, prop_c
+      integer :: vtp_index
 
       ! determine downdraft strength in terms of windshear
       ! calculate an average wind shear over the depth of the cloud
@@ -2449,6 +2449,7 @@ contains
       character*128 :: ierrc(its:ite)
       integer :: i, k
       real :: dh, dz, dq_eva, denom, fix_evap
+      integer :: vtp_index
       !
       bu = 0.  
       qcd = 0. 
@@ -3050,6 +3051,7 @@ contains
       real, dimension(1:maxens) :: xk
       integer :: i, k
       real :: trash, blqe
+      integer :: vtp_index
 
        do vtp_index = 1, get_num_elements() ; i=get_index_value(vtp_index) !BD_n
          !-initialization
@@ -3212,6 +3214,7 @@ contains
       integer :: i, k
       real :: dz, da, aa_2, aa_1
       integer, dimension(its:ite) ::  kbeg, kend
+      integer :: vtp_index
 
       !  initialize array to zero.
       aa0(:) = 0.
@@ -3344,6 +3347,8 @@ contains
       real :: delt, tem1, qrc_0, cup
       real :: qrch
       logical :: is_removed_dummy
+      integer :: vtp_index
+
       !! saturation q in cloud
 
       !--- no precip for small clouds
@@ -3703,6 +3708,8 @@ contains
       real :: dz
       real :: qaver, denom, cx0, delt_hc_glac
       real :: qrch
+      integer :: vtp_index
+
       !! saturation q in cloud
       
       !! --- no precip for small clouds
@@ -3909,6 +3916,7 @@ contains
       !Local variables:
       integer :: i, k
       real :: dz, da, aa_1, aa_2
+      integer :: vtp_index
 
       aa1_bl(:) = 0.
       if (version == 0) then
@@ -4022,6 +4030,7 @@ contains
       integer :: i, k, turn, ismooth1, ismooth2, nlay, k_ent
       real :: dz, mass1, mass2, dp, rho, zuo_ave
       logical  :: smooth
+      integer :: vtp_index
 
       smooth = .false.
       if (USE_SMOOTH_PROF == 1) smooth = .true.
@@ -4251,6 +4260,7 @@ contains
       !Local variables:
       integer ::i, ki
       real :: dzo
+      integer :: vtp_index
 
       cdd = 0.
       dd_massentr = 0.
@@ -5154,6 +5164,7 @@ contains
       integer:: i, k, kk, ix, k800, k550, ist
       integer :: local_k_inv_layers(its:ite, kts:kte)
       real :: delp, first_deriv(kts:kte), sec_deriv(kts:kte), distance(kts:kte)
+      integer :: vtp_index
 
       !-initialize k_inv_layers as 1 (non-existent layer)_
       k_inv_layers = 1 !integer
@@ -5633,6 +5644,7 @@ contains
       real, dimension(its:ite) :: cap_max
       real :: dz, denom, dzh, del_cap_max, fx, x_add, z_overshoot, frh_crit
       real, dimension(kts:kte) ::   dby
+      integer :: vtp_index
 
       delz_oversh = OVERSHOOT
       hcot = 0.0
@@ -5834,6 +5846,7 @@ contains
 
       !Local variables:
       integer :: i, k
+      integer :: vtp_index
    
        do vtp_index = 1, get_num_elements() ; i=get_index_value(vtp_index) !BD_n
          dby(i, :) = 0.
@@ -5913,6 +5926,7 @@ contains
       !Local variables:
       integer :: i, k, k1
       real :: dz, bu, dw2, dw1, kx, dz1m, tv, tve, vs, ftun1, ftun2, ke
+      integer :: vtp_index
 
       ftun1 = 0.25
       ftun2 = 1.
@@ -6109,6 +6123,7 @@ contains
       real :: fixouts, dp, xfix_q, xfix_t, fsum
       real, dimension(its:ite) :: xmb_ave, xmbmax
       real, dimension(8) :: tend1d
+      integer :: vtp_index
       !
       do k = kts, ktf
          do i = its, itf
@@ -6415,6 +6430,7 @@ contains
       real, dimension(1:maxens3) :: xff_ens3
       real, dimension(its:ite) :: xk
       real, dimension(its:ite) :: ens_adj!,xmbmax
+      integer :: vtp_index
 
       ens_adj(:) = 1.
 
@@ -6816,6 +6832,7 @@ contains
       real :: dp
       real, dimension(its:ite)         :: norm, total_pwo_solid_phase
       real, dimension(its:ite, kts:kte) :: pwo_solid_phase, pwo_eff
+      integer :: vtp_index
       
       if (p_melt_glac .and. trim(cumulus) == 'deep') then
 
@@ -6922,6 +6939,7 @@ contains
       !Local variables:
       real :: dts, fp, dp, fpi
       integer ::i, k
+      integer :: vtp_index
 
       ! since kinetic energy is being dissipated, add heating accordingly (from ECMWF)
        do vtp_index = 1, get_num_elements() ; i=get_index_value(vtp_index) !BD_n
@@ -7021,6 +7039,7 @@ contains
       real :: dz, xzz, xzd, xze, denom, henry_coef, w_upd, fliq, dp
       integer :: i, k, ispc
       real, dimension(mtp, its:ite, kts:kte) ::  factor_temp
+      integer :: vtp_index
 
       !--initialization
       sc_up = se_cup
@@ -7281,6 +7300,7 @@ contains
       !Local variables:
       real :: xzz, xzd, xze, denom, pwdper, frac_evap, dp
       integer :: i, k, ispc
+      integer :: vtp_index
 
       sc_dn = 0.0
       pw_dn = 0.0
@@ -7669,6 +7689,7 @@ contains
 
       !Local variables:
       integer :: i, k
+      integer :: vtp_index
       
       if (p_clev_option == 1) then
          !-- original version
@@ -7764,6 +7785,7 @@ contains
       real :: rh_cr, del_t, del_q, dp, q_deficit, temp_pre
       real :: rh_cr_ocean, rh_cr_land
       real, dimension(its:ite) :: tot_evap_bcb, eff_c_conv
+      integer :: vtp_index
 
       if (trim(cumulus) == 'shallow') then
          rh_cr_ocean = 1.
@@ -7903,6 +7925,7 @@ contains
 
       !Local variables:
       integer :: i, k
+      integer :: vtp_index
 
       prec_flx = 0.0
       evap_flx = 0.0
@@ -8043,6 +8066,7 @@ contains
       real :: dh, dz
       real, dimension(its:ite, kts:kte)  ::  hcdo
       logical :: keep_going
+      integer :: vtp_index
 
       if (trim(cumulus) == 'deep') beta = 0.05
       if (trim(cumulus) == 'mid') beta = 0.02
@@ -8384,6 +8408,7 @@ contains
       integer :: i, k, kbase
       real :: blqe, trash, tcold, fin, efic, thot, dp
       real, dimension(p_shall_closures)  :: xff_shal
+      integer :: vtp_index
 
        do vtp_index = 1, get_num_elements() ; i=get_index_value(vtp_index) !BD_n
          xmb(i) = 0.
@@ -8532,6 +8557,7 @@ contains
       integer :: i, k, k_initial, k_final
       real :: q_r, z_base, beta, prec_flx_fr, dz
       real, dimension(kts:kte) :: p_liq_ice, q_graup, q_snow
+      integer :: vtp_index
 
        do vtp_index = 1, get_num_elements() ; i=get_index_value(vtp_index) !BD_n
          lightn_dens(i) = 0.0
