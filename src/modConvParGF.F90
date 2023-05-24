@@ -1252,9 +1252,15 @@ contains
 
       !--- determine the vertical entrainment/detrainment rates, the level of convective cloud base -kbcon-
       !--- and the scale dependence factor (sig).
-       do vtp_index = 1, get_num_elements() ; i=get_index_value(vtp_index) !BD_n
+      
+       ! DE: variables before cycle must be outside - possible future use. The vars below was moved outside loop
+       do i = its, itf
          entr_rate_2d(i, :) = entr_rate(i)
          cd(i, :) = entr_rate(i)
+       enddo
+       do vtp_index = 1, get_num_elements() ; i=get_index_value(vtp_index) !BD_n
+         ! entr_rate_2d(i, :) = entr_rate(i)
+         ! cd(i, :) = entr_rate(i)
          print *, "6 - 1252 cycle" 
 !BD_n         if (ierr(i) /= 0) cycle
 
