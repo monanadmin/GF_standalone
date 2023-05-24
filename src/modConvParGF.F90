@@ -1153,7 +1153,7 @@ contains
          start_k22 = 2
       end if
       k22(:) = kts
-      !DE: done
+      !DE: if cycle removed
       do vtp_index = 1, get_num_elements()
          i=get_index_value(vtp_index)
          k22(i) = maxloc(heo_cup(i, start_k22:kbmax(i) + 1), 1) + start_k22 - 1
@@ -1183,31 +1183,37 @@ contains
       call precipCwvFactor(itf, ktf, its, ite, kts, ierr, tn, po, qo, po_cup, cumulus, p_cwv_ave)
 
       !------- determine LCL for the air parcels around K22
-      !DE: !!! manual if cycle remove causes ERROR, klcl is setted inside loop !!!
-      do i = its, itf
-         klcl(i) = k22(i) ! default value
-         print *, "3 - 1194 ==0" 
-         if (ierr(i) == 0) then
-            !tlll, rlll,plll - temp, water vapor and pressure of the source air parcel
-            x_add = max(0., zqexec(i))
-            call getCloudBc(kts, ktf, xland(i), po(i, kts:kte), q_cup(i, kts:kte), rlll, k22(i), x_add)
-            x_add = max(0., ztexec(i))
-            call getCloudBc(kts, ktf, xland(i), po(i, kts:kte), t_cup(i, kts:kte), tlll, k22(i), x_add)
-            call getCloudBc(kts, ktf, xland(i), po(i, kts:kte), p_cup(i, kts:kte), plll, k22(i))
-            !-get LCL
-            call getLcl(tlll, 100.*plll, rlll, tlcl, plcl, dzlcl)
 
-            if (dzlcl >= 0.) then ! LCL found (if dzlcl<0 => not found)
-               call getCloudBc(kts, ktf, xland(i), po(i, kts:kte), z_cup(i, kts:kte), zlll, k22(i))
-               do k = kts, ktf
-                  if (z_cup(i, k) .gt. zlll + dzlcl) then
-                     klcl(i) = max(k, k22(i))
-                     exit
-                  end if
-               end do
-               klcl(i) = min(klcl(i), ktf - 4)
-            end if
+      !DE: WARNING: manual if cycle remove causes ERROR if klcl(i) = k22(i) is setted inside loop !!!      
+      ! do i = its, itf
+      !    klcl(i) = k22(i) ! default value
+      ! So, we need to do this before
+      klcl(its:itf) = k22(its:itf)
+      !DE: if cycle removed
+      do vtp_index = 1, get_num_elements()
+         i=get_index_value(vtp_index)
+         print *, "3 - 1194 ==0" 
+         ! if (ierr(i) == 0) then
+         !tlll, rlll,plll - temp, water vapor and pressure of the source air parcel
+         x_add = max(0., zqexec(i))
+         call getCloudBc(kts, ktf, xland(i), po(i, kts:kte), q_cup(i, kts:kte), rlll, k22(i), x_add)
+         x_add = max(0., ztexec(i))
+         call getCloudBc(kts, ktf, xland(i), po(i, kts:kte), t_cup(i, kts:kte), tlll, k22(i), x_add)
+         call getCloudBc(kts, ktf, xland(i), po(i, kts:kte), p_cup(i, kts:kte), plll, k22(i))
+         !-get LCL
+         call getLcl(tlll, 100.*plll, rlll, tlcl, plcl, dzlcl)
+
+         if (dzlcl >= 0.) then ! LCL found (if dzlcl<0 => not found)
+            call getCloudBc(kts, ktf, xland(i), po(i, kts:kte), z_cup(i, kts:kte), zlll, k22(i))
+            do k = kts, ktf
+               if (z_cup(i, k) .gt. zlll + dzlcl) then
+                  klcl(i) = max(k, k22(i))
+                  exit
+               end if
+            end do
+            klcl(i) = min(klcl(i), ktf - 4)
          end if
+         ! end if
          !write(12,111)'MDlcl',tlcl,plcl,dzlcl,klcl(i),ierr(i)
          !111      format(1x,A5,3F10.2,2i4)
       end do
