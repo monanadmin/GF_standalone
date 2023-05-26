@@ -1738,19 +1738,20 @@ contains
       !                       ,itf,ktf,its,ite, kts,kte)
       !--- DOWNDRAFT section
       !
-      do i = its, itf
-         kzdown(i) = 0
+      ! DE: manual if cycle remove. Set kzdown outside
+      kzdown(its:itf) = 0
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index)
          print *, "34 - 1658 == 0 " 
-         if (ierr(i) .eq. 0) then
-            zktop = (zo_cup(i, ktop(i)) - z1(i))*.6
-            zktop = min(zktop + z1(i), zcutdown + z1(i))
-            do k = kts, ktf
-               if (zo_cup(i, k) .gt. zktop) then
-                  kzdown(i) = k
-                  go to 37
-               end if
-            end do
-         end if
+         ! if (ierr(i) .eq. 0) then
+         zktop = (zo_cup(i, ktop(i)) - z1(i))*.6
+         zktop = min(zktop + z1(i), zcutdown + z1(i))
+         do k = kts, ktf
+            if (zo_cup(i, k) .gt. zktop) then
+               kzdown(i) = k
+               go to 37
+            end if
+         end do
+         ! end if
 37       continue
       end do
 
@@ -1761,8 +1762,9 @@ contains
                  , melting_layer)
 
       !--- this calls routine to get downdrafts normalized mass flux
-       do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
-         zd(i, :) = 0.
+      ! DE: fix: zd moved outside loop, where cycle was removed automatically
+      zd(its:itf, :) = 0.
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
          print *, "35 - 1680 cycle " 
 !BD_n         if (ierr(i) /= 0) cycle
          call getZuZdPdf(trim(cumulus), "DOWN", ierr(i), kdet(i), jmin(i), zdo(i, :), kts, kte, ktf &
@@ -1776,7 +1778,7 @@ contains
 
       !---  calls routine to get wet bulb temperature and moisture at jmin
       if (USE_WETBULB == 1 .and. trim(cumulus) /= 'shallow') then
-          do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+         do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
             print *, "36 - 1693 cycle " 
 !BD_n            if (ierr(i) /= 0) cycle
             k = jmin(i)
@@ -1794,56 +1796,61 @@ contains
          dbydo(i, :) = 0.
       end do
 
-       do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
-         bud(i) = 0.
-         print *, "37 - 1711 or shallow cycle " 
-         if (ierr(i) /= 0 .or. trim(cumulus) == 'shallow') cycle
-         i_wb = 0
-         !--for future test
-         if (USE_WETBULB == 1) then
-            !--option 1
-            !hcdo(i,jmin(i))=cp*t_wetbulb(i)+xlv*q_wetbulb(i)+zo_cup(i,jmin(i))*g
-            !--option 2
-            hcdo(i, jmin(i)) = 0.5*(real(c_cp)*t_wetbulb(i) + real(c_alvl)*q_wetbulb(i) + zo_cup(i, jmin(i))*c_grav + hc(i, jmin(i)))
-            i_wb = 1
-         end if
+      ! DE: fixes: 
+      ! - bud moved outside loop, where cycle was removed automatically
+      ! - loop only execute when cumulus is shallow - moving outside loop!
+      bud(its:itf) = 0.
+      if(trim(cumulus) /= 'shallow') then
+         do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+            print *, "37 - 1711 or shallow cycle " 
+            ! if (ierr(i) /= 0 .or. trim(cumulus) == 'shallow') cycle
+            i_wb = 0
+            !--for future test
+            if (USE_WETBULB == 1) then
+               !--option 1
+               !hcdo(i,jmin(i))=cp*t_wetbulb(i)+xlv*q_wetbulb(i)+zo_cup(i,jmin(i))*g
+               !--option 2
+               hcdo(i, jmin(i)) = 0.5*(real(c_cp)*t_wetbulb(i) + real(c_alvl)*q_wetbulb(i) + zo_cup(i, jmin(i))*c_grav + hc(i, jmin(i)))
+               i_wb = 1
+            end if
 
-         dbydo(i, jmin(i)) = hcdo(i, jmin(i)) - heso_cup(i, jmin(i))
-         bud(i) = dbydo(i, jmin(i))*(zo_cup(i, jmin(i) + 1) - zo_cup(i, jmin(i)))
+            dbydo(i, jmin(i)) = hcdo(i, jmin(i)) - heso_cup(i, jmin(i))
+            bud(i) = dbydo(i, jmin(i))*(zo_cup(i, jmin(i) + 1) - zo_cup(i, jmin(i)))
 
-         do ki = jmin(i) - i_wb, kts, -1!do ki=jmin(i)-1,1,-1
-            denom = zdo(i, ki + 1) - 0.5*dd_massdetro(i, ki) + dd_massentro(i, ki)
-            denom_u = zdo(i, ki + 1) - 0.5*dd_massdetru(i, ki) + dd_massentru(i, ki)
-            !-tmp fix for denominator being zero
-            if (denom > 0.0 .and. denom_u > 0.0) then
-               dzo = zo_cup(i, ki + 1) - zo_cup(i, ki)
+            do ki = jmin(i) - i_wb, kts, -1!do ki=jmin(i)-1,1,-1
+               denom = zdo(i, ki + 1) - 0.5*dd_massdetro(i, ki) + dd_massentro(i, ki)
+               denom_u = zdo(i, ki + 1) - 0.5*dd_massdetru(i, ki) + dd_massentru(i, ki)
+               !-tmp fix for denominator being zero
+               if (denom > 0.0 .and. denom_u > 0.0) then
+                  dzo = zo_cup(i, ki + 1) - zo_cup(i, ki)
 
-               ucd(i, ki) = (ucd(i, ki + 1)*zdo(i, ki + 1) - .5*dd_massdetru(i, ki)*ucd(i, ki + 1) + dd_massentru(i, ki)*us(i, ki) &
-                          - p_pgcon*zdo(i, ki + 1)*(us(i, ki + 1) - us(i, ki)))/denom_u
-               vcd(i, ki) = (vcd(i, ki + 1)*zdo(i, ki + 1) - .5*dd_massdetru(i, ki)*vcd(i, ki + 1) + dd_massentru(i, ki)*vs(i, ki) &
-                          - p_pgcon*zdo(i, ki + 1)*(vs(i, ki + 1) - vs(i, ki)))/denom_u
+                  ucd(i, ki) = (ucd(i, ki + 1)*zdo(i, ki + 1) - .5*dd_massdetru(i, ki)*ucd(i, ki + 1) + dd_massentru(i, ki)*us(i, ki) &
+                           - p_pgcon*zdo(i, ki + 1)*(us(i, ki + 1) - us(i, ki)))/denom_u
+                  vcd(i, ki) = (vcd(i, ki + 1)*zdo(i, ki + 1) - .5*dd_massdetru(i, ki)*vcd(i, ki + 1) + dd_massentru(i, ki)*vs(i, ki) &
+                           - p_pgcon*zdo(i, ki + 1)*(vs(i, ki + 1) - vs(i, ki)))/denom_u
 
-               hcdo(i, ki) = (hcdo(i, ki + 1)*zdo(i, ki + 1) - .5*dd_massdetro(i, ki)*hcdo(i, ki + 1) + dd_massentro(i, ki) &
-                           * heo(i, ki))/denom
+                  hcdo(i, ki) = (hcdo(i, ki + 1)*zdo(i, ki + 1) - .5*dd_massdetro(i, ki)*hcdo(i, ki + 1) + dd_massentro(i, ki) &
+                              * heo(i, ki))/denom
 
-               dbydo(i, ki) = hcdo(i, ki) - heso_cup(i, ki)
-               !if(i.eq.ipr)write(0,*)'ki,bud = ',ki,bud(i),hcdo(i,ki)
-               bud(i) = bud(i) + dbydo(i, ki)*dzo
-            else
-               ucd(i, ki) = ucd(i, ki + 1)
-               vcd(i, ki) = vcd(i, ki + 1)
-               hcdo(i, ki) = hcdo(i, ki + 1)
+                  dbydo(i, ki) = hcdo(i, ki) - heso_cup(i, ki)
+                  !if(i.eq.ipr)write(0,*)'ki,bud = ',ki,bud(i),hcdo(i,ki)
+                  bud(i) = bud(i) + dbydo(i, ki)*dzo
+               else
+                  ucd(i, ki) = ucd(i, ki + 1)
+                  vcd(i, ki) = vcd(i, ki + 1)
+                  hcdo(i, ki) = hcdo(i, ki + 1)
+               end if
+            end do
+            if (bud(i) .gt. 0) then
+               is_removed = remove(vec_ok, i)
+               is_inserted = insert_unique(vec_removed, i)
+               print *, " i = ", i, " / removed(i) = ", is_removed, " / num elements = ", get_num_elements(vec_ok)
+               print *, "38 - 1750 remove 7 " 
+               ierr(i) = 7
+               ierrc(i) = 'downdraft is not negatively buoyant '
             end if
          end do
-         if (bud(i) .gt. 0) then
-            is_removed = remove(vec_ok, i)
-            is_inserted = insert_unique(vec_removed, i)
-            print *, " i = ", i, " / removed(i) = ", is_removed, " / num elements = ", get_num_elements(vec_ok)
-            print *, "38 - 1750 remove 7 " 
-            ierr(i) = 7
-            ierrc(i) = 'downdraft is not negatively buoyant '
-         end if
-      end do
+      endif
 
       !--- calculate moisture properties of downdraft
       call cupDdMoisture(cumulus, ierrc, zdo, hcdo, heso_cup, qcdo, qeso_cup, pwdo, qo_cup, zo_cup, dd_massentro, dd_massdetro &
