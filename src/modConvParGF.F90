@@ -5772,6 +5772,8 @@ contains
                   print *, "87 - 5571 remove 3 " 
                   ierr(i)=3
                   ierrc(i)="could not find reasonable kbcon in cup_kbcon : above kbmax+2 "
+                  is_removed = remove(vec_ok, i)
+                  is_inserted = insert_unique(vec_removed, i)
                   exit loop2
                endif
                 !print*,"kbcon=",kbcon(i);call flush(6)
@@ -5835,6 +5837,8 @@ contains
                print *, "89 - 5632 remove 33 " 
                ierr(i)=33
                ierrc(i)="could not find reasonable kbcon in cup_kbcon = kts"
+               is_removed = remove(vec_ok, i)
+               is_inserted = insert_unique(vec_removed, i)
          endif
       enddo loop0
 
@@ -5866,7 +5870,11 @@ contains
             end if
          end do
          print *, "91 - 5662 remove 41 " 
-         if (ktop(i) .le. kbcon(i) + 1) ierr(i) = 41
+         if (ktop(i) .le. kbcon(i) + 1) then
+            ierr(i) = 41
+            is_removed = remove(vec_ok, i)
+            is_inserted = insert_unique(vec_removed, i)
+         endif
 
          !----------------
          print *, "92 - 5665 ==0 " 
