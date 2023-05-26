@@ -936,6 +936,14 @@ contains
       
       integer           :: vtp_index
 
+
+      ! Init the vector vec_ok with the all indexes to process
+      vec_max_size = ite - its + 1
+      call init(vec_ok, vec_max_size)
+      call insert_range(vec_ok, its, ite)
+      ! vec removed will be inserted when removing
+      call init(vec_removed, vec_max_size)
+
       !----------------------------------------------------------------------
       !--only for debug
       if (p_use_gate) then
@@ -12984,13 +12992,6 @@ contains
       itime1_in = itime1
       !----------------------------------------------------------------------
       
-      ! Init the vector vec_ok with the all indexes to process
-      vec_max_size = ite - its + 1
-      call init(vec_ok, vec_max_size)
-      call insert_range(vec_ok, its, ite)
-      ! vec removed will be inserted when removing
-      call init(vec_removed, 1000)
-
       if (abs(C1) > 0.) use_c1d = .true.
 
       !-- big loop over j dimension
