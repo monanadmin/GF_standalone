@@ -2215,6 +2215,13 @@ contains
       !--------------------------------------------------------------------------------------------!
       !
 
+      print*, "vector loop:"
+      call print_all(vec_ok, 100)
+      print*, "vector removed:"
+      call print_all(vec_removed, 100)
+      call free_memory(vec_ok)
+      call free_memory(vec_removed)
+
    end subroutine cupGf
 
    ! ---------------------------------------------------------------------------------------------------
@@ -13706,15 +13713,6 @@ contains
          !AA3(:,j)=cprr4d(:,j,deep) *fixout_qv(:)
          !AA2(:,j)=cprr4d(:,j,mid)  *fixout_qv(:)
       end do
-
-
-      print*, "vector loop:"
-      call print_all(vec_ok, 100)
-      print*, "vector removed:"
-      call print_all(vec_removed, 100)
-      call free_memory(vec_ok)
-      call free_memory(vec_removed)
-
 
    end subroutine convParGFDriver
 
