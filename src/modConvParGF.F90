@@ -1861,7 +1861,7 @@ contains
       call cupUpAa0(aa0, z_cup, zu, dby, GAMMA_CUP, t_cup, kbcon, ktop, ierr, itf, its, ite, kts)
       call cupUpAa0(aa1, zo_cup, zuo, dbyo, gammao_cup, tn_cup, kbcon, ktop, ierr, itf, its, ite, kts)
 
-       do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
          print *, "39 - 1765 cycle " 
 !BD_n         if (ierr(i) /= 0) cycle
          if (aa1(i) .eq. 0.) then
@@ -1907,16 +1907,19 @@ contains
       !
       !--- calculate in-cloud/updraft and downdraft air temperature for vertical velocity
       !
-      do i = its, itf
+      ! DE: if cycle removed for vec_ok and vec_removed
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) 
          print *, "41 - 1806 == 0 " 
-         if (ierr(i) == 0) then
-            do k = kts, ktf
-               tempcdo(i, k) = (1./real(c_cp))*(hcdo(i, k) - c_grav*zo_cup(i, k) - real(c_alvl)*qcdo(i, k))
-            end do
-         else
-            tempcdo(i, :) = tn_cup(i, :)
-         end if
+         ! if (ierr(i) == 0) then
+         do k = kts, ktf
+            tempcdo(i, k) = (1./real(c_cp))*(hcdo(i, k) - c_grav*zo_cup(i, k) - real(c_alvl)*qcdo(i, k))
+         end do
       end do
+      do vtp_index = 1, get_num_elements(vec_removed) ; i=get_data_value(vec_removed, vtp_index) 
+         ! else
+         tempcdo(i, :) = tn_cup(i, :)
+         ! end if
+      enddo
 
       !--- diurnal cycle section
       !--- Bechtold et al 2008 time-scale of cape removal
