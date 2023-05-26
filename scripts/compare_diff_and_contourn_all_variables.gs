@@ -17,7 +17,7 @@ function main(args)
       file2=subwrd(args,2)
       filebasename=subwrd(args,3)
    endif
- c say "running with args " args
+   say "running with args " args
    fileout=compare(file1,file2,filebasename)
 
 'quit'
