@@ -3797,14 +3797,14 @@ contains
       end do
 
       !--- get boundary condition for qc
-       do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
          print *, "69 - 3636 cycle " 
 !BD_n         if (ierr(i) /= 0) cycle
          call getCloudBc( kts, ktf, xland(i), po(i, kts:kte), qe_cup(i, kts:kte), qaver, k22(i))
          qc(i, kts:start_level(i)) = qaver + zqexec(i) + 0.5*x_add_buoy(i)/real(c_alvl)
       end do
 
-       do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
          print *, "70 - 3642 cycle " 
 !BD_n         if (ierr(i) /= 0) cycle
 
@@ -3855,7 +3855,7 @@ contains
       end do
 
       !- get back water vapor qc
-       do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
          print *, "71 - 3692 cycle " 
 !BD_n         if (ierr(i) /= 0) cycle
          do k = kts, ktop(i) + 1
@@ -3985,7 +3985,7 @@ contains
 
       aa1_bl(:) = 0.
       if (version == 0) then
-          do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+         do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
             print *, "72 - 3820 " 
 !BD_n            if (ierr(i) /= 0) cycle
             !***       do k=kts,kbcon(i)
@@ -3996,7 +3996,7 @@ contains
             end do
          end do
       elseif (version == 1) then
-          do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+         do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
             print *, "73 - 3830 cycle " 
 !BD_n            if (ierr(i) /= 0) cycle
             do k = kts, kpbl(i)
@@ -4014,7 +4014,7 @@ contains
       return
 
       aa1_fa(:) = 0.
-       do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
          print *, "74 - 3847 cycle " 
 !BD_n         if (ierr(i) /= 0) cycle
          do k = kbcon(i), ktop(i)
@@ -4108,7 +4108,7 @@ contains
       end if
       nlay = int(kte/90)
 
-       do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
          print *, "75 - 3939 cycle " 
 !BD_n         if (ierr(i) /= 0) cycle
 
@@ -4252,7 +4252,7 @@ contains
 
       end do ! i
       !---- check mass conservation
-       do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
          print *, "76 - 4082 cycle " 
 !BD_n         if (ierr(i) /= 0) cycle
          do k = kts + 1, kte
@@ -4338,7 +4338,7 @@ contains
       end if
       if (trim(cumulus) == 'shallow') return
 
-       do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
          print *, "77 - 4166 cycle" 
 !BD_n         if (ierr(i) /= 0) cycle
 
@@ -4921,22 +4921,24 @@ contains
       !! dummy array for CAPE (total cape)
 
       !Local variables:
-      integer :: i, k
+      integer :: i, k, vtp_index
       real :: dz, daa0
       !
       aa0(:) = 0.
-      do i = its, itf
+      ! DE: manual if cycle remotion
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) 
+      ! do i = its, itf
          print *, "78 - 4752 ==0 " 
-         if (ierr(i) == 0) then
-            do k = kbcon(i), ktop(i)
-               dz = z(i, k) - z(i, max(1, k - 1))
-               daa0 = c_grav*dz*((tempco(i, k)*(1.+0.608*qco(i, k)) - t_cup(i, k)*(1.+0.608*qo_cup(i, k))) /(t_cup(i, k) &
-                    * (1.+0.608*qo_cup(i, k))) &
-                            )
-               aa0(i) = aa0(i) + max(0., daa0)
-               !~ print*,"cape",k,AA0(I),tempco(i,k),t_cup(i,k), qrco  (i,k)
-            end do
-         end if
+         ! if (ierr(i) == 0) then
+         do k = kbcon(i), ktop(i)
+            dz = z(i, k) - z(i, max(1, k - 1))
+            daa0 = c_grav*dz*((tempco(i, k)*(1.+0.608*qco(i, k)) - t_cup(i, k)*(1.+0.608*qo_cup(i, k))) /(t_cup(i, k) &
+                  * (1.+0.608*qo_cup(i, k))) &
+                           )
+            aa0(i) = aa0(i) + max(0., daa0)
+            !~ print*,"cape",k,AA0(I),tempco(i,k),t_cup(i,k), qrco  (i,k)
+         end do
+         ! end if
       end do
    end subroutine cupUpCape
 
@@ -5240,7 +5242,7 @@ contains
       local_k_inv_layers = 1
       ist = 3
 
-       do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
          print *, "79 - 5065 cycle " 
 !BD_n         if (ierr(i) /= 0) cycle
          !- displacement from local surface pressure level
@@ -5292,7 +5294,7 @@ contains
       end do
 
       !- find the locations of inversions around 800 and 550 hPa
-       do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
          !----------------
          !k_inv_layers(i,mid)=1
          !----------------
@@ -5335,6 +5337,8 @@ contains
                k_inv_layers(i, p_mid) = 1
                print *, "81 - 5155 remove 8 " 
                ierr(i) = 8
+               is_removed = remove(vec_ok, i)
+               is_inserted = insert_unique(vec_removed, i)
             else
                !-save k550 in the k_inv_layers array
                k_inv_layers(i, p_mid) = local_k_inv_layers(i, k550) + p_extralayer
@@ -5343,11 +5347,15 @@ contains
                !print*,"MID_k_inv_layers=",k_inv_layers(i,MID),ierr(i)
                print *, "82 - 5162 remove 12 " 
                ierr(i) = 12
+               is_removed = remove(vec_ok, i)
+               is_inserted = insert_unique(vec_removed, i)
             end if
          else
             k_inv_layers(i, :) = 1
             print *, "83 - 5166 remove 88 " 
             ierr(i) = 88
+            is_removed = remove(vec_ok, i)
+            is_inserted = insert_unique(vec_removed, i)
          end if
       end do
 
