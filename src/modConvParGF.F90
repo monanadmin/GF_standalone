@@ -10246,6 +10246,9 @@ contains
                x_add_buoy(i) = 0.0
                wlpool(i) = 0.0
                print *, "146 - 9918 remove 100 " 
+               is_removed = remove(vec_ok, i)
+               is_inserted = insert_unique(vec_removed, i)
+               print *, " i = ", i, " / removed(i) = ", is_removed, " / num elements = ", get_num_elements(vec_ok)
                ierr(i) = 100
             end if
          end do
