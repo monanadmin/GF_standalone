@@ -6233,31 +6233,33 @@ contains
          xmb_ave(i) = 0.
       end do
 
-      do i = its, itf
+      ! DE: manual if cycle remove
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) 
          print *, "99 - 6005 ==0 " 
-         if (ierr(i) .eq. 0) then
-            do n_cnt = 1, maxens3
-               if (pr_ens(i, n_cnt) .le. 0.) then
-                  xf_ens(i, n_cnt) = 0.
-               end if
-            end do
-         end if
+         ! if (ierr(i) .eq. 0) then
+         do n_cnt = 1, maxens3
+            if (pr_ens(i, n_cnt) .le. 0.) then
+               xf_ens(i, n_cnt) = 0.
+            end if
+         end do
+         ! end if
       end do
 
       !--- calculate ensemble average mass fluxes
       if (trim(cumulus) == 'deep') then
-         do i = its, itf
+         ! DE: manual if cycle remove
+         do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) 
             print *, "100 - 6017 ==0 " 
-            if (ierr(i) .eq. 0) then
-               k = 0
-               xmb_ave(i) = 0.
-               do n_cnt = 1, maxens3
-                  k = k + 1
-                  xmb_ave(i) = xmb_ave(i) + xf_ens(i, n_cnt)
-               end do
-               !- 'ensemble' average mass flux
-               xmb_ave(i) = xmb_ave(i)/float(k)
-            end if
+            ! if (ierr(i) .eq. 0) then
+            k = 0
+            xmb_ave(i) = 0.
+            do n_cnt = 1, maxens3
+               k = k + 1
+               xmb_ave(i) = xmb_ave(i) + xf_ens(i, n_cnt)
+            end do
+            !- 'ensemble' average mass flux
+            xmb_ave(i) = xmb_ave(i)/float(k)
+            ! end if
          end do
 
          !- mid (congestus type) convection
