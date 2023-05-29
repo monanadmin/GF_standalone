@@ -12546,14 +12546,19 @@ contains
 
       !--- get the net precipitation at surface
 
-      do i = its, itf
+      ! DE: manual if cycle remove
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) 
          print *, "179 - 12139 ==0 " 
-         if (ierr(i) == 0) then
-            pwo_eff(i, :) = pwo(i, :) + edto(i)*pwdo(i, :)
-         else
-            pwo_eff(i, :) = 0.
-         end if
+         ! if (ierr(i) == 0) then
+         pwo_eff(i, :) = pwo(i, :) + edto(i)*pwdo(i, :)
       end do
+      ! DE: manual if cycle remove from vec_removed
+      do vtp_index = 1, get_num_elements(vec_removed) ; i=get_data_value(vec_removed, vtp_index) 
+         ! else
+         print *, "179 - 12139 /=0 " 
+         pwo_eff(i, :) = 0.
+         ! end if
+      enddo
 
    end subroutine iedtLoop
 
