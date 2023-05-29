@@ -8306,11 +8306,14 @@ contains
       if (trim(cumulus) /= 'deep') return
 
       !-- get the pickup of ensemble ave prec, following Neelin et al 2009.
+      w_col(its:itf) = 0.        ! DE : fix initialization after if cycle remotion
+      w_ccrit(its:itf) = 0.      ! DE : fix initialization after if cycle remotion
+      t_troposph(its:itf) = 0.   ! DE : fix initialization after if cycle remotion
       !EB:
-       do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
-         w_col(i) = 0.
-         w_ccrit(i) = 0.
-         t_troposph(i) = 0.
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+         ! w_col(i) = 0.
+         ! w_ccrit(i) = 0.
+         ! t_troposph(i) = 0.
          print *, "138 - 8006 cycle " 
 !BD_n         if (ierr(i) /= 0) cycle
          trash = 0.
