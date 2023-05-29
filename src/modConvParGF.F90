@@ -10542,7 +10542,7 @@ contains
  
 
       ! Local variables:
-      integer :: i, k
+      integer :: i, k, vtp_index
       real, dimension(its:ite, kts:kte) :: tn_x, qo_x, dtdt, dqdt
       real :: aa3(its:ite)
       real :: dp, rz_env, s1, s2, q1, q2
@@ -10704,7 +10704,7 @@ contains
       real, intent(out) :: aaa0_(:)
    
       ! Local variables:
-      integer :: i, k, step
+      integer :: i, k, step, vtp_index
       real, dimension(its:ite, kts:kte) :: tn_x, qo_x, hco_x
       real :: denom
       real, dimension(its:ite) :: aa_ini, aa_adv, aa_tmp, daa_adv_dt
@@ -10761,6 +10761,9 @@ contains
          ! call flush(6
          if (daa_adv_dt(i) > DCAPE_THRESHOLD/3600. .and. aa_ini(i) > 0.) cycle !
          print *, "156 - 10405 remove 90 " 
+         is_removed = remove(vec_ok, i)
+         is_inserted = insert_unique(vec_removed, i)
+         print *, " i = ", i, " / removed(i) = ", is_removed, " / num elements = ", get_num_elements(vec_ok)
          ierr(i) = 90
          ierrc(i) = "dcape trigger not satisfied"
       end do
