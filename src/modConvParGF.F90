@@ -9115,12 +9115,13 @@ contains
       real, intent(inout) :: qrco(:,:)
 
       !Local variables:
-      integer :: i, k
+      integer :: i, k, vtp_index
       real :: del_t, del_q, frh
       real :: qrc_diss, fractional_area, outqc_diss, outq_mix, outt_diss, outt_mix, tempx, qvx
 
-      do i = its, itf
-
+      ! DE: manual insertion of forgetted loop for an if cycle already done remotion
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) 
+      ! do i = its, itf
          print *, "141 - 8805 cycle " 
 !BD_n         if (ierr(i) /= 0) cycle
 
@@ -9382,7 +9383,7 @@ contains
       real, intent(out) :: outnice(:,:)
 
       !Local variables:
-      integer :: i, k
+      integer :: i, k, vtp_index
       real :: fr, tqliq, tqice, dtinv
       real, dimension(its:ite, kts:kte) :: nwfa   
       !! in the future set this as NCPL
@@ -9392,9 +9393,11 @@ contains
       nwfa(:, :) = 99.e7  ! in the future set this as NCPL
       nifa(:, :) = 0.     ! in the future set this as NCPI
       dtinv = 1./dtime
-      do i = its, itf
+
+      ! DE: manual if cycle remove
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) 
          print *, "142 - 9076 cycle " 
-         if (ierr(i) /= 0) cycle
+         ! if (ierr(i) /= 0) cycle
 
          do k = kts, ktop(i) + 1
 
@@ -9890,18 +9893,19 @@ contains
       real, intent(inout) :: alpha_adv(:)
    
       !Local variables:
-      integer :: i, k
+      integer :: i, k, vtp_index
       real :: layer, h_cloud, dz
 
       !-- get the advective moisture tendency scaled with the relative humidity
       !--  Q_adv = integral( q/q*  DQv/Dt_adv dp), see Eq 1 Becker et al(2021 QJRMS)
       !-- units here are "J m^-3" _or_  "J kg^-1"
 
-      do i = its, itf
-         col_sat_adv(i) = 0.   !check if it needs be inout, perhavps only local var
-
+      ! DE: manual if cycle remove
+      col_sat_adv(its:itf) = 0.   !check if it needs be inout, perhavps only local var
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) 
+         ! col_sat_adv(i) = 0.   !check if it needs be inout, perhavps only local var
          print *, "143 - 9582 cycle " 
-         if (ierr(i) /= 0) cycle
+         ! if (ierr(i) /= 0) cycle
 
          alpha_adv(i) = ALPHA_ADV_TUNING
          layer = 0.
@@ -10213,12 +10217,13 @@ contains
       real, intent(out) :: entr_rate(:)
 
       ! Local variables:
-      integer :: i
+      integer :: i, vtp_index
 
       if (USE_MEMORY >= 0) then
-         do i = its, itf
+         ! DE: manual if cycle remove
+         do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) 
             print *, "144 - 9898 cycle " 
-            if (ierr(i) /= 0) cycle
+            ! if (ierr(i) /= 0) cycle
             !x_add_buoy(i) = min(mx_buoy2, maxval(buoy_exc(i,kts:klcl(i))))
             call getCloudBc(kts, ktf, xland(i), po(i, kts:kte), buoy_exc(i, kts:kte), x_add_buoy(i), kts)
             ! buoy_exc (i,kts:kte),x_add_buoy (i),klcl(i))
@@ -10233,9 +10238,10 @@ contains
       end if
       !-- avoid extra-buoyancy where rained before
       if (USE_MEMORY == 4 .or. USE_MEMORY == 14) then
-         do i = its, itf
+         ! DE: manual if cycle remove
+         do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) 
             print *, "145 - 9914 cycle " 
-            if (ierr(i) /= 0) cycle
+            ! if (ierr(i) /= 0) cycle
             if (aa2_(i) > 1.e-6 .and. x_add_buoy(i) < 1000. .and. x_add_buoy(i) > 250.) then
                x_add_buoy(i) = 0.0
                wlpool(i) = 0.0
