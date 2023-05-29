@@ -6072,6 +6072,9 @@ contains
             vvel2d(i, :) = sqrt(max(0.1, vvel2d(i, :)))
 
             if (maxval(vvel2d(i, :)) < 1.0) then
+               is_removed = remove(vec_ok, i)
+               is_inserted = insert_unique(vec_removed, i)
+               print *, " i = ", i, " / removed(i) = ", is_removed, " / num elements = ", get_num_elements(vec_ok)
                print *, "97 - 5849 remove 54 " 
                ierr(i) = 54
                !  print*,"ierr=54",maxval(vvel2d(i,:))
