@@ -8684,8 +8684,9 @@ contains
       real, dimension(kts:kte) :: p_liq_ice, q_graup, q_snow
       integer :: vtp_index
 
-       do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
-         lightn_dens(i) = 0.0
+      lightn_dens(its:itf) = 0.0  ! DE : fix initialization after if cycle remotion
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+         ! lightn_dens(i) = 0.0
          print *, "140 - 8372 cycle " 
 !BD_n         if (ierr(i) /= 0) cycle
 
