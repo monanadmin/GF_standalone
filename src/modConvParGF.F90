@@ -6018,10 +6018,13 @@ contains
       ftun2 = 1.
 
       if (task == 1) then
-          do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+         ! DE: fix var initialization due to cycle remove
+         vvel1d(its:itf) = 0.0
+         vvel2d(its:itf, :) = 0.0
+         do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
             !-- initialize arrays to zero.
-            vvel1d(i) = 0.0
-            vvel2d(i, :) = 0.0
+            ! vvel1d(i) = 0.0
+            ! vvel2d(i, :) = 0.0
 
             print *, "94 - 5806 cycle " 
 !BD_n            if (ierr(i) /= 0) cycle
