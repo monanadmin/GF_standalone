@@ -6331,6 +6331,9 @@ contains
          !- diurnal cycle closure
          xmb(i) = xmb(i) - xf_dicycle(i)
          if (xmb(i) .le. 0.) then
+            is_removed = remove(vec_ok, i)
+            is_inserted = insert_unique(vec_removed, i)
+            print *, " i = ", i, " / removed(i) = ", is_removed, " / num elements = ", get_num_elements(vec_ok)
             print *, "105 - 6094 remove 13 " 
             ierr(i) = 13
             xmb(i) = 0.
@@ -6347,9 +6350,19 @@ contains
          !xmb(i) = FADJ_MASSFLX * xmb(i)
 
          print *, "107 - 6107 remove 14 " 
-         if (xmb(i) == 0.) ierr(i) = 14
+         if (xmb(i) == 0.) then
+            is_removed = remove(vec_ok, i)
+            is_inserted = insert_unique(vec_removed, i)
+            print *, " i = ", i, " / removed(i) = ", is_removed, " / num elements = ", get_num_elements(vec_ok)
+            ierr(i) = 14
+         endif
          print *, "108 - 6108 remove 15 " 
-         if (xmb(i) > 100.) ierr(i) = 15
+         if (xmb(i) > 100.) then 
+            is_removed = remove(vec_ok, i)
+            is_inserted = insert_unique(vec_removed, i)
+            print *, " i = ", i, " / removed(i) = ", is_removed, " / num elements = ", get_num_elements(vec_ok)
+            ierr(i) = 15
+         endif
       end do
 
       !--- sanity check for mass flux
