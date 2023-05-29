@@ -5932,9 +5932,10 @@ contains
       !Local variables:
       integer :: i, k
       integer :: vtp_index
-   
-       do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
-         dby(i, :) = 0.
+
+      dby(its:itf, :) = 0.  ! DE: fix var initialization due to cycle remove
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+         ! dby(i, :) = 0.
          print *, "93 - 5721 cycle " 
 !BD_n         if (ierr(i) /= 0) cycle
          do k = kts, klcl(i)
