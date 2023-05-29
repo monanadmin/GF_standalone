@@ -6754,7 +6754,8 @@ contains
       if (ADD_COLDPOOL_CLOS == 4) then
           do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
             print *, "117 - 6487 cycle " 
-            if (ierr(i) /= 0 .or. xk(i) >= 0) cycle
+            ! if (ierr(i) /= 0 .or. xk(i) >= 0) cycle  
+            if (xk(i) >= 0) cycle  ! DE: if cycle fix
             xf_coldpool(i) = -(0.5*wlpool(i)**2/tau_ecmwf(i))/xk(i)
          end do
       end if
@@ -7186,7 +7187,7 @@ contains
          end do
       end if
 
-       do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
          print *, "126 - 6909 cycle " 
 !BD_n         if (ierr(i) /= 0) cycle
          !start_level(i) = klcl(i)
@@ -7201,7 +7202,7 @@ contains
          end do
       end do
 
-       do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
          print *, "127 - 6923 cycle " 
 !BD_n         if (ierr(i) /= 0) cycle
          loopk: do k = start_level(i) + 1, ktop(i) + 1
@@ -7417,7 +7418,7 @@ contains
       tot_pw_dn_chem = 0.0
       if (cumulus == 'shallow') return
 
-       do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
          print *, "128 - 7137 cycle " 
 !BD_n         if (ierr(i) /= 0) cycle
 
@@ -7803,7 +7804,7 @@ contains
       
       if (p_clev_option == 1) then
          !-- original version
-          do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+         do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
             print *, "129 - 7521 cycle " 
 !BD_n            if (ierr(i) /= 0) cycle
             do k = kts + 1, ktf
@@ -7814,7 +7815,7 @@ contains
          end do
       else
          !-- version 2: se_cup (k+1/2) = se(k) => smoother profiles
-          do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+         do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
             print *, "130 - 7531 cycle " 
 !BD_n            if (ierr(i) /= 0) cycle
             do k = kts, ktf
@@ -7912,7 +7913,7 @@ contains
       tot_evap_bcb = 0.0
       if (c0 < 1.e-6) return
 
-       do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
 
          print *, "131 - 7628 cycle " 
 !BD_n         if (ierr(i) /= 0) cycle
@@ -8041,7 +8042,7 @@ contains
       evap_flx = 0.0
       if (c0 < 1.e-6) return
 
-       do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
          print *, "132 - 7754 cycle " 
 !BD_n         if (ierr(i) /= 0) cycle
 
@@ -8187,7 +8188,7 @@ contains
          return
       end if
 
-       do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
          print *, "133 - 7898 cycle " 
 !BD_n         if (ierr(i) /= 0) cycle
 
@@ -8213,6 +8214,9 @@ contains
                   if (jmini .gt. 5) then
                      keep_going = .true.
                   else
+                     is_removed = remove(vec_ok, i)
+                     is_inserted = insert_unique(vec_removed, i)
+                     print *, " i = ", i, " / removed(i) = ", is_removed, " / num elements = ", get_num_elements(vec_ok)
                      print *, "134 - 7922 remove 9 " 
                      ierr(i) = 9
                      ierrc(i) = "could not find jmini9"
@@ -8223,6 +8227,9 @@ contains
          end do
          jmin(i) = jmini
          if (jmini .le. 5) then
+            is_removed = remove(vec_ok, i)
+            is_inserted = insert_unique(vec_removed, i)
+            print *, " i = ", i, " / removed(i) = ", is_removed, " / num elements = ", get_num_elements(vec_ok)
             print *, "135 - 7931 remove 4 " 
             ierr(i) = 4
             ierrc(i) = "could not find jmini4"
@@ -8230,11 +8237,14 @@ contains
       end do
 
       ! - must have at least depth_min m between cloud convective base and cloud top.
-       do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
          print *, "136 - 7938 cycle " 
 !BD_n         if (ierr(i) /= 0) cycle
          if (jmin(i) - 1 .lt. kdet(i)) kdet(i) = jmin(i) - 1
          if (-zo_cup(i, kbcon(i)) + zo_cup(i, ktop(i)) .lt. depth_min) then
+            is_removed = remove(vec_ok, i)
+            is_inserted = insert_unique(vec_removed, i)
+            print *, " i = ", i, " / removed(i) = ", is_removed, " / num elements = ", get_num_elements(vec_ok)
             print *, "137 - 7941 remove 6 " 
             ierr(i) = 6
             ierrc(i) = "cloud depth very shallow"
