@@ -12504,6 +12504,9 @@ contains
             end do
             if (pr_ens(i, 7) < 1.e-6 .and. C0_MID > 0. .and. trim(cumulus) /= 'shallow') then
                print *, "178 - 12099 remove 18 " 
+               is_removed = remove(vec_ok, i)
+               is_inserted = insert_unique(vec_removed, i)
+               print *, " i = ", i, " / removed(i) = ", is_removed, " / num elements = ", get_num_elements(vec_ok)
                ierr(i) = 18
                ierrc(i) = "total normalized condensate too small"
                do nens3 = 1, p_maxens3
