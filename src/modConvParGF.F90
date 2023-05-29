@@ -6542,8 +6542,9 @@ contains
       ens_adj(:) = 1.
 
       ! large scale forcing
-       do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
-         xf_ens(i, 1:16) = 0.
+      xf_ens(its:itf, 1:16) = 0.  ! DE - fix initialization due to if cycle remotion
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+         ! xf_ens(i, 1:16) = 0.
          print *, "113 - 6285 cycle " 
 !BD_n         if (ierr(i) /= 0) cycle
 
@@ -6678,8 +6679,9 @@ contains
       !-
       if (DICYCLE == 1 .or. DICYCLE == 2) then
 
-          do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
-            xf_dicycle(i) = 0.
+         xf_dicycle(its:itf) = 0.  ! DE - fix initialization due to if cycle remotion
+         do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+            ! xf_dicycle(i) = 0.
 !           if(ierr(i) /=  0 .or. p_cup(i,kbcon(i))< 950. )cycle
             print *, "114 - 6421 cycle " 
 !BD_n            if (ierr(i) /= 0) cycle
@@ -6709,9 +6711,9 @@ contains
          end do
 
       elseif (DICYCLE == 3) then
-          do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
-            xf_dicycle(i) = 0.
-
+         xf_dicycle(its:itf) = 0.  ! DE - fix initialization due to if cycle remotion
+         do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+            ! xf_dicycle(i) = 0.  
             print *, "115 - 6451 cycle " 
 !BD_n            if (ierr(i) /= 0) cycle
 
@@ -6728,8 +6730,9 @@ contains
          end do
 
       elseif (DICYCLE == 4) then
-          do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
-            xf_dicycle(i) = 0.
+         xf_dicycle(its:itf) = 0.  ! DE - fix initialization due to if cycle remotion
+         do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+            ! xf_dicycle(i) = 0.
             print *, "116 - 6468 cycle " 
 !BD_n            if (ierr(i) /= 0) cycle
             !the signal "-" is to convert from Pa/s to kg/m2/s
