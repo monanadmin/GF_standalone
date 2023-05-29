@@ -10262,9 +10262,11 @@ contains
          !- initial entrainment/detrainment
          entr_rate(:) = entr_rate_input       ! * 2.0
          min_entr_rate = entr_rate_input*0.1 ! * 2.0
-         do i = its, itf !-- reduce entr rate, where cold pools exist
+         ! DE: manual if cycle remove
+         do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) 
+         ! do i = its, itf !-- reduce entr rate, where cold pools exist
             print *, "147 - 9932 " 
-            if (ierr(i) /= 0) cycle
+            ! if (ierr(i) /= 0) cycle
             !entr_rate(i) = max(0.1, 1.-ColdPoolStart(x_add_buoy(i))) * entr_rate(i)
             !entr_rate(i) = max(0.5, 1.-ColdPoolStart(x_add_buoy(i))) * entr_rate(i)
             entr_rate(i) = max(0.7, 1.-ColdPoolStart(x_add_buoy(i)))*entr_rate(i)
@@ -10274,16 +10276,20 @@ contains
          !            ,ColdPoolStart(maxval((x_add_buoy(:)))),ColdPoolStart(minval((x_add_buoy(:))))
       end if
       if (USE_MEMORY == 3 .or. ADD_COLDPOOL_CLOS >= 1) then ! increase capmax
-         do i = its, itf
+         ! DE: manual if cycle remove
+         do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) 
+         ! do i = its, itf
             print *, "148 - 9943 cycle " 
-            if (ierr(i) /= 0) cycle
+            ! if (ierr(i) /= 0) cycle
             cap_max(i) = cap_max(i) + ColdPoolStart(x_add_buoy(i))*35.
          end do
       end if
       if (ADD_COLDPOOL_CLOS == 3) then ! increase x_add_buoy
-         do i = its, itf
+         ! DE: manual if cycle remove
+         do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) 
+         ! do i = its, itf
             print *, "149 - 9949 cycle " 
-            if (ierr(i) /= 0) cycle
+            ! if (ierr(i) /= 0) cycle
             x_add_buoy(i) = x_add_buoy(i) + 0.5*wlpool(i)**2
          end do
       end if
@@ -10542,9 +10548,10 @@ contains
       real :: dp, rz_env, s1, s2, q1, q2
    
       !- T and Q profiles modified only by RAD+ADV tendencies
-      do i = its, itf
+      ! DE: manual if cycle remove
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) 
          print *, "150 - 10209 cycle" 
-         if (ierr(i) /= 0) cycle
+         ! if (ierr(i) /= 0) cycle
          tn_x(i, kts:ktf) = tn(i, kts:ktf) - tn_bl(i, kts:ktf) + t_in(i, kts:ktf)
          qo_x(i, kts:ktf) = qo(i, kts:ktf) - qo_bl(i, kts:ktf) + q_in(i, kts:ktf)
       end do
@@ -10554,9 +10561,10 @@ contains
       call cupEnvCLev(tn_x, qeso_x, qo_x, heo_x, heso_x, zo, po, qeso_cup_x, qo_cup_x, heo_cup_x, us, vs, u_cup, v_cup, &
                         heso_cup_x, zo_cup, po_cup, gammao_cup_x, tn_cup_x, psur, ierr, z1, itf, ktf, its, kts)
       !--- this is (DT_ve/Dt)_adv+rad
-      do i = its, itf
+      ! DE: manual if cycle remove
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) 
          print *, "151 - 10220 cycle " 
-         if (ierr(i) /= 0) cycle
+         ! if (ierr(i) /= 0) cycle
          aa3(i) = 0.
          do k = max(kbcon(i), kts + 1), ktop(i)
             dp = -(log(100.*po(i, k)) - log(100.*po(i, k - 1))) !no units
@@ -10566,9 +10574,10 @@ contains
             !               t_cup (i,k)*(1.+0.608*q_cup   (i,k)),dp
          end do
       end do
-      do i = its, itf
+      ! DE: manual if cycle remove
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) 
          print *, "152 - 10231 cycle " 
-         if (ierr(i) /= 0) cycle
+         ! if (ierr(i) /= 0) cycle
          !- this is (DCAPE_env/Dt)_adv+rad
          !aa1_bl(i) = -aa3(i)
          !- Zhang threshold:  65 J/kg/hour => 65/(Rd *3600)= 63 10^-6 K/s
@@ -10577,11 +10586,15 @@ contains
          if (xland(i) > 0.90) aa1_bl(i) = 1.4*aa1_bl(i) !- over water
       end do
       !--- this is (DT_ve/Dt)_cu
-      do i = its, itf
-         dtdt(i, :) = 0.
-         dqdt(i, :) = 0.
+
+      ! DE: manual if cycle remove
+      dtdt(its:itf, :) = 0. ! var init moved outside loop after if cycle remotion
+      dqdt(its:itf, :) = 0. ! var init moved outside loop after if cycle remotion
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) 
+         ! dtdt(i, :) = 0.
+         ! dqdt(i, :) = 0.
          print *, "153 - 10243 cycle " 
-         if (ierr(i) /= 0) cycle
+         ! if (ierr(i) /= 0) cycle
          do k = max(kbcon(i), kts + 1), ktop(i)
             dp = 100.*(po_cup(i, k + 1) - po_cup(i, k))
             rz_env = 0.5*(zuo(i, k + 1) + zuo(i, k) - (zdo(i, k + 1) + zdo(i, k))*edto(i))
@@ -10712,9 +10725,10 @@ contains
                            , u_cup_x, v_cup_x, heso_cup_x, zo_cup_x, po_cup_x, gammao_cup_x, tn_cup_x, psur &
                            , ierr, z1, itf, ktf, its, kts)
          !--- get MSE
-         do i = its, itf
+         ! DE: manual if cycle remove
+         do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) 
             print *, "154 - 10375 cycle " 
-            if (ierr(i) /= 0) cycle
+            ! if (ierr(i) /= 0) cycle
             call getCloudBc(kts, ktf, xland(i), po(i, kts:kte), heo_cup_x(i, kts:kte), hkbo_x(i) &
                           , k22(i))
             hco_x(i, kts:start_level(i)) = hkbo_x(i)
@@ -10738,9 +10752,10 @@ contains
          if (step == 2) aa_adv = aa_tmp ! cloud work function modified by advection tendencies
       end do
       !
-      do i = its, itf
+      ! DE: manual if cycle remove
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) 
          print *, "155 - 10400 cycle " 
-         if (ierr(i) /= 0) cycle
+         ! if (ierr(i) /= 0) cycle
          daa_adv_dt(i) = (aa_adv(i) - aa_ini(i))/dtime
          !print*,"daa_adv_dt J. kg-1 hr-1=",daa_adv_dt(i)*3600.
          ! call flush(6
