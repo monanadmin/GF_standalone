@@ -8533,9 +8533,11 @@ contains
       real, dimension(p_shall_closures)  :: xff_shal
       integer :: vtp_index
 
-       do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
-         xmb(i) = 0.
-         xf_dicycle(i) = 0.
+      xmb(its:itf) = 0.         ! DE : fix initialization after if cycle remotion
+      xf_dicycle(its:itf) = 0.  ! DE : fix initialization after if cycle remotion
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+         ! xmb(i) = 0.
+         ! xf_dicycle(i) = 0.
          print *, "139 - 8226 cycle " 
 !BD_n         if (ierr(i) /= 0) cycle
 
