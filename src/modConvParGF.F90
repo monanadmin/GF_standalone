@@ -1130,8 +1130,9 @@ contains
 
       !--- get air density at full layer (model levels) by hydrostatic balance (kg/m3)
       !EK:
-       do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
-         rho_hydr(i, :) = 0.0
+      rho_hydr(its:itf, :) = 0.0 ! DE: fix init due to if cycle remove
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+         ! rho_hydr(i, :) = 0.0
          print *,"1 - 1128 cycle" 
 !BD_n         if (ierr(i) /= 0) cycle
          do k = kts, ktf
