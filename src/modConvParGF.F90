@@ -1200,12 +1200,8 @@ contains
 
       !------- determine LCL for the air parcels around K22
 
-      !DE: WARNING: manual if cycle remove causes ERROR if klcl(i) = k22(i) is setted inside loop !!!      
-      ! do i = its, itf
-      !    klcl(i) = k22(i) ! default value
-      ! So, we need to do this before
-      klcl(its:itf) = k22(its:itf)
       !DE: if cycle removed
+      klcl(its:itf) = k22(its:itf)
       do vtp_index = 1, get_num_elements(vec_ok); i=get_data_value(vec_ok, vtp_index)
          print *, "3 - 1194 ==0" 
          ! if (ierr(i) == 0) then
@@ -1580,7 +1576,7 @@ contains
 
       !--- get "c1d" profile ----------------------------------------
       if (trim(cumulus) == 'deep' .and. use_c1d) then
-          do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+         do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
             print *, "27 - 1513 cycle " 
 !BD_n            if (ierr(i) /= 0) cycle
             c1d(i, kbcon(i) + 1:ktop(i) - 1) = abs(C1)
@@ -2740,22 +2736,19 @@ contains
       !--- z's are calculated with changed h's and q's and t's
       !--- if itest=2
       if (itest .eq. 1 .or. itest .eq. 0) then
-            do vtp_index = 1, get_num_elements(vec_ok)
-               i = get_data_value(vec_ok, vtp_index)
+            do vtp_index = 1, get_num_elements(vec_ok); i = get_data_value(vec_ok, vtp_index)
                z_heights(i, 1) = max(0., z1(i)) - (Alog(press_env(i, 1)) - Alog(psur(i)))*287.*tv(i, 1)/c_grav
             end do
          ! --- calculate heights
          do k = kts + 1, ktf
-            do vtp_index = 1, get_num_elements(vec_ok)
-               i = get_data_value(vec_ok, vtp_index)
+            do vtp_index = 1, get_num_elements(vec_ok); i = get_data_value(vec_ok, vtp_index)
                tvbar = .5*tv(i, k) + .5*tv(i, k - 1)
                z_heights(i, k) = z_heights(i, k - 1) - (Alog(press_env(i, k)) - Alog(press_env(i, k - 1)))*287.*tvbar/c_grav
             end do
          end do
       else if (itest .eq. 2) then
          do k = kts, ktf
-            do vtp_index = 1, get_num_elements(vec_ok)
-               i = get_data_value(vec_ok, vtp_index)
+            do vtp_index = 1, get_num_elements(vec_ok); i = get_data_value(vec_ok, vtp_index)
                z_heights(i, k) = (he(i, k) - 1004.*temp_env(i, k) - 2.5e6*mixratio_env(i, k))/c_grav
                z_heights(i, k) = max(1.e-3, z_heights(i, k))
             end do
@@ -2766,8 +2759,7 @@ contains
       !--- calculate moist static energy - HE
       !    saturated moist static energy - HES
       do k = kts, ktf
-         do vtp_index = 1, get_num_elements(vec_ok)
-            i = get_data_value(vec_ok, vtp_index)
+         do vtp_index = 1, get_num_elements(vec_ok); i = get_data_value(vec_ok, vtp_index)
             if (itest .le. 0) he(i, k) = c_grav*z_heights(i, k) + real(c_cp)*temp_env(i, k) + real(c_alvl)*mixratio_env(i, k)
             hes(i, k) = c_grav*z_heights(i, k) + real(c_cp)*temp_env(i, k) + real(c_alvl)*qes(i, k)
             if (he(i, k) .ge. hes(i, k)) he(i, k) = hes(i, k)
@@ -2891,8 +2883,7 @@ contains
          end do
          
          !CR: done
-         do vtp_index = 1, get_num_elements(vec_ok)
-            i=get_data_value(vec_ok, vtp_index)
+         do vtp_index = 1, get_num_elements(vec_ok); i=get_data_value(vec_ok, vtp_index)
             qes_cup(i, 1) = qes(i, 1)
             q_cup(i, 1) = q(i, 1)
             !hes_cup(i,1)=hes(i,1)
@@ -2916,8 +2907,7 @@ contains
       elseif (CLEV_GRID == 0) then
          !--- weigthed mean
          !DE: done
-         do vtp_index = 1, get_num_elements(vec_ok)
-            i=get_data_value(vec_ok, vtp_index)
+         do vtp_index = 1, get_num_elements(vec_ok); i=get_data_value(vec_ok, vtp_index)
             p_cup(i, 1) = psur(i)
             z_cup(i, 1) = z1(i)
             do k = kts, ktf - 1
@@ -2975,10 +2965,9 @@ contains
       elseif (CLEV_GRID == 1) then
          !--- based on Tiedke (1989)
          !EB: done
-         do vtp_index = 1, get_num_elements(vec_ok)
+         do vtp_index = 1, get_num_elements(vec_ok); i=get_data_value(vec_ok, vtp_index)
                !CR: antiga variavel de controle do laco "i" recebe o indice armazenado na 
                !    posicao vtp_index do vetor do module vector
-            i=get_data_value(vec_ok, vtp_index)
             do k = ktf, kts + 1, -1
 
                qes_cup(i, k) = qes(i, k)
@@ -4928,7 +4917,6 @@ contains
       aa0(:) = 0.
       ! DE: manual if cycle remotion
       do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) 
-      ! do i = its, itf
          print *, "78 - 4752 ==0 " 
          ! if (ierr(i) == 0) then
          do k = kbcon(i), ktop(i)
@@ -6320,7 +6308,7 @@ contains
 !endif
 
       !- set the updraft mass flux, do not allow negative values and apply the diurnal cycle closure
-       do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
          print *, "104 - 6084 cycle " 
 !BD_n         if (ierr(i) /= 0) cycle
          !- mass flux of updradt at cloud base
@@ -6341,7 +6329,7 @@ contains
          end if
       end do
       !-apply the scale-dependence Arakawa's approach
-       do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
          print *, "106 - 6100 cycle " 
 !BD_n         if (ierr(i) /= 0) cycle
          !- scale dependence
@@ -6817,8 +6805,7 @@ contains
       !CR:
       if (p_melt_glac .and. trim(cumulus) == 'deep') then
          do k = kts, ktf
-            do vtp_index = 1, get_num_elements(vec_ok)
-               i=get_data_value(vec_ok, vtp_index)
+            do vtp_index = 1, get_num_elements(vec_ok); i=get_data_value(vec_ok, vtp_index)
                p_liq_ice(i, k) = FractLiqF(tn(i, k))
             end do
          end do
@@ -6953,9 +6940,11 @@ contains
          pwo_eff = 0.0
          melting = 0.0
          !-- set melting mixing ratio to zero for columns that do not have deep convection
-         do i = its, itf
+         ! DE: using vec_removed 
+         do vtp_index = 1, get_num_elements(vec_removed) ; i=get_data_value(vec_removed, vtp_index) !BD_n
             print *, "121 - 6681 >0 " 
-            if (ierr(i) > 0) melting(i, :) = 0.
+            ! if (ierr(i) > 0) melting(i, :) = 0.
+            melting(i, :) = 0.
          end do
 
          !-- now, get it for columns where deep convection is activated
