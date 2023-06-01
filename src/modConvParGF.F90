@@ -2185,8 +2185,8 @@ contains
 
       !- for debug/diag
       if (trim(cumulus) == 'deep') then
-         do i = its, itf
-            !if(ierr(i) /= 0) cycle
+         do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+!BD_n            !if(ierr(i) /= 0) cycle
             aaa0_(i) = aa0(i)
             aa1_(i) = aa1(i)
             aa1_bl_(i) = aa1_bl(i)
@@ -2351,6 +2351,7 @@ contains
       real :: pef, pefb, prezk, zkbc
       real, dimension(its:ite) :: vws, sdp
       real :: pefc, aeroadd, dp, prop_c
+      integer :: vtp_index
 
       ! determine downdraft strength in terms of windshear
       ! calculate an average wind shear over the depth of the cloud
@@ -2362,8 +2363,9 @@ contains
 
       if (trim(cumulus) == 'shallow') return
 
-      do i = its, itf
-         if (ierr(i) /= 0) cycle
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+         print *, "51 - 2242 cycle " 
+!BD_n         if (ierr(i) /= 0) cycle
          do kk = kbcon(i), ktop(i)
             dp = p(i, kk) - p(i, kk + 1)
             vws(i) = vws(i) + (abs((us(i, kk + 1) - us(i, kk))/(z(i, kk + 1) - z(i, kk))) + abs((vs(i, kk + 1) - vs(i, kk)) &
@@ -2373,8 +2375,9 @@ contains
          vshear(i) = 1.e3*vws(i)/sdp(i)
       end do
 
-      do i = its, itf
-         if (ierr(i) /= 0) cycle
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+         print *, "52 - 2253 cycle " 
+!BD_n         if (ierr(i) /= 0) cycle
          pef = (1.591 - 0.639*vshear(i) + 0.0953*(vshear(i)**2) - 0.00496*(vshear(i)**3))
 
          !print*,"shear=",vshear(i),pef,1-max(min(pef,0.9),0.1)
@@ -2411,8 +2414,9 @@ contains
          end if
 
       end do
-      do i = its, itf
-         if (ierr(i) /= 0) cycle
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+         print *, "53 - 2291 cycle " 
+!BD_n         if (ierr(i) /= 0) cycle
          edtc(i, 1) = -edt(i)*pwav(i)/pwev(i)
          edtc(i, 1) = min(edtmax(i), edtc(i, 1))
          edtc(i, 1) = max(edtmin(i), edtc(i, 1))
@@ -2502,6 +2506,7 @@ contains
       character*128 :: ierrc(its:ite)
       integer :: i, k
       real :: dh, dz, dq_eva, denom, fix_evap
+      integer :: vtp_index
       !
       bu = 0.  
       qcd = 0. 
@@ -2511,8 +2516,9 @@ contains
 
       if (trim(cumulus) == 'shallow') return
       !
-      do i = its, itf
-         if (ierr(i) /= 0) cycle
+      do vtp_index = get_num_elements(vec_ok), 1, -1 ; i=get_data_value(vec_ok, vtp_index) !BD_n
+         print *, "54 - 2391 cycle " 
+!BD_n         if (ierr(i) /= 0) cycle
 
          !-- boundary condition in jmin ('level of free sinking')
          k = jmin(i)
@@ -2574,15 +2580,24 @@ contains
          end do
 
          if (pwev(i) .ge. 0 .and. iloop .eq. 1) then
+            is_removed = remove(vec_ok, i)
+            is_inserted = insert_unique(vec_removed, i)
+            print *, " i = ", i, " / removed(i) = ", is_removed, " / num elements = ", get_num_elements(vec_ok)
+            print *, "55 - 2453 remove 70 " 
             ierr(i) = 70
             ierrc(i) = "problem with buoy in cup_dd_moisture"
          end if
          if (bu(i) .ge. 0 .and. iloop .eq. 1) then
+            is_removed = remove(vec_ok, i)
+            is_inserted = insert_unique(vec_removed, i)
+            print *, " i = ", i, " / removed(i) = ", is_removed, " / num elements = ", get_num_elements(vec_ok)
+            print *, "56 - 2457 remove 73 " 
             ierr(i) = 73
             ierrc(i) = "problem2 with buoy in cup_dd_moisture"
          end if
 
          !-- fix evap, in case of not conservation
+         print *, "57 - 2462 ==0 " 
          if (abs(pwev(i)) > pwavo(i) .and. ierr(i) == 0) then
             fix_evap = pwavo(i)/(1.e-16 + abs(pwev(i)))
             pwev(i) = 0.
@@ -2594,6 +2609,10 @@ contains
                qcd(i, k) = qrcd(i, k) + dq_eva
             end do
             if (pwev(i) .ge. 0.) then
+               is_removed = remove(vec_ok, i)
+               is_inserted = insert_unique(vec_removed, i)
+               print *, " i = ", i, " / removed(i) = ", is_removed, " / num elements = ", get_num_elements(vec_ok)
+               print *, "58 - 2473 remove 70 " 
                ierr(i) = 70
                ierrc(i) = "problem with buoy in cup_dd_moisture"
             end if
@@ -2661,7 +2680,7 @@ contains
       !! environmental saturation mixing ratio
 
       !Local variables
-      integer :: i, k
+      integer :: i, k, vtp_index
       !real, dimension (1:2) :: ae,be,ht
 
       real, dimension(its:ite, kts:kte) :: tv
@@ -2674,63 +2693,66 @@ contains
       he = 0.0
       hes = 0.0
       qes = 0.0
-
+      
+      
+      ! loop modificado com vetor de indices >--------------------------------------
       if (SATUR_CALC == 0) then
          do k = kts, ktf
-            do i = its, itf
-               if (ierr(i) .eq. 0) then
-
-                  e_sat = SatVap(temp_env(i, k))
-                  qes(i, k) = 0.622*e_sat/max(1.e-8, (press_env(i, k) - e_sat))
-
-                  if (qes(i, k) .le. 1.e-08) qes(i, k) = 1.e-08
-                  if (qes(i, k) .gt. c_max_qsat) qes(i, k) = c_max_qsat
-                  if (qes(i, k) .lt. mixratio_env(i, k)) qes(i, k) = mixratio_env(i, k)
-                  !       IF(Q(I,K).GT.QES(I,K))Q(I,K)=QES(I,K)
-                  tv(i, k) = temp_env(i, k) + .608*mixratio_env(i, k)*temp_env(i, k)
-               end if
+            do vtp_index = 1, get_num_elements(vec_ok)
+               !CR: antiga variavel de controle do laco "i" recebe o indice armazenado na 
+               ! posicao vtp_index do vetor module vector
+               i=get_data_value(vec_ok, vtp_index)
+               e_sat = SatVap(temp_env(i, k))
+               qes(i, k) = 0.622*e_sat/max(1.e-8, (press_env(i, k) - e_sat))
+               if (qes(i, k) .le. 1.e-08) qes(i, k) = 1.e-08
+               if (qes(i, k) .gt. c_max_qsat) qes(i, k) = c_max_qsat
+               if (qes(i, k) .lt. mixratio_env(i, k)) qes(i, k) = mixratio_env(i, k)
+               !IF(Q(I,K).GT.QES(I,K))Q(I,K)=QES(I,K)
+               tv(i, k) = temp_env(i, k) + .608*mixratio_env(i, k)*temp_env(i, k)
             end do
          end do
       else
          !--- better formulation for the mixed phase regime
          do k = kts, ktf
-            do i = its, itf
-               if (ierr(i) .eq. 0) then
-                  pqsat = SaturSpecHum(temp_env(i, k), press_env(i, k))
-                  qes(i, k) = pqsat
-                  !print*,"qes=",k,p(i,k),1000*qes(i,k),1000*pqsat
-                  qes(i, k) = min(c_max_qsat, max(1.e-08, qes(i, k)))
-                  qes(i, k) = max(qes(i, k), mixratio_env(i, k))
-                  tv(i, k) = temp_env(i, k) + .608*mixratio_env(i, k)*temp_env(i, k)
-               end if
+            do vtp_index = 1, get_num_elements(vec_ok)
+               !CR: antiga variavel de controle do laco "i" recebe o indice armazenado na 
+               !    posicao vtp_index do vetor do module vector
+               i=get_data_value(vec_ok, vtp_index)
+               !CR: processamento normal:
+               pqsat = SaturSpecHum(temp_env(i, k), press_env(i, k))
+               qes(i, k) = pqsat
+               !print*,"qes=",k,p(i,k),1000*qes(i,k),1000*pqsat
+               qes(i, k) = min(c_max_qsat, max(1.e-08, qes(i, k)))
+               qes(i, k) = max(qes(i, k), mixratio_env(i, k))
+               tv(i, k) = temp_env(i, k) + .608*mixratio_env(i, k)*temp_env(i, k)
             end do
          end do
       end if
+      ! <---------------------------------------------------------------------------
+      
+      
+      
+      
+      
 
       !--- z's are calculated with changed h's and q's and t's
       !--- if itest=2
       if (itest .eq. 1 .or. itest .eq. 0) then
-         do i = its, itf
-            if (ierr(i) .eq. 0) then
+            do vtp_index = 1, get_num_elements(vec_ok); i = get_data_value(vec_ok, vtp_index)
                z_heights(i, 1) = max(0., z1(i)) - (Alog(press_env(i, 1)) - Alog(psur(i)))*287.*tv(i, 1)/c_grav
-            end if
-         end do
+            end do
          ! --- calculate heights
          do k = kts + 1, ktf
-            do i = its, itf
-               if (ierr(i) .eq. 0) then
-                  tvbar = .5*tv(i, k) + .5*tv(i, k - 1)
-                  z_heights(i, k) = z_heights(i, k - 1) - (Alog(press_env(i, k)) - Alog(press_env(i, k - 1)))*287.*tvbar/c_grav
-               end if
+            do vtp_index = 1, get_num_elements(vec_ok); i = get_data_value(vec_ok, vtp_index)
+               tvbar = .5*tv(i, k) + .5*tv(i, k - 1)
+               z_heights(i, k) = z_heights(i, k - 1) - (Alog(press_env(i, k)) - Alog(press_env(i, k - 1)))*287.*tvbar/c_grav
             end do
          end do
       else if (itest .eq. 2) then
          do k = kts, ktf
-            do i = its, itf
-               if (ierr(i) .eq. 0) then
-                  z_heights(i, k) = (he(i, k) - 1004.*temp_env(i, k) - 2.5e6*mixratio_env(i, k))/c_grav
-                  z_heights(i, k) = max(1.e-3, z_heights(i, k))
-               end if
+            do vtp_index = 1, get_num_elements(vec_ok); i = get_data_value(vec_ok, vtp_index)
+               z_heights(i, k) = (he(i, k) - 1004.*temp_env(i, k) - 2.5e6*mixratio_env(i, k))/c_grav
+               z_heights(i, k) = max(1.e-3, z_heights(i, k))
             end do
          end do
       else if (itest .eq. -1) then
@@ -2739,8 +2761,7 @@ contains
       !--- calculate moist static energy - HE
       !    saturated moist static energy - HES
       do k = kts, ktf
-         do i = its, itf
-            if (ierr(i) /= 0) cycle
+         do vtp_index = 1, get_num_elements(vec_ok); i = get_data_value(vec_ok, vtp_index)
             if (itest .le. 0) he(i, k) = c_grav*z_heights(i, k) + real(c_cp)*temp_env(i, k) + real(c_alvl)*mixratio_env(i, k)
             hes(i, k) = c_grav*z_heights(i, k) + real(c_cp)*temp_env(i, k) + real(c_alvl)*qes(i, k)
             if (he(i, k) .ge. hes(i, k)) he(i, k) = hes(i, k)
