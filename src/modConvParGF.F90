@@ -5708,6 +5708,7 @@ contains
       real, dimension(its:ite) :: cap_max
       real :: dz, denom, dzh, del_cap_max, fx, x_add, z_overshoot, frh_crit
       real, dimension(kts:kte) ::   dby
+      integer :: vtp_index
 
       delz_oversh = OVERSHOOT
       hcot = 0.0
@@ -5715,25 +5716,32 @@ contains
       start_level = 0
       cap_max(:) = cap_max_in(:)
 
-      do i = its, itf
-         if (ierr(i) /= 0) cycle
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+         print *, "84 - 5536 cycle " 
+!BD_n         if (ierr(i) /= 0) cycle
          start_level(i) = start_level_(i)
          do k = kts, start_level(i)
             hcot(i, k) = hkbo(i) ! assumed no entraiment between these layers
          end do
       end do
 
+      ! WARNING - do not remove cycles or insert "remove(vec_ok, i) below in the routine. 
+      !         - There some dependencies in loops (loop0, loop1) that crashes the execution
+      !         - must be carefully reviwed to remove if cycles
+
       !--- determine the level of convective cloud base  - kbcon
-   !--- DETERMINE THE LEVEL OF CONVECTIVE CLOUD BASE  - KBCON
+      !--- DETERMINE THE LEVEL OF CONVECTIVE CLOUD BASE  - KBCON
       !
-      loop0: do i=its,itf
+      ! DE : manual if cycle remove - reverse order
+      loop0:  do vtp_index = get_num_elements(vec_ok), 1, -1 ; i=get_data_value(vec_ok, vtp_index) !BD_n
          !-default value
          kbcon         (i)=kbmax(i)+3
          depth_neg_buoy(i)=0.
          frh           (i)=0.
+         print *, "85 - 5551 cycle " 
          if(ierr(i) /= 0) cycle
 
-
+         print *, "86 - 5554 while ==0 " 
          loop1:  do while(ierr(i) == 0)
 
             kbcon(i)=start_level(i)
@@ -5751,13 +5759,17 @@ contains
             loop2:      do while (hcot(i,kbcon(i)) < HESO_cup(i,kbcon(i)))
                kbcon(i)=kbcon(i)+1
                if(kbcon(i).gt.kbmax(i)+2) then
+                  print *, "87 - 5571 remove 3 " 
                   ierr(i)=3
                   ierrc(i)="could not find reasonable kbcon in cup_kbcon : above kbmax+2 "
+                  is_removed = remove(vec_ok, i)
+                  is_inserted = insert_unique(vec_removed, i)
                   exit loop2
                endif
                 !print*,"kbcon=",kbcon(i);call flush(6)
             enddo loop2
 
+            print *, "88 - 5578 cycle loop0 " 
             if(ierr(i) /= 0) cycle loop0
 
             !---     cloud base pressure and max moist static energy pressure
@@ -5812,14 +5824,18 @@ contains
          enddo loop1
          !--- last check for kbcon
          if(kbcon(i) == kts) then
-            ierr(i)=33
-            ierrc(i)="could not find reasonable kbcon in cup_kbcon = kts"
+               print *, "89 - 5632 remove 33 " 
+               ierr(i)=33
+               ierrc(i)="could not find reasonable kbcon in cup_kbcon = kts"
+               is_removed = remove(vec_ok, i)
+               is_inserted = insert_unique(vec_removed, i)
          endif
       enddo loop0
 
 
       !--- determine the level of neutral buoyancy - ktop
-      do i = its, itf
+      ! DE: manual if cycle remove - reverse order
+      do vtp_index = get_num_elements(vec_ok), 1, -1 ; i=get_data_value(vec_ok, vtp_index) !BD_n
          ktop(i) = ktf - 1
          if (ierr(i) /= 0) cycle
          !~ dby(:)=0.0
@@ -5842,9 +5858,15 @@ contains
                exit
             end if
          end do
-         if (ktop(i) .le. kbcon(i) + 1) ierr(i) = 41
+         print *, "91 - 5662 remove 41 " 
+         if (ktop(i) .le. kbcon(i) + 1) then
+            ierr(i) = 41
+            is_removed = remove(vec_ok, i)
+            is_inserted = insert_unique(vec_removed, i)
+         endif
 
          !----------------
+         print *, "92 - 5665 ==0 " 
          if (OVERSHOOT > 1.e-6 .and. ierr(i) == 0) then
             z_overshoot = (1.+delz_oversh)*z_cup(i, ktop(i))
             do k = ktop(i), ktf - 2
