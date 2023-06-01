@@ -6526,13 +6526,16 @@ contains
       real, dimension(1:maxens3) :: xff_ens3
       real, dimension(its:ite) :: xk
       real, dimension(its:ite) :: ens_adj!,xmbmax
+      integer :: vtp_index
 
       ens_adj(:) = 1.
 
       ! large scale forcing
-      do i = its, itf
-         xf_ens(i, 1:16) = 0.
-         if (ierr(i) /= 0) cycle
+      xf_ens(its:itf, 1:16) = 0.  ! DE - fix initialization due to if cycle remotion
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+         ! xf_ens(i, 1:16) = 0.
+         print *, "113 - 6285 cycle " 
+!BD_n         if (ierr(i) /= 0) cycle
 
          xff0 = (aa1(i) - aa0(i))/dtime
          !-- default
@@ -6665,10 +6668,12 @@ contains
       !-
       if (DICYCLE == 1 .or. DICYCLE == 2) then
 
-         do i = its, itf
-            xf_dicycle(i) = 0.
+         xf_dicycle(its:itf) = 0.  ! DE - fix initialization due to if cycle remotion
+         do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+            ! xf_dicycle(i) = 0.
 !           if(ierr(i) /=  0 .or. p_cup(i,kbcon(i))< 950. )cycle
-            if (ierr(i) /= 0) cycle
+            print *, "114 - 6421 cycle " 
+!BD_n            if (ierr(i) /= 0) cycle
 
             !--- Bechtold et al (2014)
             !xff_dicycle  = (AA1(i)-AA1_BL(i))/tau_ecmwf(i)
@@ -6695,10 +6700,11 @@ contains
          end do
 
       elseif (DICYCLE == 3) then
-         do i = its, itf
-            xf_dicycle(i) = 0.
-
-            if (ierr(i) /= 0) cycle
+         xf_dicycle(its:itf) = 0.  ! DE - fix initialization due to if cycle remotion
+         do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+            ! xf_dicycle(i) = 0.  
+            print *, "115 - 6451 cycle " 
+!BD_n            if (ierr(i) /= 0) cycle
 
             xff_dicycle = (1.-alpha_adv(i))*aa1(i) + alpha_adv(i)*(aa1_radpbl(i) + aa1_adv(i)) - aa1_bl(i)
                           !                        +      alpha_adv(i) *(AA1_RADPBL(i) + AA1_ADV(i) - AA0(i)) &
@@ -6713,9 +6719,11 @@ contains
          end do
 
       elseif (DICYCLE == 4) then
-         do i = its, itf
-            xf_dicycle(i) = 0.
-            if (ierr(i) /= 0) cycle
+         xf_dicycle(its:itf) = 0.  ! DE - fix initialization due to if cycle remotion
+         do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+            ! xf_dicycle(i) = 0.
+            print *, "116 - 6468 cycle " 
+!BD_n            if (ierr(i) /= 0) cycle
             !the signal "-" is to convert from Pa/s to kg/m2/s
             if (xk_x(i) > 0.) xf_dicycle(i) = max(0., -aa1_bl(i))/xk_x(i)
 
@@ -6733,8 +6741,10 @@ contains
       !- mass flux closure
       !-
       if (ADD_COLDPOOL_CLOS == 4) then
-         do i = its, itf
-            if (ierr(i) /= 0 .or. xk(i) >= 0) cycle
+          do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+            print *, "117 - 6487 cycle " 
+            ! if (ierr(i) /= 0 .or. xk(i) >= 0) cycle  
+            if (xk(i) >= 0) cycle  ! DE: if cycle fix
             xf_coldpool(i) = -(0.5*wlpool(i)**2/tau_ecmwf(i))/xk(i)
          end do
       end if
@@ -6785,26 +6795,28 @@ contains
       real, intent(inout) :: melting_layer(:, :)
 
       !Local variables:
-      integer :: i, k
+      integer :: i, k, vtp_index
       real :: dp
       real, dimension(its:ite) :: norm
    
       p_liq_ice(:, :) = 1.
       melting_layer(:, :) = 0.
       !-- get function of T for partition of total condensate into liq and ice phases.
+      !CR:
       if (p_melt_glac .and. trim(cumulus) == 'deep') then
          do k = kts, ktf
-            do i = its, itf
-               if (ierr(i) /= 0) cycle
+            do vtp_index = 1, get_num_elements(vec_ok); i=get_data_value(vec_ok, vtp_index)
                p_liq_ice(i, k) = FractLiqF(tn(i, k))
             end do
          end do
 
          !-- define the melting layer (the layer will be between T_0+1 < TEMP < T_1
          !-- definition em terms of temperatura
+         !DE:
          do k = kts, ktf
-            do i = its, itf
-               if (ierr(i) /= 0) cycle
+             do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+               print *, "118 - 6559 cycle " 
+!BD_n               if (ierr(i) /= 0) cycle
                if (tn(i, k) <= c_t00 - p_delt) then
                   melting_layer(i, k) = 0.
                elseif (tn(i, k) < c_t00 + p_delt .and. tn(i, k) > c_t00 - p_delt) then
@@ -6842,14 +6854,18 @@ contains
          !-normalize vertical integral of melting_layer to 1
          norm(:) = 0.
          do k = kts, ktf - 1
-            do i = its, itf
-               if (ierr(i) /= 0) cycle
+            !EB:
+             do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+               print *, "119 - 6599 cycle " 
+!BD_n               if (ierr(i) /= 0) cycle
                dp = 100.*(po_cup(i, k) - po_cup(i, k + 1))
                norm(i) = norm(i) + melting_layer(i, k)*dp/c_grav
             end do
          end do
-         do i = its, itf
-            if (ierr(i) /= 0) cycle
+         !EK:
+          do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+            print *, "120 - 6606 cycle" 
+!BD_n            if (ierr(i) /= 0) cycle
             melting_layer(i, :) = melting_layer(i, :)/(norm(i) + 1.e-6)*(100*(po_cup(i, kts) - po_cup(i, ktf))/c_grav)
             !print*,"i2=",i,maxval(melting_layer(i,:)),minval(melting_layer(i,:)),norm(i)
          end do
@@ -6915,6 +6931,7 @@ contains
       real :: dp
       real, dimension(its:ite)         :: norm, total_pwo_solid_phase
       real, dimension(its:ite, kts:kte) :: pwo_solid_phase, pwo_eff
+      integer :: vtp_index
       
       if (p_melt_glac .and. trim(cumulus) == 'deep') then
 
@@ -6923,16 +6940,20 @@ contains
          pwo_eff = 0.0
          melting = 0.0
          !-- set melting mixing ratio to zero for columns that do not have deep convection
-         do i = its, itf
-            if (ierr(i) > 0) melting(i, :) = 0.
+         ! DE: using vec_removed 
+         do vtp_index = 1, get_num_elements(vec_removed) ; i=get_data_value(vec_removed, vtp_index) !BD_n
+            print *, "121 - 6681 >0 " 
+            ! if (ierr(i) > 0) melting(i, :) = 0.
+            melting(i, :) = 0.
          end do
 
          !-- now, get it for columns where deep convection is activated
          total_pwo_solid_phase(:) = 0.
 
          do k = kts, ktf - 1
-            do i = its, itf
-               if (ierr(i) /= 0) cycle
+             do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+               print *, "122 - 6689 cycle " 
+!BD_n               if (ierr(i) /= 0) cycle
                dp = 100.*(po_cup(i, k) - po_cup(i, k + 1))
                !-- effective precip (after evaporation by downdraft)
                !-- pwdo is not defined yet
@@ -6946,8 +6967,9 @@ contains
          end do
 
          do k = kts, ktf
-            do i = its, itf
-               if (ierr(i) /= 0) cycle
+             do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+               print *, "123 - 6704 cycle " 
+!BD_n               if (ierr(i) /= 0) cycle
                !-- melting profile (kg/kg)
                melting(i, k) = melting_layer(i, k)*(total_pwo_solid_phase(i)/(100*(po_cup(i, kts) - po_cup(i, ktf))/c_grav))
                !print*,"mel=",k,melting(i,k),pwo_solid_phase(i,k),po_cup(i,k)
@@ -7018,10 +7040,12 @@ contains
       !Local variables:
       real :: dts, fp, dp, fpi
       integer ::i, k
+      integer :: vtp_index
 
       ! since kinetic energy is being dissipated, add heating accordingly (from ECMWF)
-      do i = its, itf
-         if (ierr(i) /= 0) cycle
+       do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+         print *, "124 - 6778 cycle " 
+!BD_n         if (ierr(i) /= 0) cycle
          dts = 0.
          fpi = 0.
          do k = kts, ktop(i)
@@ -7116,6 +7140,7 @@ contains
       real :: dz, xzz, xzd, xze, denom, henry_coef, w_upd, fliq, dp
       integer :: i, k, ispc
       real, dimension(mtp, its:ite, kts:kte) ::  factor_temp
+      integer :: vtp_index
 
       !--initialization
       sc_up = se_cup
@@ -7124,8 +7149,9 @@ contains
 
       if (USE_TRACER_SCAVEN == 2 .and. cumulus /= 'shallow') then
          factor_temp = 1.
-         do i = its, itf
-            if (ierr(i) /= 0) cycle
+          do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+            print *, "125 - 6882 cycle " 
+!BD_n            if (ierr(i) /= 0) cycle
             do ispc = 1, mtp
                ! - if tracer is type "carbon" then set coefficient to 0 for hydrophobic
                if (trim(chem_name(ispc) (1:len_trim('OCphobic'))) == 'OCphobic') factor_temp(ispc, :, :) = 0.0
@@ -7151,8 +7177,9 @@ contains
          end do
       end if
 
-      do i = its, itf
-         if (ierr(i) /= 0) cycle
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+         print *, "126 - 6909 cycle " 
+!BD_n         if (ierr(i) /= 0) cycle
          !start_level(i) = klcl(i)
          !start_level(i) = k22(i)
 
@@ -7165,8 +7192,9 @@ contains
          end do
       end do
 
-      do i = its, itf
-         if (ierr(i) /= 0) cycle
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+         print *, "127 - 6923 cycle " 
+!BD_n         if (ierr(i) /= 0) cycle
          loopk: do k = start_level(i) + 1, ktop(i) + 1
 
             !-- entr,detr, mass flux ...
@@ -7373,14 +7401,16 @@ contains
       !Local variables:
       real :: xzz, xzd, xze, denom, pwdper, frac_evap, dp
       integer :: i, k, ispc
+      integer :: vtp_index
 
       sc_dn = 0.0
       pw_dn = 0.0
       tot_pw_dn_chem = 0.0
       if (cumulus == 'shallow') return
 
-      do i = its, itf
-         if (ierr(i) /= 0) cycle
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+         print *, "128 - 7137 cycle " 
+!BD_n         if (ierr(i) /= 0) cycle
 
          !--- fration of the total rain that was evaporated
          frac_evap = -pwevo(i)/(1.e-16 + pwavo(i))
@@ -7760,11 +7790,13 @@ contains
 
       !Local variables:
       integer :: i, k
+      integer :: vtp_index
       
       if (p_clev_option == 1) then
          !-- original version
-         do i = its, itf
-            if (ierr(i) /= 0) cycle
+         do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+            print *, "129 - 7521 cycle " 
+!BD_n            if (ierr(i) /= 0) cycle
             do k = kts + 1, ktf
                se_cup_chem(1:mtp, i, k) = 0.5*(se_chem(1:mtp, i, k - 1) + se_chem(1:mtp, i, k))
             end do
@@ -7773,8 +7805,9 @@ contains
          end do
       else
          !-- version 2: se_cup (k+1/2) = se(k) => smoother profiles
-         do i = its, itf
-            if (ierr(i) /= 0) cycle
+         do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+            print *, "130 - 7531 cycle " 
+!BD_n            if (ierr(i) /= 0) cycle
             do k = kts, ktf
                se_cup_chem(1:mtp, i, k) = se_chem(1:mtp, i, k)
             end do
@@ -7853,6 +7886,7 @@ contains
       real :: rh_cr, del_t, del_q, dp, q_deficit, temp_pre
       real :: rh_cr_ocean, rh_cr_land
       real, dimension(its:ite) :: tot_evap_bcb, eff_c_conv
+      integer :: vtp_index
 
       if (trim(cumulus) == 'shallow') then
          rh_cr_ocean = 1.
@@ -7869,9 +7903,10 @@ contains
       tot_evap_bcb = 0.0
       if (c0 < 1.e-6) return
 
-      do i = its, itf
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
 
-         if (ierr(i) /= 0) cycle
+         print *, "131 - 7628 cycle " 
+!BD_n         if (ierr(i) /= 0) cycle
 
          !-- critical rel humidity  - check this, if the value is too small, not evapo will take place.
          rh_cr = rh_cr_ocean*xland(i) + rh_cr_land*(1.0 - xland(i))
