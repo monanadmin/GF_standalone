@@ -3765,6 +3765,8 @@ contains
       real :: dz
       real :: qaver, denom, cx0, delt_hc_glac
       real :: qrch
+      integer :: vtp_index
+
       !! saturation q in cloud
       
       !! --- no precip for small clouds
@@ -3787,14 +3789,16 @@ contains
       end do
 
       !--- get boundary condition for qc
-      do i = its, itf
-         if (ierr(i) /= 0) cycle
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+         print *, "69 - 3636 cycle " 
+!BD_n         if (ierr(i) /= 0) cycle
          call getCloudBc( kts, ktf, xland(i), po(i, kts:kte), qe_cup(i, kts:kte), qaver, k22(i))
          qc(i, kts:start_level(i)) = qaver + zqexec(i) + 0.5*x_add_buoy(i)/real(c_alvl)
       end do
 
-      do i = its, itf
-         if (ierr(i) /= 0) cycle
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+         print *, "70 - 3642 cycle " 
+!BD_n         if (ierr(i) /= 0) cycle
 
          do k = start_level(i) + 1, ktop(i) + 1
 
@@ -3843,8 +3847,9 @@ contains
       end do
 
       !- get back water vapor qc
-      do i = its, itf
-         if (ierr(i) /= 0) cycle
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+         print *, "71 - 3692 cycle " 
+!BD_n         if (ierr(i) /= 0) cycle
          do k = kts, ktop(i) + 1
             qc(i, k) = qc(i, k) - qrc(i, k)
          end do
@@ -3968,11 +3973,13 @@ contains
       !Local variables:
       integer :: i, k
       real :: dz, da, aa_1, aa_2
+      integer :: vtp_index
 
       aa1_bl(:) = 0.
       if (version == 0) then
-         do i = its, itf
-            if (ierr(i) /= 0) cycle
+         do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+            print *, "72 - 3820 " 
+!BD_n            if (ierr(i) /= 0) cycle
             !***       do k=kts,kbcon(i)
             do k = kts, kpbl(i)
                dz = c_grav*(z_cup(i, k + 1) - z_cup(i, k))
@@ -3981,8 +3988,9 @@ contains
             end do
          end do
       elseif (version == 1) then
-         do i = its, itf
-            if (ierr(i) /= 0) cycle
+         do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+            print *, "73 - 3830 cycle " 
+!BD_n            if (ierr(i) /= 0) cycle
             do k = kts, kpbl(i)
                dz = (z_cup(i, k + 1) - z_cup(i, k))
                aa_1 = (c_grav/(real(c_cp)*t_cup(i, k)))*dby(i, k)*zu(i, k)
@@ -3998,8 +4006,9 @@ contains
       return
 
       aa1_fa(:) = 0.
-      do i = its, itf
-         if (ierr(i) /= 0) cycle
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+         print *, "74 - 3847 cycle " 
+!BD_n         if (ierr(i) /= 0) cycle
          do k = kbcon(i), ktop(i)
 
             dz = z_cup(i, k + 1) - z_cup(i, k)
@@ -4078,6 +4087,7 @@ contains
       integer :: i, k, turn, ismooth1, ismooth2, nlay, k_ent
       real :: dz, mass1, mass2, dp, rho, zuo_ave
       logical  :: smooth
+      integer :: vtp_index
 
       smooth = .false.
       if (USE_SMOOTH_PROF == 1) smooth = .true.
@@ -4090,8 +4100,9 @@ contains
       end if
       nlay = int(kte/90)
 
-      do i = its, itf
-         if (ierr(i) /= 0) cycle
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+         print *, "75 - 3939 cycle " 
+!BD_n         if (ierr(i) /= 0) cycle
 
          !-will not allow detrainment below the location of the maximum zu
          ! if(draft=='shallow'.or.draft == 'mid') cd(i,1:maxloc(zuo(i,:),1)-2)=0.0
@@ -4233,8 +4244,9 @@ contains
 
       end do ! i
       !---- check mass conservation
-      do i = its, itf
-         if (ierr(i) /= 0) cycle
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+         print *, "76 - 4082 cycle " 
+!BD_n         if (ierr(i) /= 0) cycle
          do k = kts + 1, kte
 
             dz = zo_cup(i, k) - zo_cup(i, k - 1)
@@ -4305,6 +4317,7 @@ contains
       !Local variables:
       integer ::i, ki
       real :: dzo
+      integer :: vtp_index
 
       cdd = 0.
       dd_massentr = 0.
@@ -4317,8 +4330,9 @@ contains
       end if
       if (trim(cumulus) == 'shallow') return
 
-      do i = its, itf
-         if (ierr(i) /= 0) cycle
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+         print *, "77 - 4166 cycle" 
+!BD_n         if (ierr(i) /= 0) cycle
 
          mentrd_rate_2d(i, 1:jmin(i)) = mentrd_rate(i)
          cdd(i, 1:jmin(i) - 1) = mentrd_rate(i)
@@ -4899,21 +4913,23 @@ contains
       !! dummy array for CAPE (total cape)
 
       !Local variables:
-      integer :: i, k
+      integer :: i, k, vtp_index
       real :: dz, daa0
       !
       aa0(:) = 0.
-      do i = its, itf
-         if (ierr(i) == 0) then
-            do k = kbcon(i), ktop(i)
-               dz = z(i, k) - z(i, max(1, k - 1))
-               daa0 = c_grav*dz*((tempco(i, k)*(1.+0.608*qco(i, k)) - t_cup(i, k)*(1.+0.608*qo_cup(i, k))) /(t_cup(i, k) &
-                    * (1.+0.608*qo_cup(i, k))) &
-                            )
-               aa0(i) = aa0(i) + max(0., daa0)
-               !~ print*,"cape",k,AA0(I),tempco(i,k),t_cup(i,k), qrco  (i,k)
-            end do
-         end if
+      ! DE: manual if cycle remotion
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) 
+         print *, "78 - 4752 ==0 " 
+         ! if (ierr(i) == 0) then
+         do k = kbcon(i), ktop(i)
+            dz = z(i, k) - z(i, max(1, k - 1))
+            daa0 = c_grav*dz*((tempco(i, k)*(1.+0.608*qco(i, k)) - t_cup(i, k)*(1.+0.608*qo_cup(i, k))) /(t_cup(i, k) &
+                  * (1.+0.608*qo_cup(i, k))) &
+                           )
+            aa0(i) = aa0(i) + max(0., daa0)
+            !~ print*,"cape",k,AA0(I),tempco(i,k),t_cup(i,k), qrco  (i,k)
+         end do
+         ! end if
       end do
    end subroutine cupUpCape
 
@@ -5206,6 +5222,7 @@ contains
       integer:: i, k, kk, ix, k800, k550, ist
       integer :: local_k_inv_layers(its:ite, kts:kte)
       real :: delp, first_deriv(kts:kte), sec_deriv(kts:kte), distance(kts:kte)
+      integer :: vtp_index
 
       !-initialize k_inv_layers as 1 (non-existent layer)_
       k_inv_layers = 1 !integer
@@ -5216,8 +5233,9 @@ contains
       local_k_inv_layers = 1
       ist = 3
 
-      do i = its, itf
-         if (ierr(i) /= 0) cycle
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+         print *, "79 - 5065 cycle " 
+!BD_n         if (ierr(i) /= 0) cycle
          !- displacement from local surface pressure level
          delp = 1000.-psur(i)
 
@@ -5267,11 +5285,12 @@ contains
       end do
 
       !- find the locations of inversions around 800 and 550 hPa
-      do i = its, itf
+      do vtp_index = get_num_elements(vec_ok), 1, -1 ; i=get_data_value(vec_ok, vtp_index) !BD_n
          !----------------
          !k_inv_layers(i,mid)=1
          !----------------
-         if (ierr(i) /= 0) cycle
+         print *, "80 - 5119 cycle " 
+!BD_n         if (ierr(i) /= 0) cycle
          !- displacement from local surface pressure level
          delp = 1000.-psur(i)
          !----------------
@@ -5307,18 +5326,27 @@ contains
 
             if (k550 <= kts .or. k550 >= ktf - 4) then
                k_inv_layers(i, p_mid) = 1
+               print *, "81 - 5155 remove 8 " 
                ierr(i) = 8
+               is_removed = remove(vec_ok, i)
+               is_inserted = insert_unique(vec_removed, i)
             else
                !-save k550 in the k_inv_layers array
                k_inv_layers(i, p_mid) = local_k_inv_layers(i, k550) + p_extralayer
             end if
             if (k_inv_layers(i, p_mid) <= kts .or. k_inv_layers(i, p_mid) >= ktf - 4) then
                !print*,"MID_k_inv_layers=",k_inv_layers(i,MID),ierr(i)
+               print *, "82 - 5162 remove 12 " 
                ierr(i) = 12
+               is_removed = remove(vec_ok, i)
+               is_inserted = insert_unique(vec_removed, i)
             end if
          else
             k_inv_layers(i, :) = 1
+            print *, "83 - 5166 remove 88 " 
             ierr(i) = 88
+            is_removed = remove(vec_ok, i)
+            is_inserted = insert_unique(vec_removed, i)
          end if
       end do
 
