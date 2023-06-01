@@ -2142,8 +2142,9 @@ contains
             ! AA1_ADV_ (:) = depth_neg_buoy (:)
             ! AA1_ADV_ (:) = cin1 (:)
          end if
-         do i = its, itf
-            if (ierr(i) == 0) cycle
+         do vtp_index = 1, get_num_elements(vec_removed) ; i=get_data_value(vec_removed, vtp_index) !BD_n
+            print *, "50 - 2030 cycle " 
+!BD_n            if (ierr(i) == 0) cycle
             kbcon(i) = 1
             ktop(i) = 1
             klcl(i) = 1
