@@ -10810,13 +10810,15 @@ contains
       ! Local variables:
       logical :: is_conservative
       !! function Output: is_conservative
-      integer :: i, k
+      integer :: i, k, vtp_index
       real :: entupk, detupk, entdoj, detdo, entdo, entup, detup
       real :: subin, subdown, totmas
 
       is_conservative = .true.
-      do i = its, itf
-         if (ierr(i) /= 0) cycle
+      ! DE: manual if cycle remove
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) 
+         print *, "157 - 10468 cycle " 
+         ! if (ierr(i) /= 0) cycle
          do k = kts, ktop(i)
             ! these three are only used at or near mass detrainment and/or entrainment levels
             entupk = 0.
@@ -11074,7 +11076,7 @@ contains
       real, intent(out) :: trash2
 
       ! Local variables:
-      integer :: i, k
+      integer :: i, k, vtp_index
       real, dimension(kts:kte) :: fp, fm, aa, bb, cc
       real, dimension(kts:kte) :: ddu, ddv
       real, dimension(mtp, kts:kte) :: sub_tend, trcflx_in
@@ -11087,8 +11089,10 @@ contains
 
       !---- convective transport of momentum
       if (ALP1 == 0.) then !-- fully time explicit
-         do i = its, itf
-            if (ierr(i) /= 0) cycle
+         ! DE: manual if cycle remove
+         do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) 
+            print *, "158 - 10740 cycle " 
+            ! if (ierr(i) /= 0) cycle
             do k = kts, ktop(i)
                dp = 100.*(po_cup(i, k) - po_cup(i, k + 1))
 
@@ -11105,8 +11109,10 @@ contains
          end do
       elseif (ALP1 > 0.) then              !-- time alp0*explict + ALP1*implicit + upstream
          alp0 = 1.-ALP1
-         do i = its, itf
-            if (ierr(i) /= 0) cycle
+         ! DE: manual if cycle remove
+         do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) 
+            print *, "159 - 10758 cycle " 
+            ! if (ierr(i) /= 0) cycle
             do k = kts, ktop(i) + 1
                fp(k) = 0.5*(zenv(i, k) + abs(zenv(i, k)))
                fm(k) = 0.5*(zenv(i, k) - abs(zenv(i, k)))
@@ -11145,8 +11151,10 @@ contains
 
       !--- convective transport of MSE and Q/Qc
       !if(USE_FLUX_FORM == 1) then
-      do i = its, itf
-         if (ierr(i) /= 0) cycle
+      ! DE: manual if cycle remove
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) 
+         print *, "160 - 10798 cycle " 
+         ! if (ierr(i) /= 0) cycle
 
          !--- moist static energy : flux form + source/sink terms + time explicit
          !
@@ -11229,8 +11237,10 @@ contains
       !     endif
       !-------------------------
       !--- water vapor + condensates : flux form + source/sink terms + time explicit
-      do i = its, itf
-         if (ierr(i) /= 0) cycle
+      ! DE: manual if cycle remove
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index)       
+         print *, "161 - 10882 cycle " 
+         ! if (ierr(i) /= 0) cycle
          call vd1Loop(i, kts, ktop, c1d(i,:), dbydo(i,:), dd_massdetro(i,:), edto(i), po_cup(i,:) &
                   ,   pwdo(i,:), pwo(i,:), qcdo(i,:), qco(i,:), qrco(i,:), up_massdetro(i,:) &
                   ,   zdo(i,:), zo_cup(i, :), zuo(i,:), cumulus, dellaqc(i,:), dellaq(i,:), dellabuoy(i,:))
@@ -11516,7 +11526,7 @@ contains
       real, intent(out) :: dellampql(:, :, :)
 
       ! Local variables:
-      integer :: i, k, kmp
+      integer :: i, k, kmp, vtp_index
       real :: dp, alp0, env_mf, env_mf_m, env_mf_p
       real :: beta1, beta2
       real, dimension(kts:kte) ::  aa, bb, cc
@@ -11526,8 +11536,10 @@ contains
       dellampql = 0.
       dellampcf = 0.
 
-      do i = its, itf
-         if (ierr(i) /= 0) cycle
+      ! DE: manual if cycle remove
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) 
+         print *, "162 - 11179 cycle " 
+         ! if (ierr(i) /= 0) cycle
          do k = kts, ktop(i)
             dp = 100.*(po_cup(i, k) - po_cup(i, k + 1))
 
@@ -11660,7 +11672,7 @@ contains
       ! Local variables:
       real :: se_chem_update(3, its:ite, kts:kte)
       real :: massi, dp
-      integer :: i,  k
+      integer :: i,  k, vtp_index
       real, dimension(mtp) :: evap_, wetdep_
 
       !--only for debug
@@ -11670,8 +11682,10 @@ contains
          else
             se_chem(1, :, :) = se_chem_update(1, :, :)
          end if
-         do i = its, itf
-            if (ierr(i) /= 0) cycle
+         ! DE: manual if cycle remove
+         do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) 
+            print *, "163 - 11323 cycle " 
+            ! if (ierr(i) /= 0) cycle
             massi = 0.
             do k = kts, ktop(i)
                dp = 100.*(po_cup(i, k) - po_cup(i, k + 1))
@@ -11701,8 +11715,10 @@ contains
       !-3) determine the vertical transport including mixing, scavenging and evaporation
       !
       !---a) change per unit mass that a model cloud would modify the environment
-      do i = its, itf
-         if (ierr(i) /= 0) cycle
+      ! DE: manual if cycle remove
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) 
+         print *, "164 - 11354 cycle " 
+         ! if (ierr(i) /= 0) cycle
 
          call fluxFormsSourceSink(kte, kts, mtp, ktop(i), chem_name_mask, dtime, edto(i), po_cup(i,:) &
                                 , pw_dn_chem(:,i,:), pw_up_chem(:,i,:), sc_dn_chem(:,i,:) &
@@ -11712,8 +11728,10 @@ contains
 
       if (p_use_gate) then
          !--only for debug
-         do i = its, itf
-            if (ierr(i) /= 0) cycle
+         ! DE: manual if cycle remove
+         do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) 
+            print *, "165 - 11365 cycle " 
+            ! if (ierr(i) /= 0) cycle
             massf = 0.
             do k = kts, ktop(i)
                se_chem_update(ispc_co, i, k) = se_chem_update(ispc_co, i, k) + out_chem(ispc_co, i, k)*dtime
@@ -12201,7 +12219,7 @@ contains
       real, intent(out) :: zenv(:,:)
 
       ! Local variables:
-      integer :: i, k, nens3, kk, nens
+      integer :: i, k, nens3, kk, nens, vtp_index
       logical :: isc
       real, dimension(kts:kte, p_tend1d_dim) :: tend2d
       real, dimension(p_tend1d_dim) :: tend1d
@@ -12210,17 +12228,22 @@ contains
       real, dimension(its:ite, kts:kte) :: xz_cup, xt_cup, xhc, xdby
       real :: rcount, dp, dellah_aver, denom, x_add
 
-      do i = its, itf
-         if (ierr(i) == 0) then
-            edto(i) = sigd(i)*edtc(i, iedt)
-            edt(i) = edto(i)
-         end if
+      ! DE: manual if cycle remove
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) 
+         print *, "166 - 11863 ==0 " 
+         ! if (ierr(i) == 0) then
+         edto(i) = sigd(i)*edtc(i, iedt)
+         edt(i) = edto(i)
+         ! end if
       end do
 
       !--- get the environmental mass flux
-      do i = its, itf
-         zenv(i, :) = 0.0
-         if (ierr(i) /= 0) cycle
+      ! DE: manual if cycle remove
+      zenv(its:itf, :) = 0.0
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) 
+         ! zenv(i, :) = 0.0
+         print *, "167 - 11872 cycle " 
+         ! if (ierr(i) /= 0) cycle
          zenv(i, :) = zuo(i, :) - edto(i)*zdo(i, :)
       end do
 
@@ -12245,8 +12268,10 @@ contains
       ierr3 = 0
 
       if (VERT_DISCR == 0) then
-         do i = its, itf
-            if (ierr(i) /= 0) cycle
+         ! DE: manual if cycle remove
+         do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) 
+            print *, "168 - 11898 cycle " 
+            ! if (ierr(i) /= 0) cycle
             do k = kts, ktop(i)
                dp = 100.*(po_cup(i, k) - po_cup(i, k + 1))
                dellu(i, k) = -(zuo(i, k + 1)*(uc(i, k + 1) - u_cup(i, k + 1)) - zuo(i, k) &
@@ -12261,19 +12286,21 @@ contains
             end do   ! k
          end do
 
-         do i = its, itf
+         ! DE: manual if cycle remove
+         do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) 
             trash = 0.0
             trash2 = 0.0
-            if (ierr(i) == 0) then
-               call vd0_loop(i, kts, ktop, po_cup, qo_cup, zo_cup, zuo, hco, heo_cup, zdo, hcdo, p_liq_ice, qrco, melting &
-                             , up_massdetro, dd_massdetro, c1d, pwo, pwdo, qcdo, qco, dbydo, edto, cumulus, trash, trash2 &
-                             , dellah, subten_h, subten_q, dellaqc, dellaq, dellabuoy)                  !--- test only with double precision:
-               !write(0,*)'=>H/W-FINAL= ',real(trash2,4),real(trash,4),k22(i),kbcon(i),ktop(i)
-               !if(abs(trash)>1.e-6 .or. abs(trash2) > 1.e-6) then
-               !    write(0,*)'=> not water mass or H cons for deep= ',i,trash,trash2
-               !    !stop 33
-               !endif
-            end if
+            print *, "169 - 11916 ==0 " 
+            ! if (ierr(i) == 0) then
+            call vd0_loop(i, kts, ktop, po_cup, qo_cup, zo_cup, zuo, hco, heo_cup, zdo, hcdo, p_liq_ice, qrco, melting &
+                           , up_massdetro, dd_massdetro, c1d, pwo, pwdo, qcdo, qco, dbydo, edto, cumulus, trash, trash2 &
+                           , dellah, subten_h, subten_q, dellaqc, dellaq, dellabuoy)                  !--- test only with double precision:
+            !write(0,*)'=>H/W-FINAL= ',real(trash2,4),real(trash,4),k22(i),kbcon(i),ktop(i)
+            !if(abs(trash)>1.e-6 .or. abs(trash2) > 1.e-6) then
+            !    write(0,*)'=> not water mass or H cons for deep= ',i,trash,trash2
+            !    !stop 33
+            !endif
+            ! end if
          end do
       elseif (VERT_DISCR == 1) then
          call vertDisc1(its, ite, itf, kts, kte, mtp, ierr, ktop, c1d, dbydo, dd_massdetro, dtime, edto, hcdo, hco, heo &
@@ -12289,8 +12316,10 @@ contains
 
       !--- make the smoothness procedure
       if (USE_SMOOTH_TEND > 0) then
-         do i = its, itf
-            if (ierr(i) /= 0) cycle
+         ! DE: manual if cycle remove
+         do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) 
+            print *, "170 - 11942 cycle " 
+            ! if (ierr(i) /= 0) cycle
             tend2d = 0.
 
             do k = kts, ktop(i)
@@ -12320,9 +12349,12 @@ contains
 
       !--- using dellas, calculate changed environmental profiles
       do k = kts, ktf
-         do i = its, itf
-            dellat(i, k) = 0.
-            if (ierr(i) /= 0) cycle
+         dellat(its:itf, k) = 0.
+         ! DE: manual if cycle remove
+         do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) 
+            ! dellat(i, k) = 0.
+            print *, "171 - 11974 cycle " 
+            ! if (ierr(i) /= 0) cycle
             !
             xhe(i, k) = (dellah(i, k))*mbdt(i) + heo(i, k)
             xq(i, k) = (dellaq(i, k) + dellaqc(i, k))*mbdt(i) + qo(i, k)
@@ -12352,8 +12384,10 @@ contains
             subten_t(i, k) = (1./real(c_cp))*(subten_h(i, k) - real(c_alvl)*subten_q(i, k))
          end do
       end do
-      do i = its, itf
-         if (ierr(i) /= 0) cycle
+      ! DE: manual if cycle remove
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) 
+         print *, "172 - 12005 cycle "  
+         ! if (ierr(i) /= 0) cycle
          !XHKB(I)=(dsubh(i,k22(i))+DELLAH(I,K22(i)))*MBDT+HKBO(I)
          xhe(i, ktf) = heo(i, ktf)
          xq(i, ktf) = qo(i, ktf)
@@ -12361,8 +12395,10 @@ contains
          if (xq(i, ktf) <= 0.) xq(i, ktf) = 1.e-08
       end do
       !- new way for defining XHKB
-      do i = its, itf
-         if (ierr(i) /= 0) cycle
+      ! DE: manual if cycle remove
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) 
+         print *, "173 - 12014 cycle " 
+         ! if (ierr(i) /= 0) cycle
          !XHKB(I)= DELLAH(I,K22(i))*MBDT+HKBO(I)
          !-note that HKBO already contains the contribuition from
          !-ztexec and zqexec
@@ -12380,9 +12416,12 @@ contains
       !--- static control
       !
       !--- moist static energy inside cloud
-      do i = its, itf
-         xhc(i, :) = 0.
-         if (ierr(i) /= 0) cycle
+      xhc(its:itf, :) = 0.
+      ! DE: manual if cycle remove
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) 
+         ! xhc(i, :) = 0.
+         print *, "174 - 12034 cycle " 
+         ! if (ierr(i) /= 0) cycle
          do k = kts, start_level(i) !k22(i)
             xhc(i, k) = xhkb(i)
          end do
@@ -12390,13 +12429,17 @@ contains
       !
       !--- option to produce linear fluxes in the sub-cloud layer.
       if (trim(cumulus) == 'shallow' .and. USE_LINEAR_SUBCL_MF == 1) then
-         do i = its, itf
-            if (ierr(i) /= 0) cycle
+         ! DE: manual if cycle remove
+         do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) 
+            print *, "175 - 12043 cycle " 
+            ! if (ierr(i) /= 0) cycle
             call getDelmix(kts, start_level(i), po(i, kts:kte), xhe_cup(i, kts:kte), xhc(i, kts:kte))
          end do
       end if
-      do i = its, itf
-         if (ierr(i) /= 0) cycle
+      ! DE: manual if cycle remove
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) 
+         print *, "176 - 12048 cycle " 
+         ! if (ierr(i) /= 0) cycle
          do k = start_level(i) + 1, ktop(i) + 1  ! mass cons option
             denom = (xzu(i, k - 1) - .5*up_massdetro(i, k - 1) + up_massentro(i, k - 1))
             if (denom == 0.0) then
@@ -12426,8 +12469,10 @@ contains
       call cupUpAa0(xaa0, xz_cup, xzu, xdby, gamma_cup, xt_cup, kbcon, ktop, ierr, itf, its, ite, kts)
 
       do nens = 1, p_maxens
-         do i = its, itf
-            if (ierr(i) /= 0) cycle
+         ! DE: manual if cycle remove
+         do vtp_index = get_num_elements(vec_ok), 1, -1 ; i=get_data_value(vec_ok, vtp_index) 
+            print *, "177 - 12079 cycle " 
+            ! if (ierr(i) /= 0) cycle
             !~ xaa0_ens(i,nens)=xaa0(i)
             do k = kts, ktop(i)
                do nens3 = 1, p_maxens3
@@ -12447,6 +12492,10 @@ contains
                end do
             end do
             if (pr_ens(i, 7) < 1.e-6 .and. C0_MID > 0. .and. trim(cumulus) /= 'shallow') then
+               print *, "178 - 12099 remove 18 " 
+               is_removed = remove(vec_ok, i)
+               is_inserted = insert_unique(vec_removed, i)
+               print *, " i = ", i, " / removed(i) = ", is_removed, " / num elements = ", get_num_elements(vec_ok)
                ierr(i) = 18
                ierrc(i) = "total normalized condensate too small"
                do nens3 = 1, p_maxens3
@@ -12486,13 +12535,19 @@ contains
 
       !--- get the net precipitation at surface
 
-      do i = its, itf
-         if (ierr(i) == 0) then
-            pwo_eff(i, :) = pwo(i, :) + edto(i)*pwdo(i, :)
-         else
-            pwo_eff(i, :) = 0.
-         end if
+      ! DE: manual if cycle remove
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) 
+         print *, "179 - 12139 ==0 " 
+         ! if (ierr(i) == 0) then
+         pwo_eff(i, :) = pwo(i, :) + edto(i)*pwdo(i, :)
       end do
+      ! DE: manual if cycle remove from vec_removed
+      do vtp_index = 1, get_num_elements(vec_removed) ; i=get_data_value(vec_removed, vtp_index) 
+         ! else
+         print *, "179 - 12139 /=0 " 
+         pwo_eff(i, :) = 0.
+         ! end if
+      enddo
 
    end subroutine iedtLoop
 
