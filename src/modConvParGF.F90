@@ -2849,7 +2849,7 @@ contains
       real, intent(out) :: v_cup(:, :)
 
       !Local variables:
-      integer :: i, k
+      integer :: i, k, vtp_index 
       real  :: p1, p2, ct1, ct2
 
       qes_cup = 0.
@@ -2866,8 +2866,9 @@ contains
       if (CLEV_GRID == 2) then
          !--original formulation
          do k = kts + 1, ktf
-            do i = its, itf
-               if (ierr(i) /= 0) cycle
+            do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+               print *, "59 - 2731 cycle " 
+!BD_n               if (ierr(i) /= 0) cycle
                qes_cup(i, k) = .5*(qes(i, k - 1) + qes(i, k))
                q_cup(i, k) = .5*(q(i, k - 1) + q(i, k))
                hes_cup(i, k) = .5*(hes(i, k - 1) + hes(i, k))
@@ -2882,8 +2883,9 @@ contains
 
             end do
          end do
-         do i = its, itf
-            if (ierr(i) /= 0) cycle
+         
+         !CR: done
+         do vtp_index = 1, get_num_elements(vec_ok); i=get_data_value(vec_ok, vtp_index)
             qes_cup(i, 1) = qes(i, 1)
             q_cup(i, 1) = q(i, 1)
             !hes_cup(i,1)=hes(i,1)
@@ -2906,8 +2908,8 @@ contains
          !enddo
       elseif (CLEV_GRID == 0) then
          !--- weigthed mean
-         do i = its, itf
-            if (ierr(i) /= 0) cycle
+         !DE: done
+         do vtp_index = 1, get_num_elements(vec_ok); i=get_data_value(vec_ok, vtp_index)
             p_cup(i, 1) = psur(i)
             z_cup(i, 1) = z1(i)
             do k = kts, ktf - 1
@@ -2964,8 +2966,10 @@ contains
          end do
       elseif (CLEV_GRID == 1) then
          !--- based on Tiedke (1989)
-         do i = its, itf
-            if (ierr(i) /= 0) cycle
+         !EB: done
+         do vtp_index = 1, get_num_elements(vec_ok); i=get_data_value(vec_ok, vtp_index)
+               !CR: antiga variavel de controle do laco "i" recebe o indice armazenado na 
+               !    posicao vtp_index do vetor do module vector
             do k = ktf, kts + 1, -1
 
                qes_cup(i, k) = qes(i, k)
@@ -3100,13 +3104,15 @@ contains
       real, dimension(1:maxens) :: xk
       integer :: i, k
       real :: trash, blqe
+      integer :: vtp_index
 
-      do i = its, itf
+       do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
          !-initialization
          xff_mid(i, :) = 0.
          xf_dicycle(i) = 0.
 
-         if (ierr(i) /= 0) cycle
+         print *, "60 - 2976 cycle " 
+!BD_n         if (ierr(i) /= 0) cycle
 
          !- Think about this:
          !xff0= (AA1(I)-AA0(I))/DTIME
@@ -3121,8 +3127,9 @@ contains
          if (xk(1) < 0.) xff_mid(i, 3) = max(0., -(aa1(i)/tau_ecmwf(i))/xk(1))
       end do
 
-      do i = its, itf
-         if (ierr(i) /= 0) cycle
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+         print *, "61 - 2992 cycle " 
+!BD_n         if (ierr(i) /= 0) cycle
          !- Boundary layer quasi-equilibrium (Raymond 1995)
          if (k22(i) .lt. kpbl(i) + 1) then
             blqe = 0.
@@ -3183,22 +3190,26 @@ contains
 
       !Local variables:
       ! only local dimensions are need as of now in this routine
-      integer :: i, k, kstop
+      integer :: i, k, kstop, vtp_index
       real, dimension(its:ite) :: x
 
-       do i = its, itf
-         kt(i) = ks(i)
-         if (ierr(i) == 0) then
-            x(i) = array(i, ks(i))
-            kstop = max(ks(i) + 1, kend(i))
-            !
-            do k = ks(i) + 1, kstop
-               if (array(i, k) < x(i)) then
-                  x(i) = array(i, k)
-                  kt(i) = k
-               end if
-            end do
-         end if
+      ! DE: manual if cycle remove
+      ! moving kt outside
+      kt(its:itf) = ks(its:itf)
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) 
+         ! kt(i) = ks(i)
+         print *, "62 - 3058 == 0 " 
+         ! if (ierr(i) == 0) then
+         x(i) = array(i, ks(i))
+         kstop = max(ks(i) + 1, kend(i))
+         !
+         do k = ks(i) + 1, kstop
+            if (array(i, k) < x(i)) then
+               x(i) = array(i, k)
+               kt(i) = k
+            end if
+         end do
+         ! end if
       end do
 
    end subroutine cupMinimi
@@ -3259,6 +3270,7 @@ contains
       integer :: i, k
       real :: dz, da, aa_2, aa_1
       integer, dimension(its:ite) ::  kbeg, kend
+      integer :: vtp_index
 
       !  initialize array to zero.
       aa0(:) = 0.
@@ -3278,8 +3290,9 @@ contains
          kend(:) = ktop(:)
       end if
 
-      do i = its, itf
-         if (ierr(i) /= 0) cycle
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+         print *, "63 - 3149 cycle " 
+!BD_n         if (ierr(i) /= 0) cycle
          do k = kbeg(i), kend(i)
             dz = z_cup(i, k + 1) - z_cup(i, k)
             aa_1 = zu(i, k)*(c_grav/(real(c_cp)*t_cup(i, k)))*dby(i, k)/(1.+gamma_cup(i, k))
@@ -3389,6 +3402,9 @@ contains
       real :: qaver, denom, aux, cx0, cbf, qrc_crit_bf, min_liq
       real :: delt, tem1, qrc_0, cup
       real :: qrch
+      logical :: is_removed_dummy
+      integer :: vtp_index
+
       !! saturation q in cloud
 
       !--- no precip for small clouds
@@ -3412,8 +3428,9 @@ contains
       end do
 
       !--- get boundary condition for qc
-      do i = its, itf
-         if (ierr(i) /= 0) cycle
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+         print *, "64 - 3284 cycle " 
+!BD_n         if (ierr(i) /= 0) cycle
          call getCloudBc(kts, ktf, xland(i), po(i, kts:kte), qe_cup(i, kts:kte), qaver, k22(i))
          qc(i, kts:start_level(i)) = qaver + zqexec(i) + 1.*x_add_buoy(i)/real(c_alvl)
          !qc  (i,kts:start_level(i)) = qaver + zqexec(i) +     0.67* x_add_buoy(i)/xlv
@@ -3424,13 +3441,15 @@ contains
 
       !--- option to produce linear fluxes in the sub-cloud layer.
       if (trim(name) == 'shallow' .and. USE_LINEAR_SUBCL_MF == 1) then
-         do i = its, itf
-            if (ierr(i) /= 0) cycle
+         do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+            print *, "65 - 3296 cycle " 
+!BD_n            if (ierr(i) /= 0) cycle
             call getDelmix(kts, start_level(i), po(i, kts:kte), qe_cup(i, kts:kte), qc(i, kts:kte))
          end do
       end if
-      do i = its, itf
-         if (ierr(i) /= 0) cycle
+      do vtp_index = get_num_elements(vec_ok), 1, -1 ; i=get_data_value(vec_ok, vtp_index) !BD_n
+         print *, "66 - 3301 cycle " 
+!BD_n         if (ierr(i) /= 0) cycle
 
          do k = start_level(i) + 1, ktop(i) + 1
 
@@ -3642,14 +3661,19 @@ contains
             psum(i) = psum(i) + clw_all(i, k)*zu(i, k)*dz
          end do
          if (pwav(i) < 0.) then
+            is_removed = remove(vec_ok, i)
+            is_inserted = insert_unique(vec_removed, i)
+            print *, " i = ", i, " / removed(i) = ", is_removed, " / num elements = ", get_num_elements(vec_ok)
+            print *, "67 - 3514 remove 66 " 
             ierr(i) = 66
             ierrc(i) = "pwav negative"
          end if
-      end do
+      end do 
 
       !--- get back water vapor qc
-      do i = its, itf
-         if (ierr(i) /= 0) cycle
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+         print *, "68 - 3521 cycle " 
+!BD_n         if (ierr(i) /= 0) cycle
          do k = kts, ktop(i) + 1
             qc(i, k) = qc(i, k) - qrc(i, k)
             !if(qc(i,k) < 0.)stop " qc negative"
