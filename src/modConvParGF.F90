@@ -5920,10 +5920,13 @@ contains
 
       !Local variables:
       integer :: i, k
-   
-      do i = its, itf
-         dby(i, :) = 0.
-         if (ierr(i) /= 0) cycle
+      integer :: vtp_index
+
+      dby(its:itf, :) = 0.  ! DE: fix var initialization due to cycle remove
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+         ! dby(i, :) = 0.
+         print *, "93 - 5721 cycle " 
+!BD_n         if (ierr(i) /= 0) cycle
          do k = kts, klcl(i)
             dby(i, k) = hc(i, k) - he_cup(i, k)
          end do
@@ -5998,17 +6001,22 @@ contains
       !Local variables:
       integer :: i, k, k1
       real :: dz, bu, dw2, dw1, kx, dz1m, tv, tve, vs, ftun1, ftun2, ke
+      integer :: vtp_index
 
       ftun1 = 0.25
       ftun2 = 1.
 
       if (task == 1) then
-         do i = its, itf
+         ! DE: fix var initialization due to cycle remove
+         vvel1d(its:itf) = 0.0
+         vvel2d(its:itf, :) = 0.0
+         do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
             !-- initialize arrays to zero.
-            vvel1d(i) = 0.0
-            vvel2d(i, :) = 0.0
+            ! vvel1d(i) = 0.0
+            ! vvel2d(i, :) = 0.0
 
-            if (ierr(i) /= 0) cycle
+            print *, "94 - 5806 cycle " 
+!BD_n            if (ierr(i) /= 0) cycle
             vvel2d(i, kts:kbcon(i)) = max(1., max(wlpool_bcon(i)**2, zws(i)**2))
 
             loop0: do k = kbcon(i), ktop(i)
@@ -6029,8 +6037,9 @@ contains
             end do loop0
          end do
          if (p_smooth) then
-            do i = its, itf
-               if (ierr(i) /= 0) cycle
+             do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+               print *, "95 - 5828 cycle " 
+!BD_n               if (ierr(i) /= 0) cycle
                do k = kts, ktop(i) + 1
                   vs = 0.
                   dz1m = 0.
@@ -6046,11 +6055,16 @@ contains
          end if
 
          !-- convert to vertical velocity
-         do i = its, itf
-            if (ierr(i) /= 0) cycle
+         do vtp_index = get_num_elements(vec_ok), 1, -1 ; i=get_data_value(vec_ok, vtp_index) !BD_n
+            print *, "96 - 5845 cycle " 
+!BD_n            if (ierr(i) /= 0) cycle
             vvel2d(i, :) = sqrt(max(0.1, vvel2d(i, :)))
 
             if (maxval(vvel2d(i, :)) < 1.0) then
+               is_removed = remove(vec_ok, i)
+               is_inserted = insert_unique(vec_removed, i)
+               print *, " i = ", i, " / removed(i) = ", is_removed, " / num elements = ", get_num_elements(vec_ok)
+               print *, "97 - 5849 remove 54 " 
                ierr(i) = 54
                !  print*,"ierr=54",maxval(vvel2d(i,:))
             end if
@@ -6070,8 +6084,9 @@ contains
             vvel1d(i) = max(1., vvel1d(i))
          end do
       else
-         do i = its, itf
-            if (ierr(i) /= 0) cycle
+          do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+            print *, "98 - 5869 cycle " 
+!BD_n            if (ierr(i) /= 0) cycle
             ke = wlpool(i)**2
 
             loop1: do k = start_level(i), kbcon(i)
@@ -6189,6 +6204,7 @@ contains
       real :: fixouts, dp, xfix_q, xfix_t, fsum
       real, dimension(its:ite) :: xmb_ave, xmbmax
       real, dimension(8) :: tend1d
+      integer :: vtp_index
       !
       do k = kts, ktf
          do i = its, itf
@@ -6206,36 +6222,41 @@ contains
          xmb_ave(i) = 0.
       end do
 
-      do i = its, itf
-         if (ierr(i) .eq. 0) then
-            do n_cnt = 1, maxens3
-               if (pr_ens(i, n_cnt) .le. 0.) then
-                  xf_ens(i, n_cnt) = 0.
-               end if
-            end do
-         end if
+      ! DE: manual if cycle remove
+      do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) 
+         print *, "99 - 6005 ==0 " 
+         ! if (ierr(i) .eq. 0) then
+         do n_cnt = 1, maxens3
+            if (pr_ens(i, n_cnt) .le. 0.) then
+               xf_ens(i, n_cnt) = 0.
+            end if
+         end do
+         ! end if
       end do
 
       !--- calculate ensemble average mass fluxes
       if (trim(cumulus) == 'deep') then
-         do i = its, itf
-            if (ierr(i) .eq. 0) then
-               k = 0
-               xmb_ave(i) = 0.
-               do n_cnt = 1, maxens3
-                  k = k + 1
-                  xmb_ave(i) = xmb_ave(i) + xf_ens(i, n_cnt)
-               end do
-               !- 'ensemble' average mass flux
-               xmb_ave(i) = xmb_ave(i)/float(k)
-            end if
+         ! DE: manual if cycle remove
+         do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) 
+            print *, "100 - 6017 ==0 " 
+            ! if (ierr(i) .eq. 0) then
+            k = 0
+            xmb_ave(i) = 0.
+            do n_cnt = 1, maxens3
+               k = k + 1
+               xmb_ave(i) = xmb_ave(i) + xf_ens(i, n_cnt)
+            end do
+            !- 'ensemble' average mass flux
+            xmb_ave(i) = xmb_ave(i)/float(k)
+            ! end if
          end do
 
          !- mid (congestus type) convection
       elseif (trim(cumulus) == 'mid') then
          if (ichoice .le. 3) then
-            do i = its, itf
-               if (ierr(i) /= 0) cycle
+             do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+               print *, "101 - 6033 cycle " 
+!BD_n               if (ierr(i) /= 0) cycle
                if (ichoice == 0) then
                   xmb_ave(i) = 0.3333*(xff_mid(i, 1) + xff_mid(i, 2) + xff_mid(i, 3))
                else
@@ -6248,8 +6269,9 @@ contains
 
          !- shallow  convection
       elseif (trim(cumulus) == 'shallow') then
-         do i = its, itf
-            if (ierr(i) /= 0) cycle
+          do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+            print *, "102 - 6047 cycle " 
+!BD_n            if (ierr(i) /= 0) cycle
 
             if (ichoice > 0) then
                xmb_ave(i) = xff_shal(i, ichoice)
@@ -6270,8 +6292,9 @@ contains
       end if
       !- apply the mean tropospheric RH control on diurnal cycle (Tian GRL 2022)
       if (trim(cumulus) == 'deep' .and. RH_DICYCLE == 1) then
-         do i = its, itf
-            if (ierr(i) /= 0) cycle
+          do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+            print *, "103 - 6069 cycle " 
+!BD_n            if (ierr(i) /= 0) cycle
             xf_dicycle(i) = xf_dicycle(i)*rh_dicycle_fct(i)
          end do
       end if
@@ -6285,8 +6308,9 @@ contains
 !endif
 
       !- set the updraft mass flux, do not allow negative values and apply the diurnal cycle closure
-      do i = its, itf
-         if (ierr(i) /= 0) cycle
+      do vtp_index = get_num_elements(vec_ok), 1, -1 ; i=get_data_value(vec_ok, vtp_index) !BD_n
+         print *, "104 - 6084 cycle " 
+!BD_n         if (ierr(i) /= 0) cycle
          !- mass flux of updradt at cloud base
          xmb(i) = xmb_ave(i)
 
@@ -6296,27 +6320,45 @@ contains
          !- diurnal cycle closure
          xmb(i) = xmb(i) - xf_dicycle(i)
          if (xmb(i) .le. 0.) then
+            is_removed = remove(vec_ok, i)
+            is_inserted = insert_unique(vec_removed, i)
+            print *, " i = ", i, " / removed(i) = ", is_removed, " / num elements = ", get_num_elements(vec_ok)
+            print *, "105 - 6094 remove 13 " 
             ierr(i) = 13
             xmb(i) = 0.
          end if
       end do
       !-apply the scale-dependence Arakawa's approach
-      do i = its, itf
-         if (ierr(i) /= 0) cycle
+      do vtp_index = get_num_elements(vec_ok), 1, -1 ; i=get_data_value(vec_ok, vtp_index) !BD_n
+         print *, "106 - 6100 cycle " 
+!BD_n         if (ierr(i) /= 0) cycle
          !- scale dependence
          xmb(i) = sig(i)*xmb(i)
 
          !- apply the adjust factor for tunning
          !xmb(i) = FADJ_MASSFLX * xmb(i)
 
-         if (xmb(i) == 0.) ierr(i) = 14
-         if (xmb(i) > 100.) ierr(i) = 15
+         print *, "107 - 6107 remove 14 " 
+         if (xmb(i) == 0.) then
+            is_removed = remove(vec_ok, i)
+            is_inserted = insert_unique(vec_removed, i)
+            print *, " i = ", i, " / removed(i) = ", is_removed, " / num elements = ", get_num_elements(vec_ok)
+            ierr(i) = 14
+         endif
+         print *, "108 - 6108 remove 15 " 
+         if (xmb(i) > 100.) then 
+            is_removed = remove(vec_ok, i)
+            is_inserted = insert_unique(vec_removed, i)
+            print *, " i = ", i, " / removed(i) = ", is_removed, " / num elements = ", get_num_elements(vec_ok)
+            ierr(i) = 15
+         endif
       end do
 
       !--- sanity check for mass flux
       !
-      do i = its, itf
-         if (ierr(i) /= 0) cycle
+       do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+         print *, "109 - 6114 cycle " 
+!BD_n         if (ierr(i) /= 0) cycle
          xmbmax(i) = 100.*(po_cup(i, kbcon(i)) - po_cup(i, kbcon(i) + 1))/(c_grav*dtime)
          xmb(i) = min(xmb(i), xmbmax(i))
       end do
@@ -6324,8 +6366,9 @@ contains
       !--- check outtem and and outq for high values
       !--- criteria: if abs (dT/dt or dQ/dt) > 100 K/day => fix xmb
       if (MAX_TQ_TEND < -1.e-6) then
-         do i = its, itf
-            if (ierr(i) /= 0) cycle
+          do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+            print *, "110 - 6123 cycle " 
+!BD_n            if (ierr(i) /= 0) cycle
             fixouts = xmb(i)*86400.*max(maxval(abs(dellat(i, kts:ktop(i)))), (real(c_alvl)/real(c_cp))*maxval(abs &
                     ( dellaq(i, kts:ktop(i)))))
 
@@ -6338,9 +6381,10 @@ contains
       end if
       !--- criteria: if abs (dT/dt or dQ/dt) > 100 K/day => fix dT/dt, dQ/dt and xmb
       if (MAX_TQ_TEND > 1.e-6) then
-         do i = its, itf
+          do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
 
-            if (ierr(i) /= 0) cycle
+            print *, "111 - 6138 cycle " 
+!BD_n            if (ierr(i) /= 0) cycle
             tend1d = 0.
             do k = kts, ktop(i)
                dp = (po_cup(i, k) - po_cup(i, k + 1))
@@ -6370,8 +6414,9 @@ contains
       !
       !-- now do feedback
       !
-      do i = its, itf
-         if (ierr(i) /= 0) cycle
+       do vtp_index = 1, get_num_elements(vec_ok) ; i=get_data_value(vec_ok, vtp_index) !BD_n
+         print *, "112 - 6169 cycle " 
+!BD_n         if (ierr(i) /= 0) cycle
          do k = kts, ktop(i)
             pre(i) = pre(i) + pw(i, k)*xmb(i)
 
