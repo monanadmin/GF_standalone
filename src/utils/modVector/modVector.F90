@@ -213,7 +213,6 @@ contains
 
       is_removed = .false.
       if (instance%num_elements == 0) then
-         print *, '***** trying to remove from an empty vector. Ignoring'
          return
       endif
 
