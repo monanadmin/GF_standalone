@@ -63,7 +63,7 @@ module modConvParGF
                         ,  c_rgas_atm, c_hplus, c_r2es, c_r3les, c_r4ies, c_r4les, c_retv &
                         ,  c_rticecu, c_rtwat_rticecu_r, c_r3ies, c_r5alscp, c_r5alvcp, c_ralsdcp &
                         ,  c_ralvdcp, c_rtice, c_rtwat_rtice_r, i8, r8
-   use modVector, only: get_num_elements, get_data_value, init, insert_range, remove, free_memory, vector_t, insert_unique, print_all
+   use modVector, only: get_num_elements, get_data_value, init, insert_range, remove, free_memory, vector_t, insert_unique
 
    implicit none
 
@@ -1392,8 +1392,6 @@ contains
             if (po_cup(i, ktop(i)) > 750.) then
                is_removed = remove(vec_ok, i)
                is_inserted = insert_unique(vec_removed, i)
-               call print_all(vec_ok, 100)
-               call print_all(vec_removed, 100)
                ierr(i) = 55
                ierrc(i) = 'ktop too low for mid'
             end if
