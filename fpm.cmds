@@ -1,0 +1,11 @@
+echo y| fpm clean; fpm build -V @projectOpt
+
+fpm build -V -flag="-fPIC -O0 -g -fcheck=bounds -fbacktrace -ffree-line-length-200" 
+
+echo y| fpm clean; fpm build -V @projectOpt
+
+fpm run
+
+
+
+

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Script que compila e executa o codigo GF_StandAlone:
 
@@ -17,25 +17,25 @@ BIN=${DIRHOME}/bin
 
 
 # Verificando o argumento de entrada
+COMPILER=${1:-"gnu"}
 if [ -z "${1}" ]
 then
   echo "Compiler is not set: gnu or intel"
-  echo "gnu is set by default" 
-  COMPILER='gnu'
-else
-  COMPILER=`echo $1 | awk '{print $1}' `
+  echo "$COMPILER is set by default" 
 fi
   
 echo "COMPILER=$COMPILER"
 
 cd ${BIN}
-rm -f ${BIN}/gf.x
+rm -f gf.x
 echo "Compilando"
-#make clean
-make $COMPILER
-sleep 3
+comando="make clean; make $COMPILER"
+echo $comando; eval $comando
 
+# for FPM Fortran Benchmarking use only
+#(cd ../; ./FPM.sh)
 
+(cd ${DATAOUT}; rm *.gra *.ctl)
 cd ${DATAIN}
 echo "Executando"
 time ${BIN}/gf.x

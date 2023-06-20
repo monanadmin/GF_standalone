@@ -22,6 +22,7 @@ GNU_OPTS=-O0 -g -fcheck=bounds -fbacktrace -ffree-line-length-200 #-fdefault-rea
 
 # Opcoes para o compilador ifort:
 INTEL_OPTS=-O0 -g -check bounds -traceback -check uninit -r8 -free
+INTEL_OPTS=-O0 -g -check bounds -traceback -check uninit     -free
 
 dummy:
 	@$(MAKE) usage --no-print-directory
