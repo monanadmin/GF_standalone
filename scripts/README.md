@@ -4,9 +4,9 @@
 
 - run.csh						                        - Executa o gf com uma configuração definida no script e compara com a referência
 
-- compare_local_modifications.sh            - Executa o script GF_standalone e compara os resultados com uma base.
+- compare_local_modifications.sh            - Executa o script GF_standalone e compara os resultados com a referência
   - o script usa os arquivos:
-    - compare_diff_and_contourn_outt_variables.gs
+    - compare_diff_and_contourn_all_variables.gs
 
 - run_gf_times_with_hpctoolkit_or_gprof.sh  - executa o gf x vezes instrumentado com o hpc_toolkit ou grof (comentar / descomentar a parte do script para selecionar)
   - o script usa os arquivos: 
