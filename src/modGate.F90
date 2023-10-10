@@ -1,6 +1,6 @@
 module modGate
    !! ## brief
-   !! test for GIT
+   !!
    !! ![](https://i.ibb.co/LNqGy3S/logo-Monan-Color-75x75.png)
    !! ## MONAN
    !!
@@ -45,7 +45,7 @@ module modGate
    character(len=*), parameter :: moduleName = 'module_name' 
    !! module name 
 
-   logical, parameter :: p_use_gate = .false.
+   logical :: p_use_gate = .true.
    !! -for BRAMS runs, set use_gate=.false
 
    !- Here are the place for data related with the GATE soundings

@@ -1,10 +1,15 @@
 program  gf_test
-   use modConvParGF, only: convParGFDriver, initModConvParGF
+   use modConvParGF, only: convParGFDriver, initModConvParGF &
+                         , modConvParGF_initialized &
+                         , readGFConvParNML 
+   use modGate, only: p_use_gate
 
    implicit none 
 
-   integer :: l_unit, icnt, int_byte_size, nz, irec, rec_size, i
-   logical :: first_read, ok, exists
+   integer :: l_unit, icnt, int_byte_size, nz, irec, rec_size, i, iloop, nloops
+   logical :: first_read, ok, exists, init_stat
+   logical :: read_GF_ConvPar_nml =.true. 
+
    real :: confrq, local_time
    character(len=4) :: ctime
    real :: real_byte_size
@@ -19,8 +24,9 @@ program  gf_test
    integer, allocatable, dimension(:,:,:)   :: kstabi4d_tmp, kstabm4d_tmp
    integer, allocatable, dimension(:,:,:)   :: ierr4d_tmp, jmin4d_tmp ,klcl4d_tmp 
    integer, allocatable, dimension(:,:,:)   :: k224d_tmp, kbcon4d_tmp, ktop4d_tmp
-   !  
+   !- 1d
    real   , allocatable, dimension(:)       :: fscav_int
+   !- 2d
    real   , allocatable, dimension(:,:)     :: dx2d, lons, lats, aot500, tke_pbl, col_sat, glon, glat
    real   , allocatable, dimension(:,:)     :: stochastic_sig, temp2m, xland, sfc_press
    real   , allocatable, dimension(:,:)     :: conprr,lightn_dens, rh_dicy_fct
@@ -28,6 +34,8 @@ program  gf_test
    real   , allocatable, dimension(:,:)     :: cnv_frc,aa0,aa1,aa2,aa3
    real   , allocatable, dimension(:,:)     :: aa1_bl,aa1_cin,tau_bl,tau_ec
    real   , allocatable, dimension(:,:)     :: wlpool, aa1_adv, aa1_radpbl
+   !-- 3d
+   real   , allocatable, dimension(:,:,:)   :: qexcp, hexcp 
    real   , allocatable, dimension(:,:,:)   :: advf_t, sgsf_t, sgsf_q, thsrc, rtsrc
    real   , allocatable, dimension(:,:,:)   :: clsrc, nlsrc, nisrc, usrc, vsrc, src_buoy
    real   , allocatable, dimension(:,:,:)   :: revsu_gf, prfil_gf,var3d_agf
@@ -36,7 +44,7 @@ program  gf_test
    real   , allocatable, dimension(:,:,:)   :: temp, press, rvap, buoy_exc, gsf_t, gsf_q
    real   , allocatable, dimension(:,:,:)   :: cprr4d_tmp, xmb4d_tmp, edt4d_tmp
    real   , allocatable, dimension(:,:,:)   :: pwav4d_tmp, sigma4d_tmp
-   real   , allocatable, dimension(:,:,:)   :: qexp, hexcp 
+   !- 4d
    real   , allocatable, dimension(:,:,:,:) :: clwup5d_tmp, tup5d_tmp, conv_cld_fr5d_tmp
    real   , allocatable, dimension(:,:,:,:) :: dd_massdetr5d_tmp ,zup5d_tmp, zdn5d_tmp
    real   , allocatable, dimension(:,:,:,:) :: prup5d_tmp, prdn5d_tmp, dd_massentr5d_tmp
@@ -46,10 +54,22 @@ program  gf_test
    real   , allocatable, dimension(:,:,:,:) :: mp_ice, mp_liq, mp_cf 
    real   , allocatable, dimension(:,:,:,:) :: sub_mpqi, sub_mpql, sub_mpcf
 
+   mynum = 1
+   p_use_gate = .false.
+
+   nloops = 100
+
+   IF(read_GF_ConvPar_nml) THEN
+      modConvParGF_initialized = .false.
+      init_stat = initModConvParGF()
+      !-- read the GF namelist
+      call readGFConvParNML(mynum)
+      read_GF_ConvPar_nml = .false.
+    ENDIF
    first_read = .true.
    ok = .true.
    icnt = 0
-   local_time = 0
+   local_time = 9600. !600.
    inquire (iolength=int_byte_size) real_byte_size
 
    i = initModConvParGF()
@@ -84,7 +104,7 @@ program  gf_test
          allocate(flip(mzp),fscav_int(mtp))
          !
          allocate(kpbl(mxp,myp),do_this_column(mxp,myp))
-         allocate(wlpool(ims:ime,jms:jme))
+         allocate(wlpool(mxp,myp))
          allocate(dx2d(mxp,myp), lons(mxp,myp), lats(mxp,myp), aot500(mxp,myp), tke_pbl(mxp,myp), col_sat(mxp,myp))
          allocate(glon(mxp,myp), glat(mxp,myp))
          allocate(stochastic_sig(mxp,myp), temp2m(mxp,myp), xland(mxp,myp), sfc_press(mxp,myp))
@@ -92,21 +112,23 @@ program  gf_test
          allocate(sflux_r(mxp,myp), sflux_t(mxp,myp), topt(mxp,myp), var2d(mxp,myp))
          allocate(cnv_frc(mxp,myp),aa0(mxp,myp),aa1(mxp,myp),aa2(mxp,myp),aa3(mxp,myp))
          allocate(aa1_bl(mxp,myp),aa1_cin(mxp,myp),tau_bl(mxp,myp),tau_ec(mxp,myp))
-         allocate(aa1_adv(ims:ime,jms:jme), aa1_radpbl(ims:ime,jms:jme))
+         allocate(aa1_adv(mxp,myp), aa1_radpbl(mxp,myp))
+        
          !
-         allocate(kstabi4d_tmp(mxp,myp,maxiens), kstabm4d_tmp(mxp,myp,maxiens))
-         allocate(ierr4d_tmp(mxp,myp,maxiens), jmin4d_tmp(mxp,myp,maxiens) ,klcl4d_tmp(mxp,myp,maxiens))
-         allocate(k224d_tmp(mxp,myp,maxiens), kbcon4d_tmp(mxp,myp,maxiens), ktop4d_tmp(mxp,myp,maxiens))
          allocate(advf_t(mzp,mxp,myp), sgsf_t(mzp,mxp,myp), sgsf_q(mzp,mxp,myp), thsrc(mzp,mxp,myp), rtsrc(mzp,mxp,myp))
          allocate(clsrc(mzp,mxp,myp), nlsrc(mzp,mxp,myp), nisrc(mzp,mxp,myp), usrc(mzp,mxp,myp), vsrc(mzp,mxp,myp), src_buoy(mzp,mxp,myp))
          allocate(revsu_gf(mzp,mxp,myp), prfil_gf(mzp,mxp,myp),var3d_agf(mzp,mxp,myp))
          allocate(var3d_bgf(mzp,mxp,myp),var3d_cgf(mzp,mxp,myp),var3d_dgf(mzp,mxp,myp))
          allocate(zm3d(mzp,mxp,myp), zt3d(mzp,mxp,myp), dm3d(mzp,mxp,myp), up(mzp,mxp,myp), vp(mzp,mxp,myp), wp(mzp,mxp,myp))
          allocate(temp(mzp,mxp,myp), press(mzp,mxp,myp), rvap(mzp,mxp,myp), buoy_exc(mzp,mxp,myp), gsf_t(mzp,mxp,myp), gsf_q(mzp,mxp,myp))
+         allocate(qexcp(mzp,mxp,myp),hexcp(mzp,mxp,myp))
+
          allocate(cprr4d_tmp(mxp,myp,maxiens), xmb4d_tmp(mxp,myp,maxiens), edt4d_tmp(mxp,myp,maxiens))
          allocate(pwav4d_tmp(mxp,myp,maxiens), sigma4d_tmp(mxp,myp,maxiens))
-         allocate(qexp(kms:kme,ims:ime,jms:jme), hexcp(kms:kme,ims:ime,jms:jme))
-         !
+         allocate(kstabi4d_tmp(mxp,myp,maxiens), kstabm4d_tmp(mxp,myp,maxiens))
+         allocate(ierr4d_tmp(mxp,myp,maxiens), jmin4d_tmp(mxp,myp,maxiens) ,klcl4d_tmp(mxp,myp,maxiens))
+         allocate(k224d_tmp(mxp,myp,maxiens), kbcon4d_tmp(mxp,myp,maxiens), ktop4d_tmp(mxp,myp,maxiens))
+          !
          allocate(clwup5d_tmp(mxp,myp,mzp,maxiens), tup5d_tmp(mxp,myp,mzp,maxiens), conv_cld_fr5d_tmp(mxp,myp,mzp,maxiens))
          allocate(dd_massdetr5d_tmp(mxp,myp,mzp,maxiens) ,zup5d_tmp(mxp,myp,mzp,maxiens), zdn5d_tmp(mxp,myp,mzp,maxiens))
          allocate(prup5d_tmp(mxp,myp,mzp,maxiens), prdn5d_tmp(mxp,myp,mzp,maxiens), dd_massentr5d_tmp(mxp,myp,mzp,maxiens))
@@ -128,13 +150,18 @@ program  gf_test
       read(l_unit) lons   
       read(l_unit) lats   
       read(l_unit) aot500 
-      read(l_unit) temp2m 
+      read(l_unit) temp2m    !; print*,"temp2m"   , temp2m
+      read(l_unit) topt      !; print*,"topt"     , topt
+      read(l_unit) xland     !; print*,"xland"    , xland             
+      read(l_unit) sfc_press !; print*,"sfc_press", sfc_press
+      read(l_unit) kpbl      !;print*,"kbl"       , kpbl
+
       read(l_unit) sflux_r 
       read(l_unit) sflux_t 
-      read(l_unit) topt    
-      read(l_unit) xland                 
-      read(l_unit) sfc_press             
-      read(l_unit) kpbl                  
+      read(l_unit) qexcp   
+      read(l_unit) hexcp   
+      read(l_unit) wlpool   
+
       read(l_unit) tke_pbl               
       read(l_unit) col_sat
       read(l_unit) up     
@@ -201,110 +228,13 @@ program  gf_test
       read(l_unit) VAR2d,VAR3d_aGF,VAR3d_bGF,VAR3d_cGF,VAR3d_dGF
       close(l_unit)
 
-      wlpool = 5.
-      qexp   = 0.
-      hexcp  = 0.
-
       !Chamada da GF
-    !- call the driver routine to apply the parameterization
-   !  CALL GF_GEOS5_DRV(mxp,myp,mzp,mtp ,nmp, time, itime1 &
-   !                   ,ims,ime, jms,jme, kms,kme   &
-   !                   ,its,ite, jts,jte, kts,kte   &
-	! 	               ,flip        &
-   !                   ,fscav_int   &
-   !                   ,mynum       &
-   !                   ,dtlt        &
-   !                   ,dx2d        &
-   !                   ,stochastic_sig &
-   !                   ,zm3d        &
-   !                   ,zt3d        &
-	! 	               ,dm3d        &
-   !                   !--- sfc inputs 
-   !                   ,lons        &
-   !                   ,lats        &
-   !                   ,aot500      &
-   !                   ,temp2m      &
-   !                   ,sflux_r &
-   !                   ,sflux_t &
-   !                   ,topt    &
-   !                   ,xland                 &
-   !                   ,sfc_press             &
-   !                   ,kpbl                  &
-   !                   ,tke_pbl               &
-   !                   !--- atmos state
-   !                   ,col_sat&
-   !                   ,up     &
-   !                   ,vp     &
-   !                   ,wp     &
-   !                   ,temp   &
-   !                   ,press  &
-   !                   ,rvap   &
-	! 	               ,mp_ice &
-	! 	               ,mp_liq &
-	! 	               ,mp_cf  &
-   !                   ,rvap   &
-	! 	               !--- atmos composition state
-   !                   ,TRACER   & !- note: uses GEOS-5 data structure
-   !                   !---- forcings---
-   !                   ,buoy_exc &
-	! 	               , gsf_t   & ! forcing for theta adv+rad
-	! 	               , gsf_q   & ! forcing for rv    adv
-   !                   ,advf_t   &
-	! 	               ,sgsf_t   & ! forcing for theta pbl
- 	! 	               ,sgsf_q   & ! forcing for rv    pbl
-   !                   !---- output ----
-   !                   ,conprr  &
-   !                   ,lightn_dens& 
-   !                   ,rh_dicy_fct&
-   !                   ,thsrc      & ! temp tendency
-   !                   ,rtsrc      & ! rv tendency
-   !                   ,clsrc      & ! cloud/ice  mass   mix ratio tendency
-   !                   ,nlsrc      & ! cloud drop number mix ratio tendency
-   !                   ,nisrc      & ! ice        number mix ratio tendency
-   !                   ,usrc       & ! u tendency
-   !                   ,vsrc       & ! v tendency
-   !                   ,sub_mpqi    & 
-   !                   ,sub_mpql    & 
-   !                   ,sub_mpcf    & 
-   !                   ,src_buoy    &
-   !                   ,src_chem    & ! tracer tendency
-   !                   ,revsu_gf    &
-   !                   ,prfil_gf    & 
-   !                   !
-	! 	               ,do_this_column    &
-   !                   ,ierr4d_tmp        & 
-   !                   ,jmin4d_tmp        &
-   !                   ,klcl4d_tmp        &
-   !                   ,k224d_tmp         &
-   !                   ,kbcon4d_tmp       &
-   !                   ,ktop4d_tmp        &
-   !                   ,kstabi4d_tmp      &
-   !                   ,kstabm4d_tmp      &
-   !                   ,cprr4d_tmp        &
-   !                   ,xmb4d_tmp         &
-   !                   ,edt4d_tmp         &
-   !                   ,pwav4d_tmp        &
-   !                   ,sigma4d_tmp       &
-   !                   ,pcup5d_tmp        &
-   !                   ,up_massentr5d_tmp &
-   !                   ,up_massdetr5d_tmp &
-   !                   ,dd_massentr5d_tmp &
-   !                   ,dd_massdetr5d_tmp &
-   !                   ,zup5d_tmp         &
-   !                   ,zdn5d_tmp         &
-   !                   ,prup5d_tmp        &
-   !                   ,prdn5d_tmp        &
-   !                   ,clwup5d_tmp       &
-   !                   ,tup5d_tmp         &
-   !                   ,conv_cld_fr5d_tmp &
-   !                   !-- for debug/diagnostic
-   !                   ,AA0,AA1,AA2,AA3,AA1_BL,AA1_CIN,TAU_BL,TAU_EC  &
-   !                   ,VAR2d,VAR3d_aGF,VAR3d_bGF,VAR3d_cGF,VAR3d_dGF &
-   !                   )
-
-
-        print*, "Processando GF"
+      !- call the driver routine to apply the parameterization
+      !print*,"prec",maxval(temp)
+      do iloop = 1, nloops
+        print*, "Processando GF",iloop
         CALL convParGFDriver(mxp,myp,mzp,mtp ,nmp, time, itime1 &
+                       ,ims,ime, jms,jme, kms,kme   &
                        ,its,ite, jts,jte, kts,kte   &
 		                 ,flip        &
                        ,fscav_int   &
@@ -312,6 +242,7 @@ program  gf_test
                        ,dtlt        &
                        ,dx2d        &
                        ,stochastic_sig &
+                       ,zm3d        &
                        ,zt3d        &
 		                 ,dm3d        &
                        !--- sfc inputs 
@@ -319,17 +250,18 @@ program  gf_test
                        ,lats        &
                        ,aot500      &
                        ,temp2m      &
-                       ,sflux_r &
-                       ,sflux_t &
-                       ,qexp        &
+                       ,sflux_r     &
+                       ,sflux_t     &
+                       ,qexcp       &
                        ,hexcp       & 
                        ,wlpool      &
-                       ,topt    &
+                       ,topt        &
                        ,xland                 &
                        ,sfc_press             &
                        ,kpbl                  &
                        ,tke_pbl               &
                        !--- atmos state
+                       ,col_sat&
                        ,up     &
                        ,vp     &
                        ,wp     &
@@ -350,7 +282,7 @@ program  gf_test
 		                 ,sgsf_t   & ! forcing for theta pbl
  		                 ,sgsf_q   & ! forcing for rv    pbl
                        !---- output ----
-                       ,conprr  &
+                       ,conprr     &
                        ,lightn_dens& 
                        ,rh_dicy_fct&
                        ,thsrc      & ! temp tendency
@@ -395,10 +327,11 @@ program  gf_test
                        ,tup5d_tmp         &
                        ,conv_cld_fr5d_tmp &
                        !-- for debug/diagnostic
-                       ,aa0,aa1,aa1_adv,aa1_radpbl,aa1_bl,aa2,aa3,tau_bl,tau_ec  &
-                       ,var2d,var3d_agf,var3d_bgf,var3d_cgf,var3d_dgf &
-                )
+                       ,aa0,aa1,aa1_adv,aa1_radpbl,aa1_bl,aa2,aa3,AA1_CIN,tau_bl,tau_ec  &
+                       ,var2d,var3d_agf,var3d_bgf,var3d_cgf,var3d_dgf)
+      !print*,"prec",maxval(conprr)
 
+      end do !~ iloop
 
       !open(newunit = l_unit,file = "gf_dataOut-"//ctime//".txt",form = "formatted", action="write", status="replace")
       !write(l_unit,*) mxp,myp,mzp,mtp ,nmp, time, itime1

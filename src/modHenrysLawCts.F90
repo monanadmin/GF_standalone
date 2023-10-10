@@ -64,7 +64,7 @@ module modHenrysLawCts
 
    !Name of species
    character(LEN=8), parameter, dimension(p_nspecies_hl) :: spc_name = (/ &
-                                                          'O3  ' & !001
+                                                            'O3  ' & !001
                                                           , 'H2O2' & !002
                                                           , 'NO  ' & !003
                                                           , 'NO2 ' & !004
