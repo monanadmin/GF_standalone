@@ -53,13 +53,11 @@
 !----
 
 !---- boundary condition specification
-!  bc_meth              = 1,
   cum_use_excess       =2,1,1,
   cum_ave_layer        = 50.,25.,25.,!- (deep ,shallow ,congestus)
 !----
 
 !---- for mass flux profiles - (deep ,shallow ,congestus)
-!  cum_zuform               = 20,20,20,
   cum_HEI_UPDF_LAND    = 0.55, 0.1, 0.55,  != height of maximum Z_updraft
   cum_HEI_UPDF_OCEAN   = 0.55, 0.1, 0.55,
 
@@ -113,12 +111,8 @@
   use_smooth_tend       = 1, 
   use_cloud_dissipation = 0., 
   frac_modis            = 1, 
-!  evap_fix              = 1, 
-!  satur_calc            = 1,  
   overshoot             = 0,
   use_wetbulb           = 0,
-! c1                    = 0.e-3, 
-!  zero_diff             = 0,
   vert_discr            = 1, 
   clev_grid             = 1, 
   max_tq_tend        = 500., 
