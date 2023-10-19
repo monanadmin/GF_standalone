@@ -14,3 +14,7 @@
     - submit_hpctoolkit_from_script_run_gf_times.sbatch
 
 - submit.sh                                 - submete um job com o gf
+
+
+11.OCT.2023 Saulo Freitas
+- Included two new shells scripts to execute the 1D version of the GF_StandAlone code

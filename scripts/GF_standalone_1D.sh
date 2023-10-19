@@ -10,8 +10,8 @@
 
 DIRHOME=$PWD/..
 SCRIPTS=${DIRHOME}/scripts
-DATAOUT=${DIRHOME}/dataout
-DATAIN=${DIRHOME}/datain
+DATAOUT=${DIRHOME}/dataout_1_coluna
+DATAIN=${DIRHOME}/datain_1_coluna
 SRC=${DIRHOME}/src
 BIN=${DIRHOME}/bin
 
@@ -27,7 +27,7 @@ fi
 echo "COMPILER=$COMPILER"
 
 cd ${BIN}
-/bin/cp Makefile_3D Makefile
+/bin/cp Makefile_1D Makefile
 echo "Compilando"
 #comando="make clean; make $COMPILER"
 comando="make $COMPILER"

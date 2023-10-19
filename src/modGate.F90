@@ -45,7 +45,7 @@ module modGate
    character(len=*), parameter :: moduleName = 'module_name' 
    !! module name 
 
-   logical, parameter :: p_use_gate = .false.
+   logical :: p_use_gate = .true.
    !! -for BRAMS runs, set use_gate=.false
 
    !- Here are the place for data related with the GATE soundings

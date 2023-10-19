@@ -66,130 +66,133 @@ module modConstants
    !# Last version of model
 
    !# Phys & others constants
-   real(kind=r8), parameter :: c_pi       = 3.1415926535897932384626433
-   real(kind=r8), parameter :: c_rgas     = 287.
-   real(kind=r8), parameter :: c_rgas_rd  = 287.06
-   real(kind=r8), parameter :: c_cp       = 1004.
-   real(kind=r8), parameter :: c_cp_pd    = 1004.71
-   real(kind=r8), parameter :: c_cv       = 717.
-   real(kind=r8), parameter :: c_rm       = 461.
-   real(kind=r8), parameter :: c_rm_rd    = 461.52
-   real(kind=r8), parameter :: c_p00      = 1.e5
-   real(kind=r8), parameter :: c_t00      = 273.16
-   real(kind=r8), parameter :: c_t01      = 273.155
-   real(kind=r8), parameter :: c_t100     = c_t00+100.
+   real(kind=r4), parameter :: c_pi       = 3.1415926535897932384626433
+   real(kind=r4), parameter :: c_rgas     = 287.
+   real(kind=r4), parameter :: c_rgas_rd  = 287.06
+   real(kind=r4), parameter :: c_cp       = 1004.
+   real(kind=r4), parameter :: c_cp_pd    = 1004.71
+   real(kind=r4), parameter :: c_cv       = 717.
+   real(kind=r4), parameter :: c_rm       = 461.
+   real(kind=r4), parameter :: c_rm_rd    = 461.52
+   real(kind=r4), parameter :: c_p00      = 1.e5
+   real(kind=r4), parameter :: c_t00      = 273.16
+   real(kind=r4), parameter :: c_t01      = 273.155
+   real(kind=r4), parameter :: c_t100     = c_t00+100.
+   real(kind=r4), parameter :: c_Tice     = 235.16
 
    !Absolute temperature
-   real(kind=r8), parameter :: c_pi180    = c_pi / 180.
-   real(kind=r8), parameter :: c_i_pi180  = 1./c_pi180
-   real(kind=r8), parameter :: c_pi4      = c_pi * 4.
-   real(kind=r8), parameter :: c_spcon    = 111120.
-   real(kind=r8), parameter :: c_erad     = 6367000.
-   real(kind=r8), parameter :: c_arc      = c_erad*c_pi180
-   real(kind=r8), parameter :: c_vonk     = 0.40
-   real(kind=r8), parameter :: c_tkmin    = 5.e-4
+   real(kind=r4), parameter :: c_pi180    = c_pi / 180.
+   real(kind=r4), parameter :: c_i_pi180  = 1./c_pi180
+   real(kind=r4), parameter :: c_pi4      = c_pi * 4.
+   real(kind=r4), parameter :: c_spcon    = 111120.
+   real(kind=r4), parameter :: c_erad     = 6367000.
+   real(kind=r4), parameter :: c_arc      = c_erad*c_pi180
+   real(kind=r4), parameter :: c_vonk     = 0.40
+   real(kind=r4), parameter :: p_tkmin    = 1.e-5
    !# Minimum TKE [J/kg]
-   real(kind=r8), parameter :: c_grav      = 9.80665
+   real(kind=r4), parameter :: c_grav      = 9.80665
    !# Gravity acceleration [m/s]
-   real(kind=r8), parameter :: c_alvl     = 2.50e6
-   real(kind=r8), parameter :: c_alvi     = 2.834e6
-   real(kind=r8), parameter :: c_alli     = 0.334e6
-   real(kind=r8), parameter :: c_alvl2    = 6.25e12
-   real(kind=r8), parameter :: c_alvi2    = 8.032e12
-   real(kind=r8), parameter :: c_solar    = 1.3533e3
-   real(kind=r8), parameter :: c_stefan   = 5.6696e-8
-   real(kind=r8), parameter :: c_cww      = 4218.
-   real(kind=r8), parameter :: c_c0       = 752.55 * 4.18684e4
-   real(kind=r8), parameter :: c_viscos   = .15e-4
-   real(kind=r8), parameter :: c_rowt     = 1.e3
-   real(kind=r8), parameter :: c_dlat     = 111120.
-   real(kind=r8), parameter :: c_omega    = 7.292e-5
-   real(kind=r8), parameter :: c_rocp     = c_rgas / c_cp
-   real(kind=r8), parameter :: c_p00i     = 1. / c_p00
-   real(kind=r8), parameter :: c_cpor     = c_cp / c_rgas
-   real(kind=r8), parameter :: c_rocv     = c_rgas / c_cv
-   real(kind=r8), parameter :: c_cpi      = 1. / c_cp
-   real(kind=r8), parameter :: c_cpi4     = 4. * c_cpi
-   real(kind=r8), parameter :: c_cp253i   = c_cpi / 253.
-   real(kind=r8), parameter :: c_allii    = 1. / c_alli
-   real(kind=r8), parameter :: c_aklv     = c_alvl / c_cp
-   real(kind=r8), parameter :: c_akiv     = c_alvi / c_cp
-   real(kind=r8), parameter :: c_gama     = c_cp / c_cv
-   real(kind=r8), parameter :: c_gg       = .5 * c_grav
-   real(kind=r8), parameter :: c_ep       = c_rgas / c_rm
-   real(kind=r8), parameter :: c_p00k     = 26.870941
+   real(kind=r4), parameter :: c_alvl     = 2.50e6
+   real(kind=r4), parameter :: c_alvi     = 2.834e6
+   real(kind=r4), parameter :: c_alli     = 0.334e6
+   real(kind=r4), parameter :: c_alvl2    = 6.25e12
+   real(kind=r4), parameter :: c_alvi2    = 8.032e12
+   real(kind=r4), parameter :: c_solar    = 1.3533e3
+   real(kind=r4), parameter :: c_stefan   = 5.6696e-8
+   real(kind=r4), parameter :: c_cww      = 4218.
+   real(kind=r4), parameter :: c_c0       = 752.55 * 4.18684e4
+   real(kind=r4), parameter :: c_viscos   = .15e-4
+   real(kind=r4), parameter :: c_rowt     = 1.e3
+   real(kind=r4), parameter :: c_dlat     = 111120.
+   real(kind=r4), parameter :: c_omega    = 7.292e-5
+   real(kind=r4), parameter :: c_rocp     = c_rgas / c_cp
+   real(kind=r4), parameter :: c_p00i     = 1. / c_p00
+   real(kind=r4), parameter :: c_cpor     = c_cp / c_rgas
+   real(kind=r4), parameter :: c_rocv     = c_rgas / c_cv
+   real(kind=r4), parameter :: c_cpi      = 1. / c_cp
+   real(kind=r4), parameter :: c_cpi4     = 4. * c_cpi
+   real(kind=r4), parameter :: c_cp253i   = c_cpi / 253.
+   real(kind=r4), parameter :: c_allii    = 1. / c_alli
+   real(kind=r4), parameter :: c_aklv     = c_alvl / c_cp
+   real(kind=r4), parameter :: c_akiv     = c_alvi / c_cp
+   real(kind=r4), parameter :: c_gama     = c_cp / c_cv
+   real(kind=r4), parameter :: c_gg       = .5 * c_grav
+   real(kind=r4), parameter :: c_ep       = c_rgas / c_rm
+   real(kind=r4), parameter :: c_p00k     = 26.870941
    !#  = p00 ** rocp
-   real(kind=r8), parameter :: c_p00ki    = 1. / c_p00k
+   real(kind=r4), parameter :: c_p00ki    = 1. / c_p00k
 
-   real(kind=r8), parameter :: c_tcrit    = 258.
-   real(kind=r8), parameter :: c_akmin    = 1.0
-   real(kind=r8), parameter :: c_tkmin_ms = 1.e-5
-   real(kind=r8), parameter :: c_ccnclean = 250.
-   real(kind=r8), parameter :: c_t_ice    = 235.16
-   real(kind=r8), parameter :: c_xlf      = 0.333e6
+   real(kind=r4), parameter :: c_tcrit    = 258.
+   real(kind=r4), parameter :: c_akmin    = 1.0
+   real(kind=r4), parameter :: c_ccnclean = 250.
+   real(kind=r4), parameter :: c_t_ice    = 235.16
+   real(kind=r4), parameter :: c_xlf      = 0.333e6
    !! ! latent heat of freezing (J kg-1)
-   real(kind=r8), parameter :: c_max_qsat = 0.5
-   real(kind=r8), parameter :: c_smaller_qv = 1.e-16
+   real(kind=r4), parameter :: p_max_qsat = 0.5
+   real(kind=r4), parameter :: p_smaller_qv = 1.e-16
    real, parameter :: p_mintracer = tiny(1.)
    real, parameter :: p_xmbmaxshal = 0.05
+   real, parameter :: p_ccnclean= 250.   ! # cm-3
    real, parameter :: c_temp0 =    298.15
    !! standard temperature [K]
    real, parameter :: c_temp0i= 1./c_temp0
    !! inverse of standard temperature [K]
    real, parameter :: c_rgas_atm = 8.205e-2 
    ! atm M^-1 K^-1 ! 8.314 gas constant [J/(mol*K)]
-   real(kind=r8), parameter :: c_hplus = 1.175e-4     
+   real(kind=r4), parameter :: c_hplus = 1.175e-4     
    !!  for cloud water. pH is asuumed to be 3.93: pH=3.93 =>hplus=10**(-pH)
-   real(kind=r8), parameter :: c_retv = c_rm_rd/c_rgas_rd - 1.0
-   real(kind=r8), parameter :: c_r2es = 611.21*c_rgas_rd/c_rm_rd
-   real(kind=r8), parameter :: c_r3les = 17.502
-   real(kind=r8), parameter :: c_r3ies = 22.587
-   real(kind=r8), parameter :: c_r4les = 32.19
-   real(kind=r8), parameter :: c_r4ies = -0.7
-   real(kind=r8), parameter :: c_rtice = c_t00 - 23.
-   real(kind=r8), parameter :: c_rticecu = c_t00 - 23.
-   real(kind=r8), parameter :: c_rtwat_rtice_r = 1./(c_t00 - c_rtice)
-   real(kind=r8), parameter :: c_rtwat_rticecu_r = 1./(c_t00 - c_rticecu)
-   real(kind=r8), parameter :: c_r5les = c_r3les*(c_t00 - c_r4les)
-   real(kind=r8), parameter :: c_r5ies = c_r3ies*(c_t00 - c_r4ies)
-   real(kind=r8), parameter :: c_rlvtt = 2.5008e+6
-   real(kind=r8), parameter :: c_rlstt = 2.8345e+6
-   real(kind=r8), parameter :: c_rlmlt = c_rlstt - c_rlvtt
-   real(kind=r8), parameter :: c_rho_h2o = 1000.
-   real(kind=r8), parameter :: c_r5alvcp = c_r5les*c_rlvtt/c_cp_pd
-   real(kind=r8), parameter :: c_r5alscp = c_r5ies*c_rlstt/c_cp_pd
-   real(kind=r8), parameter :: c_ralvdcp = c_rlvtt/c_cp_pd
-   real(kind=r8), parameter :: c_ralsdcp = c_rlstt/c_cp_pd
-   real(kind=r8), parameter :: c_ralfdcp = c_rlmlt/c_cp_pd
-   real(kind=r8), parameter :: c_rcpv = 4.*c_rm_rd
-   real(kind=r8), parameter :: c_rvtmp2 = c_rcpv/c_cp_pd - 1.0
-   real(kind=r8), parameter :: c_rtber = c_t00 - 5. 
-   real(kind=r8), parameter :: c_rtbercu = c_t00 - 5.0 
+   real(kind=r4), parameter :: c_retv = c_rm_rd/c_rgas_rd - 1.0
+   real(kind=r4), parameter :: c_r2es = 611.21*c_rgas_rd/c_rm_rd
+   real(kind=r4), parameter :: c_rtt  = 273.16 
+   real(kind=r4), parameter :: c_r3les = 17.502
+   real(kind=r4), parameter :: c_r3ies = 22.587
+   real(kind=r4), parameter :: c_r4les = 32.19
+   real(kind=r4), parameter :: c_r4ies = -0.7
+   real(kind=r4), parameter :: c_rtwat= c_rtt 
+   real(kind=r4), parameter :: c_rtice = c_t00 - 23.
+   real(kind=r4), parameter :: c_rticecu = c_t00 - 23.
+   real(kind=r4), parameter :: c_rtwat_rtice_r = 1./(c_t00 - c_rtice)
+   real(kind=r4), parameter :: c_rtwat_rticecu_r = 1./(c_t00 - c_rticecu)
+   real(kind=r4), parameter :: c_r5les = c_r3les*(c_t00 - c_r4les)
+   real(kind=r4), parameter :: c_r5ies = c_r3ies*(c_t00 - c_r4ies)
+   real(kind=r4), parameter :: c_rlvtt = 2.5008e+6
+   real(kind=r4), parameter :: c_rlstt = 2.8345e+6
+   real(kind=r4), parameter :: c_rlmlt = c_rlstt - c_rlvtt
+   real(kind=r4), parameter :: c_rho_h2o = 1000.
+   real(kind=r4), parameter :: c_r5alvcp = c_r5les*c_rlvtt/c_cp_pd
+   real(kind=r4), parameter :: c_r5alscp = c_r5ies*c_rlstt/c_cp_pd
+   real(kind=r4), parameter :: c_ralvdcp = c_rlvtt/c_cp_pd
+   real(kind=r4), parameter :: c_ralsdcp = c_rlstt/c_cp_pd
+   real(kind=r4), parameter :: c_ralfdcp = c_rlmlt/c_cp_pd
+   real(kind=r4), parameter :: c_rcpv = 4.*c_rm_rd
+   real(kind=r4), parameter :: c_rvtmp2 = c_rcpv/c_cp_pd - 1.0
+   real(kind=r4), parameter :: c_rtber = c_t00 - 5. 
+   real(kind=r4), parameter :: c_rtbercu = c_t00 - 5.0 
 
-   real(kind=r8), parameter :: p_zqmax = 0.5
+   real(kind=r4), parameter :: p_zqmax = 0.5
 
-   real(kind=r8), parameter :: c_onethird  = 1./3.
+   real(kind=r4), parameter :: c_onethird  = 1./3.
    !# 1/3
-   real(kind=r8), parameter :: c_half  = 1./2.
+   real(kind=r4), parameter :: c_half  = 1./2.
    !# 1/2
 
-   ! Lower bounds for turbulence-related variables                                         !
-   real(kind=r8), parameter :: c_sigwmin     = 1.e-4
+   ! Lower bounds for turbulence-related variables                                        !
+   real(kind=r4), parameter :: c_sigwmin     = 1.e-4
    !# Minimum sigma-w                     [m/s]
-   real(kind=r8), parameter :: c_abslmomin   = 1.e-4
+   real(kind=r4), parameter :: c_abslmomin   = 1.e-4
    !# Minimum abs value of Obukhov length [m]
-   real(kind=r8), parameter :: c_ltscalemax  = 1.e5
+   real(kind=r4), parameter :: c_ltscalemax  = 1.e5
    !# Maximum Lagrangian timescale        [s]
-   real(kind=r8), parameter :: c_abswltlmin  = 1.e-4
+   real(kind=r4), parameter :: c_abswltlmin  = 1.e-4
    !# Minimum abs value of Theta*         [K m/s]
-   real(kind=r8), parameter :: c_lturbmin    = 1.e-3
+   real(kind=r4), parameter :: c_lturbmin    = 1.e-3
    !# Minimum abs value of turb. lenght   [m]
 
    real,parameter :: c_scday=86400.0
    !# Seconds by day
 
    !Tiny numbers
-   real(kind=r8), parameter :: tinyReal = 1.17549435E-38
+   real(kind=r4), parameter :: tinyReal = 1.17549435E-38
    !# Tiny real number
    !real(kind=kind_rb), parameter :: tinyDouble = 2.2250738585072014E-308
    !# Tiny double precision number
@@ -269,7 +272,7 @@ module modConstants
    integer :: iErrNumber
    !# integer to use with dumps
 
-   real(kind=r8), parameter :: c_adjust=0.01
+   real(kind=r4), parameter :: c_adjust=0.01
    !# to convert from Pascal to mbar
 
    character(len=3), parameter, dimension(12) :: month_name=(/'jan','feb','mar' &
