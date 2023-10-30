@@ -7,6 +7,10 @@
 #
 # Carlos Renato
 # 2023/mar
+#
+# HISTORY:
+#
+# 2023/10/25 - Denis - using 4 byte + debug options from Saulo version for work and create the reference files
 #-------------------------------------------------------------------
 
 BIN=../bin
@@ -18,12 +22,12 @@ EXE=$(BASE).x
 ARC=$(BASE).a
 
 # Opcoes para o compilador gfortran:
-#GNU_OPTS=-O3 -ffree-line-length-200 #-fdefault-real-8
+# GNU_OPTS=-O3 -ffree-line-length-200 #-fdefault-real-8
 GNU_OPTS=-O0 -ffree-form -fno-range-check -ffree-line-length-none \
  -Wall -fbacktrace -g -fcheck=bounds -fcheck=all -finit-real=nan #-fallow-argument-mismatch \
 
 # Opcoes para o compilador ifort:
-INTEL_OPTS=-O0 -g -check bounds -traceback -check uninit -r8 -free
+#INTEL_OPTS=-O0 -g -check bounds -traceback -check uninit -r8 -free
 INTEL_OPTS=-O0 -g -check bounds -traceback -check uninit     -free
 
 dummy:

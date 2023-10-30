@@ -57,7 +57,7 @@
 #
 
 DIR_TESTING="../dataout"
-DIR_REF="../refs"
+DIR_REF="../dataout_ref"
 
 echo -e "\n\nCompiling and executing GF"
 echo -e "==============================\n"
@@ -68,7 +68,8 @@ echo -e "===========================\n"
 
 
 diff -qr $DIR_TESTING $DIR_REF > diff.txt
-sed -i '/^Somente/d' diff.txt
+#sed -i '/^Somente/d' diff.txt  # Portuguese version
+sed -i '/^Only/d' diff.txt      # English version
 if [ -s diff.txt ]; then
 
   while read line
@@ -76,16 +77,19 @@ if [ -s diff.txt ]; then
     echo
     echo -e "\n\nComparing using grads"
     echo -e "=====================\n"
-    file_path_test=$(echo $line | awk '{print $3}')
+    #file_path_test=$(echo $line | awk '{print $3}')  # Portuguese version
+    file_path_test=$(echo $line | awk '{print $2}')   # English version
     file_path_test=$(echo $file_path_test | sed 's/gra/ctl/g')
 
-    file_path_ref=$(echo $line | awk '{print $5}')
+    #file_path_ref=$(echo $line | awk '{print $5}')  # Portuguese version
+    file_path_ref=$(echo $line | awk '{print $4}')   # English version
+
     file_path_ref=$(echo $file_path_ref | sed 's/gra/ctl/g')
 
     file_name=$(basename $file_path_test)
     file_base_name="${file_name%.*}"
     
-        
+    echo "====> Comparing using:"     
     GRADS_PARAMS='grads -blcx "compare_diff_and_contourn_all_variables.gs '$file_path_test' '$file_path_ref' '$file_base_name' "'
     echo $GRADS_PARAMS
     eval $GRADS_PARAMS

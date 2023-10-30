@@ -29,8 +29,8 @@ echo "COMPILER=$COMPILER"
 cd ${BIN}
 /bin/cp Makefile_3D Makefile
 echo "Compilando"
-#comando="make clean; make $COMPILER"
-comando="make $COMPILER"
+comando="make clean; make $COMPILER"
+#comando="make $COMPILER"
 echo $comando; eval $comando
 
 # for FPM Fortran Benchmarking use only
