@@ -60,8 +60,7 @@ elif [ "$1" != "hpctoolkit" ] && [ "$1" != "gprof" ]; then
     echo "Please, inform 'hpctoolkit' or 'gprof' in the first argument. Informed: $1"
 fi
 
-
-source env_hpctoolkit_gprof.sh
+. ./env_hpctoolkit_gprof.sh
 
 # code
 ln -fs ../datain/gf.inp
