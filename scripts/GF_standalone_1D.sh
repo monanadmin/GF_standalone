@@ -26,6 +26,11 @@ fi
   
 echo "COMPILER=$COMPILER"
 
+if [ $COMPILER == 'gnu' ]; then
+  . env_hpctoolkit_gprof.sh
+fi
+
+mkdir -p ${DATAOUT}
 cd ${BIN}
 /bin/cp Makefile_1D Makefile
 echo "Compilando"
