@@ -97,8 +97,6 @@ for counter in $(seq 1 $times_to_execute); do
     # for gprof on nodes  =======================
     sbatch -W submit_gprof_from_script_run_gf_times.sbatch
     sleep 30
-    gprof --graph ${exec_path} > gprof.out  # other options: --exec-times --graph --brief --flat-profile
-    sleep 5
     mv ./gmon.out ./gprof.out ${dir_exec}
     echo -e "\n\n\nFinished!!! \n"
     echo -e "\n\nCheck Gprof results     :\n\tmore ${dir_exec}/gprof.out"
