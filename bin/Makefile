@@ -7,6 +7,10 @@
 #
 # Carlos Renato
 # 2023/mar
+#
+# HISTORY:
+#
+# 2023/10/25 - Denis - using 4 byte + debug options from Saulo version for work and create the reference files
 #-------------------------------------------------------------------
 
 BIN=../bin
@@ -17,14 +21,33 @@ BASE=gf
 EXE=$(BASE).x
 ARC=$(BASE).a
 
-# Opcoes para o compilador gfortran:
-#GNU_OPTS=-O0 -g -fcheck=bounds -fbacktrace -ffree-line-length-200 #-fdefault-real-8
-GNU_OPTS=-O0 -ffree-form -fno-range-check -ffree-line-length-none \
- -Wall -fbacktrace -g -fcheck=bounds -fcheck=all -finit-real=nan  #-fallow-argument-mismatch \
 
-# Opcoes para o compilador ifort:
-INTEL_OPTS=-O0 -g -check bounds -traceback -check uninit -r8 -free
+
+# gfortran opts:
+# =============
+
+# default compile for evaluation
+GNU_OPTS=-O0 -ffree-form -fno-range-check -ffree-line-length-none \
+ -Wall -fbacktrace -g -fcheck=bounds -fcheck=all -finit-real=nan #-fallow-argument-mismatch \
+
+# HPC Toolkit opts
+#GNU_OPTS=-O0 -g -fbacktrace -ffree-form -fno-range-check -ffree-line-length-none
+
+# gprof opts
+#GNU_OPTS=-O0 -pg -fbacktrace -ffree-form -fno-range-check -ffree-line-length-none
+
+# default options for performance (TODO - improve)
+# GNU_OPTS=-O3 -ffree-line-length-200
+
+
+
+# intel opts
+# ==========
+
+# default compile for evaluation
 INTEL_OPTS=-O0 -g -check bounds -traceback -check uninit     -free
+
+
 
 dummy:
 	@$(MAKE) usage --no-print-directory
@@ -53,10 +76,10 @@ $(BIN)/$(EXE):	$(BIN)/$(ARC)
 # 	$(COMP) $(F_OPTS) -c $< -o $@
 
 
-$(BIN)/$(ARC):	$(BIN)/1d-gf-test.o $(BIN)/modConvParGF.o $(BIN)/modConstants.o $(BIN)/modGate.o $(BIN)/modHenrysLawCts.o $(BIN)/modVector.o 
+$(BIN)/$(ARC):	$(BIN)/gf_teste.o $(BIN)/modConvParGF.o $(BIN)/modConstants.o $(BIN)/modGate.o $(BIN)/modHenrysLawCts.o $(BIN)/modVector.o 
 	ar rs $@ $(BIN)/*.o
 
-$(BIN)/1d-gf-test.o: $(SRC)/1d-gf-test.f90 $(BIN)/modGate.o $(BIN)/modConvParGF.o $(BIN)/modConstants.o
+$(BIN)/gf_teste.o: $(SRC)/gf_teste.F90 $(BIN)/modGate.o $(BIN)/modConvParGF.o $(BIN)/modConstants.o
 	$(COMP) $(F_OPTS) -c $< -o $@	
 
 

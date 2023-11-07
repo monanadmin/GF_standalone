@@ -1,4 +1,4 @@
-# script to execute gf.x sometimes with HPCToolkit profiler
+# script to execute ${executable} sometimes with HPCToolkit profiler
 
 # MONAN
 #
@@ -13,20 +13,21 @@
 
 # Full description
 # =================
-# This script executes locally gf.x 3 times (configurable) with HPCToolkit profile on. 
+# This script executes locally ${executable} x times (configurable) with HPCToolkit or gprof profile. 
 #
 # Observe:
-# - Must load HPCToolkit module before. 
-#   ex: module load hpctoolkit-2021.10.15-gcc-9.4.0-i3utntd
 # - The execution must be done in the original folder (scripts)
 #
-# Usage: ./run_gf_times_with_hpctoolkit.sh
+# Usage: ./run_gf_times_with_hpctoolkit.sh <run_tool>
+#
+# Where: <run_tool> is 'hpctoolkit' or 'gprof'
 #
 #
 # History
 # =======
 # 2023/02/08 - Initial commit - deniseiras
-# 2023/02/16 - Inseridas opções para trabalhar com gprof e com Hpctoolkit no slurm
+# 2023/02/16 - Hpctoolkit and gprof code
+# 2023/11/01 - Including parameter options and gprof submission job
 #
 #
 # Licence
@@ -49,50 +50,76 @@
 #
 
 # parameters
+run_tool=$1
 times_to_execute=1
 
-source env_hpctoolkit.sh
+if [ -z ${run_tool} ]; then
+  echo "No argument providade. Please, inform 'hpctoolkit' or 'gprof'"
+  exit -1
+elif [ "$1" != "hpctoolkit" ] && [ "$1" != "gprof" ]; then
+    echo "Please, inform 'hpctoolkit' or 'gprof' in the first argument. Informed: $1"
+fi
+
+. ./env_hpctoolkit_gprof.sh
 
 # code
 ln -fs ../datain/gf.inp
 ln -fs ../datain/GF_ConvPar_nml
-ln -fs ../datain/GATE.dat
+# ln -fs ../datain/GATE.dat
+ln -fs ../datain/gf_dataIn-9600.bin
 
-hpct_measure="hpctoolkit-gf.x-measurements"
-hpct_struct="gf.x.hpcstruct"
-hpct_db="hpctoolkit-gf.x-database"
+executable="gf.x"
+exec_patch="../bin/gf.x"
 
-rm -rf executions 
+hpct_measure="hpctoolkit-${executable}-measurements"
+hpct_struct="${executable}.hpcstruct"
+hpct_db="hpctoolkit-${executable}-database"
+
+NOW=$(date +'%y%m%d-%H%M%S')
+mv executions executions_$NOW
 
 for counter in $(seq 1 $times_to_execute); do 
   dir_exec="executions/exec_${counter}"
   rm -rf ${dir_exec}
   mkdir -p ${dir_exec}
 
-  echo -e "\n\n\nExecution of profiler on gf.x # $counter"
+  echo -e "\n\n\nExecution of profiler ${run_tool} on ${executable} # $counter"
 
-  # for HPCtoolkit on nodes  =======================
-  sbatch -W submit_hpctoolkit_from_script_run_gf_times.sbatch
-  mv $hpct_measure $hpct_structf ${hpct_db} slurm*.out ${dir_exec}
-    
-  # for HPCtoolkit local  =======================
-  # hpcrun -t ../bin/gf.x 
-  # hpcstruct ../bin/gf.x 
-  # hpcprof -I . -S ${hpct_struct} ${hpct_measure}
-  # mv $hpct_measure $hpct_structf ${hpct_db} ${dir_exec}
+  if [ ${run_tool} == 'hpctoolkit' ]; then
+    # for HPCtoolkit on nodes  =======================
+    sbatch -W submit_hpctoolkit_from_script_run_gf_times.sbatch
+    sleep 30
+    mv ${hpct_measure} ${hpct_struct} ${hpct_db} ${dir_exec}
+    echo -e "\n\n\nFinished!!! \n"
+    echo -e "\n\nCheck HPCToolkit results:\n\tsource env_hpctoolkit_gprof.sh\n\thpcviewer ${dir_exec}/hpctoolkit-${executable}-database"
 
-  # for gprof local =============================
-  # ../bin/gf.x
-  # gprof --graph ../bin/gf.x > gprof.out  # --exec-times --graph --brief --flat-profile
-  # mv ./gmon.out ./gprof.out ${dir_exec}
-
-  # for all
-  mv ref_g.* ${dir_exec}
+  elif [ ${run_tool} == 'gprof' ]; then
+    # for gprof on nodes  =======================
+    sbatch -W submit_gprof_from_script_run_gf_times.sbatch
+    sleep 30
+    mv ./gmon.out ./gprof.out ${dir_exec}
+    echo -e "\n\n\nFinished!!! \n"
+    echo -e "\n\nCheck Gprof results     :\n\tmore ${dir_exec}/gprof.out"
+  fi
+  
+  #mv ref_g.* ${dir_exec}
+  mv slurm*.out ${dir_exec}
+  echo -e "\n\n"
 
 done
 
 
-echo -e "\n\n\nFinished!!! \nCheck results in executions folder, which could be databases of HPCToolkit and/or gprof.out, depending of code comented or not in the script"
-echo -e "\n\nView HPCToolkit results:\n\tsource env_hpctoolkit.sh\n\thpcviewer ${dir_exec}/hpctoolkit-gf.x-database"
-echo -e "\n\nView Gprof results     :\n\tmore ${dir_exec}/gprof.out"
-echo -e "\n\n"
+
+# for running locally
+
+  # for HPCtoolkit local  =======================
+  # hpcrun -t ../bin/${executable}
+  # hpcstruct ../bin/${executable}
+  # hpcprof -I . -S ${hpct_struct} ${hpct_measure}
+  # mv $hpct_measure $hpct_structf ${hpct_db} ${dir_exec}
+
+  # for gprof local =============================
+  # ../bin/${executable}
+  # gprof --graph ../bin/${executable} > gprof.out  # --exec-times --graph --brief --flat-profile
+  # mv ./gmon.out ./gprof.out ${dir_exec}
+

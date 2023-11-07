@@ -15,17 +15,22 @@ DATAIN=${DIRHOME}/datain
 SRC=${DIRHOME}/src
 BIN=${DIRHOME}/bin
 
-
 # Verificando o argumento de entrada
 COMPILER=${1:-"gnu"}
+EXECUTE_LOCAL=${2:-true}
+
 if [ -z "${1}" ]
 then
   echo "Compiler is not set: gnu or intel"
   echo "$COMPILER is set by default" 
 fi
-  
 echo "COMPILER=$COMPILER"
 
+if [ $COMPILER == 'gnu' ]; then
+  . env_hpctoolkit_gprof.sh
+fi
+
+mkdir -p ${DATAOUT}
 cd ${BIN}
 /bin/cp Makefile_3D Makefile
 echo "Compilando"
@@ -33,12 +38,15 @@ comando="make clean; make $COMPILER"
 #comando="make $COMPILER"
 echo $comando; eval $comando
 
-# for FPM Fortran Benchmarking use only
-#(cd ../; ./FPM.sh)
+if [ "${EXECUTE_LOCAL}" = true ]; then
 
-(cd ${DATAOUT}; rm *.gra *.ctl)
-cd ${DATAIN}
-echo "Executando"
-time ${BIN}/gf.x
+  # for FPM Fortran Benchmarking use only
+  #(cd ../; ./FPM.sh)
+  
+  (cd ${DATAOUT}; rm *.gra *.ctl)
+  cd ${DATAIN}
+  echo "Executando"
+  time ${BIN}/gf.x
 
-echo "done"
+  echo "done"
+fi

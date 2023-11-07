@@ -21,14 +21,33 @@ BASE=gf
 EXE=$(BASE).x
 ARC=$(BASE).a
 
-# Opcoes para o compilador gfortran:
-# GNU_OPTS=-O3 -ffree-line-length-200 #-fdefault-real-8
+
+
+# gfortran opts:
+# =============
+
+# default compile for evaluation
 GNU_OPTS=-O0 -ffree-form -fno-range-check -ffree-line-length-none \
  -Wall -fbacktrace -g -fcheck=bounds -fcheck=all -finit-real=nan #-fallow-argument-mismatch \
 
-# Opcoes para o compilador ifort:
-#INTEL_OPTS=-O0 -g -check bounds -traceback -check uninit -r8 -free
+# HPC Toolkit opts
+#GNU_OPTS=-O0 -g -fbacktrace -ffree-form -fno-range-check -ffree-line-length-none
+
+# gprof opts
+#GNU_OPTS=-O0 -pg -fbacktrace -ffree-form -fno-range-check -ffree-line-length-none
+
+# default options for performance (TODO - improve)
+# GNU_OPTS=-O3 -ffree-line-length-200
+
+
+
+# intel opts
+# ==========
+
+# default compile for evaluation
 INTEL_OPTS=-O0 -g -check bounds -traceback -check uninit     -free
+
+
 
 dummy:
 	@$(MAKE) usage --no-print-directory

@@ -9,8 +9,6 @@
 #SBATCH --exclusive
 
 executable="../bin/gf.x"
-hpct_measure="hpctoolkit-gf.x-measurements"
-hpct_struct="gf.x.hpcstruct"
 
 source env_hpctoolkit_gprof.sh
 
@@ -20,12 +18,10 @@ export OMP_NUM_THREADS=1
 cd  $SLURM_SUBMIT_DIR
 echo "SLURM_JOB_NUM_NODES = $SLURM_JOB_NUM_NODES"
 
-echo "./${executable}"
+echo "Running ${executable} with gprof"
 
-hpcrun -t ${executable}
-hpcstruct ${executable}
-mv ${hpct_measure}-${SLURM_JOBID} ${hpct_measure}
-hpcprof -I . -S ${hpct_struct} ${hpct_measure}
+${executable}
+gprof --graph ./${executable} > gprof.out  #  other options:  --exec-times --graph --brief --flat-profile
 
 exit
 
